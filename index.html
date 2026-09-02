@@ -249,16 +249,64 @@
   #panelEmojis {
     display: none;
     margin-top: 8px;
-    padding: 8px;
     border: 1px solid #eee;
     border-radius: 8px;
-    max-height: 150px;
-    overflow-y: auto;
+    overflow: hidden;
+  }
+  #panelEmojis.abierto { display: block; }
+
+  #buscarEmojiWrap {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    background: #fafafa;
+  }
+  #buscarEmoji {
+    width: 100%;
+    padding: 7px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+
+  #tabsEmojiCategorias {
+    display: flex;
+    overflow-x: auto;
+    background: #fafafa;
+    border-bottom: 1px solid #eee;
+  }
+  #tabsEmojiCategorias::-webkit-scrollbar { height: 4px; }
+  .tab-categoria {
+    flex-shrink: 0;
+    border: none;
+    background: none;
+    padding: 7px 10px;
+    font-size: 18px;
+    cursor: pointer;
+    opacity: .45;
+    border-bottom: 2px solid transparent;
+  }
+  .tab-categoria.activa {
+    opacity: 1;
+    border-bottom: 2px solid #1a73e8;
+  }
+
+  #gridEmojis {
+    display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 4px;
+    padding: 8px;
+    max-height: 200px;
+    overflow-y: auto;
   }
-  #panelEmojis.abierto { display: grid; }
-  #panelEmojis button {
+  #gridEmojis .sin-resultados {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 12px;
+    color: #888;
+    padding: 12px 0;
+    font-style: italic;
+  }
+  #gridEmojis button {
     background: none;
     border: none;
     font-size: 20px;
@@ -267,7 +315,7 @@
     padding: 4px 0;
     font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
   }
-  #panelEmojis button:hover { background: #f1f3f4; }
+  #gridEmojis button:hover { background: #f1f3f4; }
 
   #filaCopiar {
     margin-top: 14px;
@@ -356,7 +404,13 @@
       <input type="text" id="inpEmoji" placeholder="🥖" maxlength="4">
       <button type="button" id="btnAbrirEmojis" title="Elegir emoji">😀</button>
     </div>
-    <div id="panelEmojis"><!-- emojis generados por JS --></div>
+    <div id="panelEmojis">
+      <div id="buscarEmojiWrap">
+        <input type="text" id="buscarEmoji" placeholder="🔎 Buscar emoji… (ej. pan, taxi, doctor)">
+      </div>
+      <div id="tabsEmojiCategorias"><!-- pestañas generadas por JS --></div>
+      <div id="gridEmojis"><!-- emojis generados por JS --></div>
+    </div>
 
     <label for="inpColor">Color (opcional)</label>
     <input type="color" id="inpColor" value="#1a73e8">
@@ -684,62 +738,963 @@ btnCopiarFila.addEventListener('click', async () => {
 });
 
 /* =========================================================
-   SELECTOR DE EMOJIS
+   SELECTOR DE EMOJIS (buscador + categorías, catálogo amplio)
    ========================================================= */
-const EMOJIS_NEGOCIOS = [
-  // Comida y panadería
-  '🥖','🍞','🥐','🧁','🍰','🎂','🍩','🍪','🥧','🍫','🍬','🍭','🍯',
-  // Café, bebidas y bares
-  '☕','🍵','🧃','🥤','🧋','🍺','🍻','🍷','🥂','🍸','🍹','🥃','🍶',
-  // Comida rápida y restaurantes
-  '🍕','🍔','🌭','🌮','🌯','🥙','🥪','🍟','🍗','🍖','🥩','🍤','🍣',
-  '🍱','🍜','🍝','🍲','🥘','🍛','🍚','🥗','🍳','🥟','🍢','🍡','🍿',
-  // Frutas y mercado
-  '🍎','🍏','🍊','🍋','🍌','🍉','🍇','🍓','🥝','🍑','🍍','🥑','🥕',
-  '🥦','🌽','🥬','🥔','🍆','🐟','🐠','🦐','🦀','🥩',
-  // Herramientas y construcción
-  '🔧','🔨','🛠️','🪛','🔩','🧱','🏗️','🪚','🪓','🧰','⚙️','🪜','🧲',
-  // Belleza y cuidado personal
-  '💇‍♀️','💇‍♂️','✂️','💅','💆‍♀️','💆‍♂️','🧴','🧼','🪒','🧖‍♀️','🧖‍♂️','💄','👗',
-  // Salud
-  '🩺','💊','🏥','🚑','🩹','🦷','🧬','💉','🩻','👓','🦻','🧠',
-  // Comercio y tiendas
-  '🛒','🏪','🏬','🧺','🧵','🧶','🛍️','👕','👖','👔','👟','👜','💍',
-  '🧦','🧤','🧢','👗','🥾','👠',
-  // Arte, cultura y educación
-  '🎨','🖼️','📚','✏️','🖊️','🖨️','📖','📝','🎭','🎼','🎸','🎹','🎺',
-  '🎬','📸','📷','🎮','🧩','🎲',
-  // Transporte y automotriz
-  '🚗','🚕','🚌','🚚','🚛','🚜','🏍️','🚲','⛽','🚘','🚙','🚓','🚐',
-  '✈️','🚉','🚢','🛺',
-  // Hogar, inmuebles y jardinería
-  '🏠','🏡','🏢','🔑','🛋️','🚪','🪑','🛏️','🧹','🧺','🪴','🌿','🌱',
-  '🌸','🌻','🌷','🌳','🍃',
-  // Mascotas y animales
-  '🐾','🐶','🐱','🐴','🐔','🐄','🐟','🦜','🐹','🐰',
-  // Tecnología y oficina
-  '💻','🖥️','📱','⌨️','🖱️','🔌','📡','🛰️','💾','🖨️','📠','☎️',
-  // Finanzas, servicios y profesionales
-  '💼','💰','💵','🏦','📊','📈','📉','🧾','⚖️','📑','🗂️','✍️',
-  // Deportes y recreación
-  '⚽','🏀','🏈','🎾','🏐','🏓','🥊','🏋️‍♂️','🧘‍♀️','🚴‍♂️','🏊‍♂️','⛳','🎯',
-  // Otros negocios y servicios
-  '🏨','🏭','🏛️','⛪','🕌','🛎️','🔔','📦','🚀','🎪','🎡','🎢','🎟️',
-  '🧯','🔥','💡','🔋','🌡️','🧪','🧫','🔬','🛡️','📷'
+const EMOJI_CATEGORIAS = [
+  {
+    nombre: "Comida y bebida",
+    emojis: [
+      ["🥖", "pan baguette panaderia bakery"],
+      ["🍞", "pan panaderia bread rebanada"],
+      ["🥐", "cuerno croissant panaderia"],
+      ["🥯", "bagel pan panaderia"],
+      ["🧁", "cupcake pastel panaderia reposteria"],
+      ["🍰", "pastel rebanada reposteria dulceria"],
+      ["🎂", "pastel cumpleanos torta reposteria"],
+      ["🍩", "dona donut panaderia dulceria"],
+      ["🍪", "galleta panaderia dulceria"],
+      ["🥧", "pay tarta panaderia reposteria"],
+      ["🍫", "chocolate dulceria dulce"],
+      ["🍬", "dulce caramelo dulceria"],
+      ["🍭", "paleta caramelo dulceria"],
+      ["🍯", "miel dulceria"],
+      ["☕", "cafe cafeteria bebida"],
+      ["🍵", "te cafeteria bebida"],
+      ["🧃", "jugo bebida caja"],
+      ["🥤", "refresco bebida vaso soda"],
+      ["🧋", "bubble tea te boba bebida"],
+      ["🍺", "cerveza bar cantina"],
+      ["🍻", "cerveza brindis bar"],
+      ["🍷", "vino bar restaurante"],
+      ["🥂", "brindis copas bar celebracion"],
+      ["🍸", "coctel bar"],
+      ["🍹", "coctel tropical bar"],
+      ["🥃", "whisky licor bar"],
+      ["🍶", "sake bebida bar"],
+      ["🍾", "champana botella celebracion bar"],
+      ["🧉", "mate bebida"],
+      ["🍼", "biberon bebe leche"],
+      ["🥛", "leche lacteos bebida"],
+      ["🫖", "tetera te bebida"],
+      ["🍕", "pizza restaurante comida rapida"],
+      ["🍔", "hamburguesa restaurante comida rapida"],
+      ["🌭", "hot dog perro caliente comida rapida"],
+      ["🌮", "taco tacos restaurante mexicano"],
+      ["🌯", "burrito tacos restaurante mexicano"],
+      ["🫓", "tortilla pan plano"],
+      ["🥙", "pita sandwich comida rapida"],
+      ["🥪", "sandwich torta comida rapida"],
+      ["🧆", "falafel comida"],
+      ["🍟", "papas fritas comida rapida"],
+      ["🍗", "pollo pierna carne restaurante"],
+      ["🍖", "carne hueso restaurante asador"],
+      ["🥩", "carne bistec res asador carniceria"],
+      ["🥓", "tocino carniceria"],
+      ["🍤", "camaron mariscos restaurante"],
+      ["🍣", "sushi restaurante japones"],
+      ["🍱", "bento sushi restaurante japones"],
+      ["🥟", "empanada dumpling restaurante"],
+      ["🦪", "ostra mariscos"],
+      ["🍙", "onigiri arroz japones"],
+      ["🍚", "arroz comida"],
+      ["🍘", "galleta arroz japones"],
+      ["🍥", "pastel pescado japones"],
+      ["🥠", "galleta fortuna china"],
+      ["🥮", "pastel luna chino"],
+      ["🍢", "brocheta oden japones"],
+      ["🍡", "dango dulce japones"],
+      ["🍧", "raspado nieve postre"],
+      ["🍨", "helado nieve heladeria postre"],
+      ["🍦", "helado cono heladeria postre"],
+      ["🥧", "pay postre"],
+      ["🍮", "flan postre"],
+      ["🍿", "palomitas cine snack"],
+      ["🌽", "elote maiz mercado"],
+      ["🥕", "zanahoria verduleria mercado"],
+      ["🥦", "brocoli verduleria mercado"],
+      ["🥬", "lechuga verduleria mercado"],
+      ["🥒", "pepino verduleria mercado"],
+      ["🌶️", "chile picante mercado"],
+      ["🫑", "pimiento verduleria mercado"],
+      ["🫒", "aceituna mercado"],
+      ["🧄", "ajo mercado"],
+      ["🧅", "cebolla mercado"],
+      ["🥔", "papa mercado"],
+      ["🍠", "camote mercado"],
+      ["🍅", "jitomate tomate mercado"],
+      ["🍆", "berenjena mercado"],
+      ["🥑", "aguacate mercado"],
+      ["🍏", "manzana verde fruteria mercado"],
+      ["🍎", "manzana roja fruteria mercado"],
+      ["🍐", "pera fruteria mercado"],
+      ["🍊", "naranja fruteria mercado citricos"],
+      ["🍋", "limon fruteria mercado citricos"],
+      ["🍌", "platano fruteria mercado"],
+      ["🍉", "sandia fruteria mercado"],
+      ["🍇", "uvas fruteria mercado"],
+      ["🍓", "fresa fruteria mercado"],
+      ["🫐", "arandano fruteria mercado"],
+      ["🍈", "melon fruteria mercado"],
+      ["🍒", "cereza fruteria mercado"],
+      ["🍑", "durazno fruteria mercado"],
+      ["🥭", "mango fruteria mercado"],
+      ["🍍", "pina fruteria mercado"],
+      ["🥥", "coco fruteria mercado"],
+      ["🥝", "kiwi fruteria mercado"],
+      ["🍄", "hongo champinon mercado"],
+      ["🥜", "cacahuate nuez mercado"],
+      ["🌰", "castana nuez mercado"],
+      ["🧀", "queso lacteos cremeria"],
+      ["🥚", "huevo mercado"],
+      ["🍳", "huevo frito desayuno"],
+      ["🧈", "mantequilla lacteos"],
+      ["🥞", "hotcakes panqueques desayuno"],
+      ["🧇", "waffle desayuno"],
+      ["🥘", "paella guiso restaurante"],
+      ["🍲", "guiso caldo restaurante"],
+      ["🍝", "pasta espagueti restaurante italiano"],
+      ["🍜", "sopa ramen restaurante"],
+      ["🍛", "curry arroz restaurante"],
+      ["🥗", "ensalada restaurante saludable"],
+      ["🫕", "fondue restaurante"],
+      ["🥫", "lata conserva mercado"],
+      ["🧂", "sal condimento"],
+      ["🧊", "hielo bebida"],
+    ]
+  },
+  {
+    nombre: "Personas y profesiones",
+    emojis: [
+      ["👨‍🍳", "chef cocinero restaurante"],
+      ["👩‍🍳", "chef cocinera restaurante"],
+      ["👨‍🔧", "mecanico tecnico taller"],
+      ["👩‍🔧", "mecanica tecnica taller"],
+      ["👨‍🏭", "obrero fabrica industria"],
+      ["👩‍🏭", "obrera fabrica industria"],
+      ["👨‍💼", "oficinista negocio empresario"],
+      ["👩‍💼", "oficinista negocio empresaria"],
+      ["👨‍⚕️", "doctor medico salud"],
+      ["👩‍⚕️", "doctora medica salud"],
+      ["👨‍🌾", "agricultor granjero campo"],
+      ["👩‍🌾", "agricultora granjera campo"],
+      ["👨‍🎓", "graduado estudiante escuela"],
+      ["👩‍🎓", "graduada estudiante escuela"],
+      ["👨‍🏫", "profesor maestro escuela"],
+      ["👩‍🏫", "profesora maestra escuela"],
+      ["👨‍💻", "programador tecnologia oficina"],
+      ["👩‍💻", "programadora tecnologia oficina"],
+      ["👨‍🎨", "artista pintor"],
+      ["👩‍🎨", "artista pintora"],
+      ["👨‍✈️", "piloto aviacion"],
+      ["👩‍✈️", "piloto aviacion"],
+      ["👨‍🚀", "astronauta"],
+      ["👩‍🚀", "astronauta"],
+      ["👨‍🚒", "bombero"],
+      ["👩‍🚒", "bombera"],
+      ["👮", "policia seguridad"],
+      ["🕵️", "detective investigador"],
+      ["💂", "guardia seguridad"],
+      ["👷", "construccion obrero casco"],
+      ["🤴", "principe realeza"],
+      ["👸", "princesa realeza"],
+      ["👳", "turbante persona"],
+      ["👲", "gorro persona"],
+      ["🧕", "hiyab persona"],
+      ["🤵", "novio traje formal"],
+      ["👰", "novia vestido boda"],
+      ["🤰", "embarazada"],
+      ["🤱", "lactancia bebe"],
+      ["👼", "angel bebe"],
+      ["🎅", "santa claus navidad"],
+      ["🤶", "mama noel navidad"],
+      ["🦸", "superheroe"],
+      ["🦹", "supervillano"],
+      ["🧙", "mago magia"],
+      ["🧚", "hada"],
+      ["🧜", "sirena"],
+      ["🧞", "genio"],
+      ["💆", "spa masaje relajacion"],
+      ["💇", "corte cabello estetica peluqueria"],
+      ["🚶", "caminar peaton"],
+      ["🏃", "correr ejercicio"],
+      ["💃", "baile danza fiesta"],
+      ["🕺", "baile danza fiesta"],
+      ["🧘", "yoga meditacion relajacion"],
+      ["🛀", "banar spa"],
+      ["👤", "persona silueta"],
+      ["👥", "personas equipo grupo"],
+      ["🗣️", "hablar orador vocero"],
+      ["👶", "bebe recien nacido"],
+      ["🧒", "nino infante"],
+      ["👦", "nino"],
+      ["👧", "nina"],
+      ["🧑", "persona adulto"],
+      ["👨", "hombre"],
+      ["👩", "mujer"],
+      ["🧓", "persona mayor"],
+      ["👴", "abuelo anciano"],
+      ["👵", "abuela anciana"],
+      ["💪", "fuerza musculo gimnasio"],
+      ["🙌", "celebracion manos exito"],
+      ["👏", "aplauso felicitacion"],
+      ["🤝", "acuerdo trato negocio saludo"],
+      ["👍", "bien aprobado like"],
+      ["👎", "mal desaprobado dislike"],
+      ["✍️", "firmar escribir documento"],
+      ["💅", "manicure unas estetica"],
+    ]
+  },
+  {
+    nombre: "Animales y naturaleza",
+    emojis: [
+      ["🐶", "perro mascota veterinaria"],
+      ["🐕", "perro mascota veterinaria"],
+      ["🐩", "perro poodle mascota estetica"],
+      ["🐈", "gato mascota veterinaria"],
+      ["🐱", "gato mascota veterinaria"],
+      ["🐭", "raton mascota"],
+      ["🐹", "hamster mascota"],
+      ["🐰", "conejo mascota"],
+      ["🦊", "zorro animal"],
+      ["🐻", "oso animal"],
+      ["🐼", "panda animal"],
+      ["🐨", "koala animal"],
+      ["🐯", "tigre animal"],
+      ["🦁", "leon animal"],
+      ["🐮", "vaca ganaderia rancho"],
+      ["🐷", "cerdo granja rancho"],
+      ["🐽", "cerdo nariz granja"],
+      ["🐸", "rana animal"],
+      ["🐵", "mono animal"],
+      ["🐔", "gallina pollo granja avicola"],
+      ["🐧", "pinguino animal"],
+      ["🐦", "ave pajaro"],
+      ["🐤", "pollito ave granja"],
+      ["🦆", "pato ave granja"],
+      ["🦅", "aguila ave"],
+      ["🦉", "buho ave"],
+      ["🦇", "murcielago animal"],
+      ["🐺", "lobo animal"],
+      ["🐗", "jabali animal"],
+      ["🐴", "caballo equino rancho"],
+      ["🦄", "unicornio fantasia"],
+      ["🐝", "abeja miel apicultura"],
+      ["🐛", "oruga insecto"],
+      ["🦋", "mariposa insecto"],
+      ["🐌", "caracol insecto"],
+      ["🐞", "mariquita insecto"],
+      ["🐜", "hormiga insecto"],
+      ["🕷️", "arana insecto"],
+      ["🐢", "tortuga animal"],
+      ["🐍", "serpiente animal"],
+      ["🦎", "lagartija reptil"],
+      ["🐙", "pulpo mariscos mar"],
+      ["🦑", "calamar mariscos mar"],
+      ["🦐", "camaron mariscos"],
+      ["🦞", "langosta mariscos"],
+      ["🦀", "cangrejo mariscos"],
+      ["🐡", "pez globo pescaderia"],
+      ["🐠", "pez tropical acuario"],
+      ["🐟", "pez pescaderia"],
+      ["🐬", "delfin mar"],
+      ["🐳", "ballena mar"],
+      ["🐋", "ballena mar"],
+      ["🦈", "tiburon mar"],
+      ["🐊", "cocodrilo reptil"],
+      ["🐅", "tigre animal"],
+      ["🐆", "leopardo animal"],
+      ["🦓", "cebra animal"],
+      ["🦍", "gorila animal"],
+      ["🐘", "elefante animal"],
+      ["🦛", "hipopotamo animal"],
+      ["🐪", "camello animal"],
+      ["🦒", "jirafa animal"],
+      ["🐄", "vaca ganaderia rancho"],
+      ["🐎", "caballo equino rancho"],
+      ["🐖", "cerdo granja"],
+      ["🐑", "oveja lana ganaderia"],
+      ["🦙", "llama animal"],
+      ["🐐", "cabra ganaderia"],
+      ["🦌", "venado animal"],
+      ["🐕‍🦺", "perro guia servicio"],
+      ["🦮", "perro guia servicio"],
+      ["🐓", "gallo granja avicola"],
+      ["🦃", "pavo granja avicola"],
+      ["🦚", "pavorreal ave"],
+      ["🦜", "loro ave mascota"],
+      ["🦢", "cisne ave"],
+      ["🕊️", "paloma ave paz"],
+      ["🐇", "conejo mascota"],
+      ["🦔", "erizo animal"],
+      ["🐾", "huellas mascota veterinaria"],
+      ["🌵", "cactus planta vivero"],
+      ["🎄", "arbol navidad decoracion"],
+      ["🌲", "pino arbol vivero"],
+      ["🌳", "arbol vivero jardin"],
+      ["🌴", "palmera jardin vivero"],
+      ["🌱", "planta germinado vivero jardin"],
+      ["🌿", "hierba planta vivero jardin"],
+      ["☘️", "trebol planta suerte"],
+      ["🍀", "trebol cuatro hojas suerte jardin"],
+      ["🪴", "maceta planta vivero"],
+      ["🍃", "hojas jardin naturaleza"],
+      ["🍂", "hojas otono jardin"],
+      ["🍁", "hoja arce otono jardin"],
+      ["🌾", "trigo agricultura campo"],
+      ["💐", "ramo flores floreria"],
+      ["🌷", "tulipan flor floreria"],
+      ["🌹", "rosa flor floreria"],
+      ["🥀", "flor marchita floreria"],
+      ["🌺", "flor tropical floreria"],
+      ["🌸", "flor cerezo floreria"],
+      ["🌼", "flor margarita floreria"],
+      ["🌻", "girasol flor floreria"],
+      ["☀️", "sol clima soleado"],
+      ["⛅", "nublado clima"],
+      ["🌈", "arcoiris clima"],
+      ["⭐", "estrella"],
+      ["🌙", "luna noche"],
+      ["🔥", "fuego calor"],
+      ["💧", "gota agua"],
+      ["🌊", "ola mar playa"],
+    ]
+  },
+  {
+    nombre: "Viajes y lugares",
+    emojis: [
+      ["🚗", "auto carro automotriz taller"],
+      ["🚕", "taxi transporte"],
+      ["🚙", "suv camioneta automotriz"],
+      ["🚌", "autobus transporte"],
+      ["🚎", "trolebus transporte"],
+      ["🏎️", "auto carreras deportivo"],
+      ["🚓", "patrulla policia"],
+      ["🚑", "ambulancia emergencia salud"],
+      ["🚒", "bomberos emergencia"],
+      ["🚐", "van transporte"],
+      ["🛻", "pickup camioneta automotriz"],
+      ["🚚", "camion carga transporte"],
+      ["🚛", "camion trailer transporte carga"],
+      ["🚜", "tractor agricultura"],
+      ["🛵", "moto scooter delivery"],
+      ["🏍️", "motocicleta automotriz"],
+      ["🛺", "mototaxi transporte"],
+      ["🚲", "bicicleta bici transporte"],
+      ["🛴", "patineta scooter"],
+      ["🛹", "patineta skate deporte"],
+      ["🚨", "sirena emergencia alerta"],
+      ["🚔", "patrulla policia"],
+      ["🚍", "autobus transporte"],
+      ["🚘", "auto automotriz"],
+      ["🚖", "taxi transporte"],
+      ["🚡", "teleferico transporte"],
+      ["🚠", "teleferico montana transporte"],
+      ["🚟", "tren suspendido transporte"],
+      ["🚃", "vagon tren transporte"],
+      ["🚋", "tranvia transporte"],
+      ["🚞", "tren montana transporte"],
+      ["🚄", "tren bala transporte"],
+      ["🚅", "tren bala transporte"],
+      ["🚈", "tren ligero transporte"],
+      ["🚂", "locomotora tren transporte"],
+      ["🚆", "tren transporte"],
+      ["🚇", "metro subterraneo transporte"],
+      ["🚊", "tranvia transporte"],
+      ["🚉", "estacion tren transporte"],
+      ["✈️", "avion aerolinea viajes"],
+      ["🛫", "despegue avion viajes"],
+      ["🛬", "aterrizaje avion viajes"],
+      ["🛩️", "avioneta viajes"],
+      ["💺", "asiento avion viajes"],
+      ["🛰️", "satelite tecnologia"],
+      ["🚀", "cohete lanzamiento startup"],
+      ["🚁", "helicoptero transporte"],
+      ["🛶", "canoa lancha mar"],
+      ["⛵", "velero barco mar"],
+      ["🚤", "lancha rapida mar"],
+      ["🛥️", "yate barco mar"],
+      ["🛳️", "crucero barco viajes"],
+      ["⛴️", "ferry barco transporte"],
+      ["🚢", "barco transporte mar"],
+      ["⚓", "ancla barco mar"],
+      ["⛽", "gasolina combustible estacion"],
+      ["🚧", "construccion obra precaucion"],
+      ["🚦", "semaforo transito"],
+      ["🚥", "semaforo transito"],
+      ["🚏", "parada autobus transporte"],
+      ["🗺️", "mapa viajes ubicacion"],
+      ["🗽", "monumento turismo"],
+      ["🗼", "torre turismo"],
+      ["🏰", "castillo turismo"],
+      ["🏯", "castillo japones turismo"],
+      ["🏟️", "estadio deportes"],
+      ["🎡", "rueda fortuna feria"],
+      ["🎢", "montana rusa feria"],
+      ["🎠", "carrusel feria"],
+      ["⛲", "fuente parque"],
+      ["⛱️", "sombrilla playa"],
+      ["🏖️", "playa turismo"],
+      ["🏝️", "isla playa turismo"],
+      ["🏜️", "desierto turismo"],
+      ["🌋", "volcan turismo"],
+      ["⛰️", "montana turismo"],
+      ["🏔️", "montana nevada turismo"],
+      ["🗻", "montana fuji turismo"],
+      ["🏕️", "campamento turismo"],
+      ["⛺", "tienda campana camping"],
+      ["🏠", "casa hogar inmobiliaria"],
+      ["🏡", "casa jardin inmobiliaria"],
+      ["🏘️", "casas colonia inmobiliaria"],
+      ["🏚️", "casa abandonada"],
+      ["🏗️", "construccion edificio obra"],
+      ["🏭", "fabrica industria"],
+      ["🏢", "edificio oficina negocio"],
+      ["🏬", "centro comercial tienda"],
+      ["🏣", "oficina correos japon"],
+      ["🏤", "oficina correos"],
+      ["🏥", "hospital salud clinica"],
+      ["🏦", "banco finanzas"],
+      ["🏨", "hotel hospedaje"],
+      ["🏪", "tienda conveniencia minisuper"],
+      ["🏫", "escuela educacion"],
+      ["🏩", "hotel amor"],
+      ["💒", "boda iglesia matrimonio"],
+      ["🏛️", "edificio gobierno museo"],
+      ["⛪", "iglesia religion"],
+      ["🕌", "mezquita religion"],
+      ["🕍", "sinagoga religion"],
+      ["🛕", "templo religion"],
+      ["🕋", "kaaba religion"],
+      ["⛩️", "santuario religion"],
+      ["🗾", "mapa japon"],
+      ["🎑", "luna llena celebracion"],
+      ["🏞️", "paisaje parque naturaleza"],
+      ["🧭", "brujula navegacion viajes"],
+    ]
+  },
+  {
+    nombre: "Actividades y deportes",
+    emojis: [
+      ["⚽", "futbol deporte balon"],
+      ["🏀", "basquetbol deporte balon"],
+      ["🏈", "futbol americano deporte"],
+      ["⚾", "beisbol deporte"],
+      ["🥎", "softbol deporte"],
+      ["🎾", "tenis deporte raqueta"],
+      ["🏐", "voleibol deporte"],
+      ["🏉", "rugby deporte"],
+      ["🥏", "frisbee deporte"],
+      ["🎱", "billar deporte"],
+      ["🪀", "yoyo juguete"],
+      ["🏓", "ping pong deporte"],
+      ["🏸", "badminton deporte raqueta"],
+      ["🏒", "hockey deporte"],
+      ["🏑", "hockey cesped deporte"],
+      ["🥍", "lacrosse deporte"],
+      ["🏏", "criquet deporte"],
+      ["🥅", "porteria gol deporte"],
+      ["⛳", "golf deporte"],
+      ["🪁", "cometa juguete"],
+      ["🏹", "arqueria deporte"],
+      ["🎣", "pesca deporte"],
+      ["🤿", "buceo esnorquel deporte"],
+      ["🥊", "boxeo deporte"],
+      ["🥋", "artes marciales deporte"],
+      ["🎽", "carrera atletismo deporte"],
+      ["🛹", "patineta skate deporte"],
+      ["🛼", "patines deporte"],
+      ["🛷", "trineo deporte invierno"],
+      ["⛸️", "patinaje hielo deporte"],
+      ["🥌", "curling deporte"],
+      ["🎿", "esqui deporte invierno"],
+      ["⛷️", "esquiar deporte invierno"],
+      ["🏂", "snowboard deporte invierno"],
+      ["🏋️", "levantamiento pesas gimnasio"],
+      ["🤼", "lucha deporte"],
+      ["🤸", "gimnasia deporte"],
+      ["⛹️", "basquetbol jugador deporte"],
+      ["🤺", "esgrima deporte"],
+      ["🤾", "balonmano deporte"],
+      ["🏌️", "golf jugador deporte"],
+      ["🏇", "hipica caballo deporte"],
+      ["🧘", "yoga meditacion gimnasio"],
+      ["🏄", "surf deporte agua"],
+      ["🏊", "natacion deporte alberca"],
+      ["🤽", "polo agua deporte"],
+      ["🚣", "remo deporte agua"],
+      ["🧗", "escalada deporte"],
+      ["🚵", "ciclismo montana deporte"],
+      ["🚴", "ciclismo deporte"],
+      ["🏆", "trofeo campeonato ganador"],
+      ["🥇", "medalla oro ganador"],
+      ["🥈", "medalla plata ganador"],
+      ["🥉", "medalla bronce ganador"],
+      ["🏅", "medalla deporte premio"],
+      ["🎖️", "medalla militar honor"],
+      ["🎗️", "listón conciencia campana"],
+      ["🎫", "boleto entrada evento"],
+      ["🎟️", "boleto entrada evento espectaculo"],
+      ["🎪", "circo carpa evento"],
+      ["🤹", "malabares circo"],
+      ["🎭", "teatro drama mascara"],
+      ["🩰", "ballet danza"],
+      ["🎨", "arte pintura taller"],
+      ["🎬", "cine pelicula produccion"],
+      ["🎤", "microfono karaoke musica"],
+      ["🎧", "audifonos musica"],
+      ["🎼", "partitura musica"],
+      ["🎹", "piano musica instrumento"],
+      ["🥁", "tambor musica instrumento"],
+      ["🪘", "conga musica instrumento"],
+      ["🎷", "saxofon musica instrumento"],
+      ["🎺", "trompeta musica instrumento"],
+      ["🪗", "acordeon musica instrumento"],
+      ["🎸", "guitarra musica instrumento"],
+      ["🪕", "banjo musica instrumento"],
+      ["🎻", "violin musica instrumento"],
+      ["🎲", "dados juegos"],
+      ["♟️", "ajedrez juegos estrategia"],
+      ["🎯", "dardos diana juegos"],
+      ["🎳", "boliche deporte juegos"],
+      ["🎮", "videojuegos gaming"],
+      ["🎰", "tragamonedas casino juegos"],
+      ["🧩", "rompecabezas puzzle juegos"],
+    ]
+  },
+  {
+    nombre: "Objetos y negocios",
+    emojis: [
+      ["⌚", "reloj accesorio relojeria"],
+      ["📱", "celular telefono tecnologia"],
+      ["💻", "laptop computadora tecnologia oficina"],
+      ["⌨️", "teclado tecnologia oficina"],
+      ["🖥️", "computadora escritorio tecnologia oficina"],
+      ["🖨️", "impresora oficina papeleria"],
+      ["🖱️", "mouse tecnologia oficina"],
+      ["🕹️", "control videojuegos"],
+      ["💽", "disco almacenamiento tecnologia"],
+      ["💾", "guardar disco tecnologia"],
+      ["💿", "cd disco tecnologia"],
+      ["📷", "camara fotografia"],
+      ["📸", "camara flash fotografia"],
+      ["📹", "videocamara fotografia"],
+      ["🎥", "camara cine produccion"],
+      ["📞", "telefono llamada"],
+      ["☎️", "telefono fijo llamada"],
+      ["📠", "fax oficina"],
+      ["📺", "television tienda electronica"],
+      ["📻", "radio tienda electronica"],
+      ["🎙️", "microfono podcast estudio"],
+      ["🧭", "brujula navegacion"],
+      ["⏱️", "cronometro tiempo"],
+      ["⏰", "alarma reloj despertador"],
+      ["🕰️", "reloj antiguo relojeria"],
+      ["⌛", "reloj arena tiempo"],
+      ["⏳", "reloj arena tiempo espera"],
+      ["📡", "antena satelital tecnologia"],
+      ["🔋", "bateria energia"],
+      ["🔌", "enchufe electricidad"],
+      ["💡", "foco idea electricidad iluminacion"],
+      ["🕯️", "vela iluminacion decoracion"],
+      ["🧯", "extintor seguridad"],
+      ["🛢️", "barril petroleo combustible"],
+      ["💸", "dinero volando finanzas gastos"],
+      ["💵", "billete dinero finanzas"],
+      ["💴", "yenes dinero finanzas"],
+      ["💶", "euros dinero finanzas"],
+      ["💷", "libras dinero finanzas"],
+      ["🪙", "moneda dinero finanzas"],
+      ["💰", "dinero bolsa finanzas ahorro"],
+      ["💳", "tarjeta credito pago finanzas"],
+      ["🧾", "recibo factura finanzas"],
+      ["💎", "diamante joyeria lujo"],
+      ["⚖️", "balanza justicia legal abogado"],
+      ["🧰", "caja herramientas taller"],
+      ["🔧", "llave herramienta taller mecanico"],
+      ["🔨", "martillo herramienta taller"],
+      ["⚒️", "martillo pico herramienta taller"],
+      ["🛠️", "herramientas taller reparacion"],
+      ["⛏️", "pico herramienta mineria"],
+      ["🔩", "tornillo herramienta ferreteria"],
+      ["⚙️", "engranaje mecanica taller"],
+      ["🧱", "ladrillo construccion"],
+      ["⛓️", "cadena herrajeria"],
+      ["🧲", "iman herramienta"],
+      ["🪓", "hacha herramienta"],
+      ["🔪", "cuchillo cocina"],
+      ["🩹", "curita primeros auxilios salud"],
+      ["🩺", "estetoscopio doctor salud"],
+      ["💊", "medicina pastilla farmacia"],
+      ["💉", "jeringa vacuna salud"],
+      ["🧬", "adn laboratorio salud"],
+      ["🦠", "microbio laboratorio salud"],
+      ["🧫", "laboratorio ciencia"],
+      ["🌡️", "termometro salud clima"],
+      ["🧹", "escoba limpieza"],
+      ["🪠", "destapacano plomeria"],
+      ["🧺", "canasta lavanderia"],
+      ["🧻", "papel higienico limpieza"],
+      ["🚽", "inodoro plomeria bano"],
+      ["🚰", "llave agua plomeria"],
+      ["🚿", "regadera bano plomeria"],
+      ["🛁", "tina bano spa"],
+      ["🧴", "botella crema cuidado personal"],
+      ["🧼", "jabon limpieza"],
+      ["🪥", "cepillo dientes dental"],
+      ["🪒", "rastrillo afeitar barberia"],
+      ["🧽", "esponja limpieza"],
+      ["🪣", "cubeta limpieza"],
+      ["🛒", "carrito compras supermercado"],
+      ["🎁", "regalo tienda regalos"],
+      ["🎀", "moño regalo decoracion"],
+      ["🪄", "varita magica magia"],
+      ["🪅", "piñata fiesta"],
+      ["🎈", "globo fiesta decoracion"],
+      ["🎏", "banderin decoracion carpa"],
+      ["🎐", "campanilla viento decoracion"],
+      ["🧧", "sobre rojo regalo dinero"],
+      ["✉️", "sobre correo"],
+      ["📩", "correo mensaje sobre"],
+      ["📨", "correo entrante mensaje"],
+      ["📧", "email correo electronico"],
+      ["💌", "carta amor correo"],
+      ["📥", "bandeja entrada correo"],
+      ["📤", "bandeja salida correo"],
+      ["📦", "paquete caja envio delivery"],
+      ["🏷️", "etiqueta precio producto"],
+      ["📪", "buzon correo cerrado"],
+      ["📫", "buzon correo"],
+      ["📬", "buzon correo abierto"],
+      ["📭", "buzon correo vacio"],
+      ["📮", "buzon postal correo"],
+      ["📯", "corneta postal"],
+      ["📜", "pergamino documento"],
+      ["📃", "documento papel"],
+      ["📄", "documento pagina papel"],
+      ["📑", "documentos marcador"],
+      ["📊", "grafica estadistica negocio"],
+      ["📈", "grafica creciente ventas negocio"],
+      ["📉", "grafica decreciente ventas negocio"],
+      ["🗒️", "notas libreta oficina"],
+      ["🗓️", "calendario planificacion oficina"],
+      ["📆", "calendario fecha oficina"],
+      ["📅", "calendario evento oficina"],
+      ["🗑️", "basura reciclaje"],
+      ["📇", "tarjetero contacto oficina"],
+      ["🗃️", "archivo caja oficina"],
+      ["🗳️", "urna votacion"],
+      ["🗄️", "archivero oficina"],
+      ["📋", "portapapeles lista oficina"],
+      ["📁", "carpeta archivo oficina"],
+      ["📂", "carpeta abierta archivo oficina"],
+      ["🗂️", "carpetas indice oficina"],
+      ["📰", "periodico noticias"],
+      ["📓", "libreta cuaderno oficina"],
+      ["📔", "diario libreta oficina"],
+      ["📒", "libro contabilidad oficina"],
+      ["📕", "libro cerrado libreria"],
+      ["📗", "libro verde libreria"],
+      ["📘", "libro azul libreria"],
+      ["📙", "libro naranja libreria"],
+      ["📚", "libros libreria biblioteca educacion"],
+      ["📖", "libro abierto lectura educacion"],
+      ["🔖", "marcador libro"],
+      ["🔗", "enlace link"],
+      ["📎", "clip oficina papeleria"],
+      ["🖇️", "clips oficina papeleria"],
+      ["📐", "escuadra regla oficina"],
+      ["📏", "regla medicion oficina"],
+      ["🧮", "abaco calculo matematicas"],
+      ["📌", "chincheta pin oficina"],
+      ["📍", "ubicacion pin mapa"],
+      ["✂️", "tijeras oficina papeleria estetica"],
+      ["🖊️", "pluma bolografo oficina"],
+      ["🖋️", "pluma fuente escritura"],
+      ["✒️", "pluma tinta escritura"],
+      ["🖌️", "pincel arte pintura"],
+      ["🖍️", "crayon arte"],
+      ["📝", "nota lapiz escritura oficina"],
+      ["✏️", "lapiz escritura papeleria"],
+      ["🔍", "lupa buscar"],
+      ["🔎", "lupa investigar buscar"],
+      ["🔒", "candado cerrado seguridad"],
+      ["🔓", "candado abierto seguridad"],
+      ["🔑", "llave inmobiliaria acceso"],
+      ["🗝️", "llave antigua acceso"],
+      ["🪪", "identificacion credencial"],
+    ]
+  },
+  {
+    nombre: "Símbolos y señales",
+    emojis: [
+      ["❤️", "corazon amor"],
+      ["🧡", "corazon naranja"],
+      ["💛", "corazon amarillo"],
+      ["💚", "corazon verde"],
+      ["💙", "corazon azul"],
+      ["💜", "corazon morado"],
+      ["🖤", "corazon negro"],
+      ["🤍", "corazon blanco"],
+      ["🤎", "corazon cafe"],
+      ["💯", "cien puntos perfecto"],
+      ["✅", "correcto listo aprobado"],
+      ["❌", "incorrecto cancelar cerrado"],
+      ["⭕", "circulo ok"],
+      ["🛑", "alto stop pare"],
+      ["⛔", "prohibido no entrar"],
+      ["📛", "nombre etiqueta prohibido"],
+      ["🚫", "prohibido no permitido"],
+      ["💢", "enojo simbolo"],
+      ["♨️", "caliente vapor spa"],
+      ["🚷", "prohibido caminar"],
+      ["🚯", "prohibido tirar basura"],
+      ["🚳", "prohibido bicicletas"],
+      ["🚱", "agua no potable"],
+      ["🔞", "prohibido menores"],
+      ["📵", "prohibido celulares"],
+      ["🚭", "prohibido fumar"],
+      ["❗", "exclamacion importante"],
+      ["❓", "pregunta duda"],
+      ["‼️", "doble exclamacion"],
+      ["⁉️", "exclamacion pregunta"],
+      ["⚠️", "advertencia precaucion"],
+      ["🚸", "cruce escolar precaucion"],
+      ["🔱", "tridente simbolo"],
+      ["⚜️", "flor de lis simbolo"],
+      ["♻️", "reciclaje ecologico"],
+      ["✳️", "asterisco simbolo"],
+      ["❇️", "destello simbolo"],
+      ["〽️", "simbolo japones"],
+      ["💠", "diamante simbolo"],
+      ["🌐", "globo internet web"],
+      ["Ⓜ️", "metro simbolo m"],
+      ["🌀", "ciclon espiral"],
+      ["💤", "dormir zzz descanso"],
+      ["🏧", "cajero automatico banco"],
+      ["🚾", "bano wc"],
+      ["♿", "accesibilidad silla ruedas"],
+      ["🅿️", "estacionamiento parking"],
+      ["🚹", "hombres bano"],
+      ["🚺", "mujeres bano"],
+      ["🚼", "bebe cambiador"],
+      ["🚻", "banos publicos"],
+      ["🚮", "tirar basura contenedor"],
+      ["🎦", "cine simbolo"],
+      ["📶", "senal wifi tecnologia"],
+      ["🔤", "letras abecedario"],
+      ["ℹ️", "informacion info"],
+      ["🆗", "ok simbolo"],
+      ["🆕", "nuevo simbolo"],
+      ["🆓", "gratis simbolo"],
+      ["🆒", "genial simbolo"],
+      ["🔟", "numero diez"],
+      ["🔢", "numeros simbolo"],
+      ["#️⃣", "numeral hashtag"],
+      ["➕", "mas suma"],
+      ["➖", "menos resta"],
+      ["➗", "division simbolo"],
+      ["✖️", "multiplicacion por"],
+      ["♾️", "infinito simbolo"],
+      ["💲", "peso dolar signo"],
+      ["™️", "marca registrada"],
+      ["©️", "derechos autor copyright"],
+      ["®️", "marca registrada simbolo"],
+      ["〰️", "onda simbolo"],
+      ["➰", "rizo simbolo"],
+      ["🔚", "fin final"],
+      ["🔙", "atras regresar"],
+      ["🔛", "encendido activo"],
+      ["🔝", "arriba top"],
+      ["🔜", "proximamente pronto"],
+      ["✔️", "palomita correcto"],
+      ["☑️", "casilla marcada correcto"],
+      ["🔘", "boton radio simbolo"],
+      ["🔴", "circulo rojo"],
+      ["🟠", "circulo naranja"],
+      ["🟡", "circulo amarillo"],
+      ["🟢", "circulo verde abierto"],
+      ["🔵", "circulo azul"],
+      ["🟣", "circulo morado"],
+      ["⚫", "circulo negro"],
+      ["⚪", "circulo blanco"],
+      ["🟤", "circulo cafe"],
+      ["🔺", "triangulo rojo"],
+      ["🔻", "triangulo rojo abajo"],
+      ["🔸", "diamante naranja pequeno"],
+      ["🔹", "diamante azul pequeno"],
+      ["🔶", "diamante naranja grande"],
+      ["🔷", "diamante azul grande"],
+      ["🔳", "cuadro blanco boton"],
+      ["🔲", "cuadro negro boton"],
+      ["▪️", "cuadro pequeno negro"],
+      ["▫️", "cuadro pequeno blanco"],
+      ["◾", "cuadro mediano negro"],
+      ["◽", "cuadro mediano blanco"],
+      ["◼️", "cuadro grande negro"],
+      ["◻️", "cuadro grande blanco"],
+      ["🟥", "cuadro rojo"],
+      ["🟧", "cuadro naranja"],
+      ["🟨", "cuadro amarillo"],
+      ["🟩", "cuadro verde"],
+      ["🟦", "cuadro azul"],
+      ["🟪", "cuadro morado"],
+      ["⬛", "cuadro grande negro"],
+      ["⬜", "cuadro grande blanco"],
+      ["🟫", "cuadro cafe"],
+    ]
+  },
+  {
+    nombre: "Caras y emociones",
+    emojis: [
+      ["😀", "cara feliz sonrisa contento"],
+      ["😃", "cara feliz sonrisa alegre"],
+      ["😄", "cara feliz risa alegre"],
+      ["😁", "cara feliz sonrisa dientes"],
+      ["😆", "cara risa carcajada"],
+      ["😅", "cara risa nervioso sudor"],
+      ["🤣", "carcajada risa muy divertido"],
+      ["😂", "risa lagrimas divertido"],
+      ["🙂", "sonrisa leve amable"],
+      ["🙃", "cara al reves"],
+      ["😉", "guino cara"],
+      ["😊", "cara feliz sonrojado amable"],
+      ["😇", "angel cara inocente"],
+      ["🥰", "enamorado corazones cara"],
+      ["😍", "enamorado ojos corazon"],
+      ["🤩", "cara emocionado estrella wow"],
+      ["😘", "beso cara enamorado"],
+      ["😋", "cara antojo sabroso"],
+      ["😛", "cara lengua juguetona"],
+      ["🤪", "cara loca divertida"],
+      ["😝", "cara lengua guino"],
+      ["🤑", "cara dinero avaro"],
+      ["🤗", "abrazo cara"],
+      ["🤭", "cara riendo tapando boca"],
+      ["🤫", "cara silencio shh"],
+      ["🤔", "cara pensando duda"],
+      ["🤨", "cara ceja duda sospecha"],
+      ["😐", "cara neutral seria"],
+      ["😑", "cara sin expresion aburrida"],
+      ["😶", "cara sin boca"],
+      ["😏", "cara sonrisa picara"],
+      ["😒", "cara fastidiada molesta"],
+      ["🙄", "cara ojos en blanco fastidio"],
+      ["😬", "cara nerviosa mueca"],
+      ["😌", "cara aliviada tranquila"],
+      ["😔", "cara triste pensativa"],
+      ["😪", "cara sonolienta cansada"],
+      ["🤤", "cara babeando"],
+      ["😴", "cara durmiendo sueno"],
+      ["😷", "cara mascarilla enfermo"],
+      ["🤒", "cara termometro enfermo fiebre"],
+      ["🤕", "cara vendada herido"],
+      ["🤢", "cara nauseas asco"],
+      ["🤮", "cara vomitando enfermo"],
+      ["🥵", "cara calor sofocado"],
+      ["🥶", "cara frio congelado"],
+      ["😵", "cara mareada aturdida"],
+      ["🤯", "cara explotando sorpresa"],
+      ["🥳", "cara fiesta celebracion"],
+      ["😎", "cara lentes sol genial"],
+      ["🤓", "cara nerd lentes"],
+      ["😕", "cara confundida"],
+      ["😟", "cara preocupada"],
+      ["🙁", "cara triste"],
+      ["😮", "cara sorprendida boca abierta"],
+      ["😲", "cara asombrada"],
+      ["🥺", "cara suplicante ojos tiernos"],
+      ["😢", "cara llorando triste"],
+      ["😭", "cara llorando fuerte"],
+      ["😱", "cara gritando miedo"],
+      ["😡", "cara enojada furiosa"],
+      ["😠", "cara molesta"],
+      ["🥱", "cara bostezo cansancio"],
+    ]
+  },
 ];
+
+// Quita acentos para que la búsqueda sea más flexible
+function normalizarTexto(t) {
+  return t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+// Íconos representativos por categoría, usados como pestaña
+const ICONO_CATEGORIA = {
+  'Comida y bebida': '🍔',
+  'Personas y profesiones': '👩‍⚕️',
+  'Animales y naturaleza': '🐶',
+  'Viajes y lugares': '🚗',
+  'Actividades y deportes': '⚽',
+  'Objetos y negocios': '💼',
+  'Símbolos y señales': '✅',
+  'Caras y emociones': '😀'
+};
+
+const TODOS_LOS_EMOJIS = EMOJI_CATEGORIAS.flatMap(cat =>
+  cat.emojis.map(([e, k]) => ({
+    e,
+    cat: cat.nombre,
+    texto: normalizarTexto(k + ' ' + cat.nombre)
+  }))
+);
 
 const btnAbrirEmojis = document.getElementById('btnAbrirEmojis');
 const panelEmojis = document.getElementById('panelEmojis');
+const buscarEmoji = document.getElementById('buscarEmoji');
+const tabsEmojiCategorias = document.getElementById('tabsEmojiCategorias');
+const gridEmojis = document.getElementById('gridEmojis');
 
-panelEmojis.innerHTML = EMOJIS_NEGOCIOS
-  .map(e => `<button type="button">${e}</button>`)
-  .join('');
+let categoriaActiva = EMOJI_CATEGORIAS[0].nombre;
+
+function renderTabsCategorias() {
+  tabsEmojiCategorias.innerHTML = EMOJI_CATEGORIAS
+    .map(cat => `<button type="button" class="tab-categoria${cat.nombre === categoriaActiva ? ' activa' : ''}" data-cat="${cat.nombre}" title="${cat.nombre}">${ICONO_CATEGORIA[cat.nombre] || '🔸'}</button>`)
+    .join('');
+}
+
+function renderGridEmojis() {
+  const termino = normalizarTexto(buscarEmoji.value.trim());
+
+  if (termino) {
+    tabsEmojiCategorias.style.display = 'none';
+    const resultados = TODOS_LOS_EMOJIS.filter(item => item.texto.includes(termino));
+    gridEmojis.innerHTML = resultados.length
+      ? resultados.map(item => `<button type="button" title="${item.cat}">${item.e}</button>`).join('')
+      : '<div class="sin-resultados">Sin resultados para tu búsqueda</div>';
+    return;
+  }
+
+  tabsEmojiCategorias.style.display = 'flex';
+  const cat = EMOJI_CATEGORIAS.find(c => c.nombre === categoriaActiva) || EMOJI_CATEGORIAS[0];
+  gridEmojis.innerHTML = cat.emojis
+    .map(([e]) => `<button type="button">${e}</button>`)
+    .join('');
+}
+
+renderTabsCategorias();
+renderGridEmojis();
 
 btnAbrirEmojis.addEventListener('click', () => {
   panelEmojis.classList.toggle('abierto');
+  if (panelEmojis.classList.contains('abierto')) {
+    buscarEmoji.value = '';
+    renderTabsCategorias();
+    renderGridEmojis();
+    buscarEmoji.focus();
+  }
 });
 
-panelEmojis.addEventListener('click', (e) => {
+buscarEmoji.addEventListener('input', renderGridEmojis);
+
+tabsEmojiCategorias.addEventListener('click', (e) => {
+  const boton = e.target.closest('.tab-categoria');
+  if (!boton) return;
+  categoriaActiva = boton.dataset.cat;
+  renderTabsCategorias();
+  renderGridEmojis();
+});
+
+gridEmojis.addEventListener('click', (e) => {
   if (e.target.tagName === 'BUTTON') {
     inpEmoji.value = e.target.textContent;
     panelEmojis.classList.remove('abierto');
