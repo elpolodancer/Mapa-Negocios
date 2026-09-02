@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mapa de Negocios - Prototipo</title>
+<title>Mapa de Negocios</title>
 
 <!-- Leaflet (mapa gratuito, sin API key) -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -14,7 +14,7 @@
   body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
   #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; }
 
-  /* Le da un aspecto "apagado" al mapa base, como si estuviera vacío de negocios */
+  /* Le da un aspecto "apagado" al mapa base */
   .leaflet-tile-pane { filter: grayscale(35%) contrast(95%) brightness(1.03); }
 
   .marker-gris {
@@ -36,6 +36,14 @@
   .marker-activo span {
     transform: rotate(45deg);
     font-size: 18px;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+  }
+
+  .marker-previo {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: rgba(26,115,232,.25);
+    border: 3px dashed #1a73e8;
   }
 
   .popup-negocio { text-align: center; font-size: 14px; }
@@ -71,7 +79,7 @@
   #sidebar {
     position: absolute;
     top: 0; left: 0; bottom: 0;
-    width: 290px;
+    width: 300px;
     max-width: 85vw;
     background: #fff;
     z-index: 999;
@@ -121,7 +129,6 @@
     padding: 4px 0;
     color: #202124;
   }
-  .marcador-casilla .nombre-btn.sin-nombre { color: #888; font-style: italic; }
   .btn-ubicar {
     border: none;
     background: #e8f0fe;
@@ -134,13 +141,23 @@
   }
 
   .btn-anadir {
-    margin: 8px 18px 14px 18px;
+    margin: 8px 18px 6px 18px;
     padding: 10px;
     background: #1a73e8;
     color: #fff;
     border: none;
     border-radius: 8px;
     font-size: 14px;
+    cursor: pointer;
+  }
+  .btn-secundario {
+    margin: 0 18px 14px 18px;
+    padding: 9px;
+    background: #eee;
+    color: #333;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
     cursor: pointer;
   }
 
@@ -155,9 +172,27 @@
     border-radius: 8px;
     font-size: 13px;
     display: none;
+    text-align: center;
   }
 
-  /* ---------- Modal de configuración ---------- */
+  #listaMarcadores { display: none; }
+  #listaMarcadores.abierta { display: block; }
+  #listaMarcadores .vacio {
+    padding: 12px 18px;
+    font-size: 13px;
+    color: #888;
+    font-style: italic;
+  }
+
+  #estadoCarga {
+    padding: 8px 18px;
+    font-size: 12px;
+    color: #888;
+  }
+  #estadoCarga.ok { color: #188038; }
+  #estadoCarga.error { color: #d93025; }
+
+  /* ---------- Modal "datos para copiar a Sheets" ---------- */
   #overlayModal {
     position: absolute;
     inset: 0;
@@ -170,13 +205,16 @@
   #overlayModal.abierto { display: flex; }
   #modalConfig {
     background: #fff;
-    width: 300px;
+    width: 320px;
     max-width: 90vw;
+    max-height: 85vh;
+    overflow-y: auto;
     border-radius: 10px;
     padding: 18px;
     box-shadow: 0 4px 20px rgba(0,0,0,.3);
   }
-  #modalConfig h3 { margin-bottom: 12px; font-size: 16px; }
+  #modalConfig h3 { margin-bottom: 4px; font-size: 16px; }
+  #modalConfig .subtitulo { font-size: 12px; color: #666; margin-bottom: 10px; }
   #modalConfig label {
     display: block;
     font-size: 12px;
@@ -190,10 +228,67 @@
     border-radius: 6px;
     font-size: 14px;
   }
+  #modalConfig input[readonly] { background: #f5f5f5; color: #555; }
+
+  .fila-doble { display: flex; gap: 8px; }
+  .fila-doble > div { flex: 1; }
+
+  .fila-emoji { display: flex; gap: 6px; }
+  .fila-emoji input { flex: 1; }
+  #btnAbrirEmojis {
+    width: 40px;
+    flex-shrink: 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+  }
+
+  #panelEmojis {
+    display: none;
+    margin-top: 8px;
+    padding: 8px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    max-height: 150px;
+    overflow-y: auto;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  #panelEmojis.abierto { display: grid; }
+  #panelEmojis button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 4px 0;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+  }
+  #panelEmojis button:hover { background: #f1f3f4; }
+
+  #filaCopiar {
+    margin-top: 14px;
+    padding: 10px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 11px;
+    word-break: break-all;
+    user-select: all;
+  }
+  #ordenColumnas {
+    font-size: 11px;
+    color: #888;
+    margin-top: 4px;
+  }
+
   .modal-botones {
     display: flex;
     gap: 8px;
-    margin-top: 16px;
+    margin-top: 14px;
   }
   .modal-botones button {
     flex: 1;
@@ -203,8 +298,16 @@
     font-size: 14px;
     cursor: pointer;
   }
-  #btnGuardarMarcador { background: #1a73e8; color: #fff; }
-  #btnCancelarMarcador { background: #eee; color: #333; }
+  #btnCopiarFila { background: #1a73e8; color: #fff; }
+  #btnCerrarModal { background: #eee; color: #333; }
+
+  #avisoCopiado {
+    font-size: 12px;
+    color: #188038;
+    text-align: center;
+    margin-top: 6px;
+    min-height: 16px;
+  }
 </style>
 </head>
 <body>
@@ -218,75 +321,58 @@
 <div id="sidebar">
   <button class="sb-item" id="btnMarcadores">📍 Marcadores</button>
   <div id="submenuMarcadores">
-    <div id="listaMarcadores"><!-- casillas generadas por JS --></div>
     <button class="btn-anadir" id="btnAnadirMarcador">➕ Añadir marcador</button>
+    <button class="btn-secundario" id="btnActualizarLista">🔄 Actualizar desde Sheets</button>
+    <button class="sb-item" id="btnListaMarcadores">📋 Lista de marcadores</button>
+    <div id="estadoCarga">Cargando negocios…</div>
+    <div id="listaMarcadores"><!-- casillas generadas por JS --></div>
   </div>
 </div>
 
 <div id="overlayModal">
   <div id="modalConfig">
-    <h3>Configurar marcador</h3>
+    <h3>Nuevo marcador</h3>
+    <div class="subtitulo">Llena los datos y cópialos a tu hoja de Google.</div>
+
+    <div class="fila-doble">
+      <div>
+        <label for="inpLat">Latitud</label>
+        <input type="text" id="inpLat" readonly>
+      </div>
+      <div>
+        <label for="inpLng">Longitud</label>
+        <input type="text" id="inpLng" readonly>
+      </div>
+    </div>
+
     <label for="inpNombre">Nombre del negocio</label>
     <input type="text" id="inpNombre" placeholder="Ej. Panadería Ejemplo">
-
-    <label for="inpEmoji">Emoji (opcional)</label>
-    <input type="text" id="inpEmoji" placeholder="🥖" maxlength="4">
-
-    <label for="inpColor">Color (opcional)</label>
-    <input type="color" id="inpColor" value="#1a73e8">
 
     <label for="inpUrl">Enlace de la página web (opcional)</label>
     <input type="url" id="inpUrl" placeholder="https://tuusuario.github.io/sitio/">
 
-    <div class="modal-botones">
-      <button id="btnCancelarMarcador">Cancelar</button>
-      <button id="btnGuardarMarcador">Guardar</button>
+    <label for="inpEmoji">Emoji (opcional)</label>
+    <div class="fila-emoji">
+      <input type="text" id="inpEmoji" placeholder="🥖" maxlength="4">
+      <button type="button" id="btnAbrirEmojis" title="Elegir emoji">😀</button>
     </div>
+    <div id="panelEmojis"><!-- emojis generados por JS --></div>
+
+    <label for="inpColor">Color (opcional)</label>
+    <input type="color" id="inpColor" value="#1a73e8">
+
+    <div id="filaCopiar">Nombre — Link — Emoji — Color — Lat — Lng</div>
+    <div id="ordenColumnas">Orden de columnas en tu hoja: A Nombre · B Link · C Emoji · D Color · E Latitud · F Longitud</div>
+
+    <div class="modal-botones">
+      <button id="btnCerrarModal">Cerrar</button>
+      <button id="btnCopiarFila">📋 Copiar fila</button>
+    </div>
+    <div id="avisoCopiado"></div>
   </div>
 </div>
 
 <script>
-/* =========================================================
-   DATOS DE NEGOCIOS
-   -----------------------------------------------------------
-   Aquí va cada negocio que quieras mapear. Mientras "activo"
-   sea false, se muestra como punto gris sin liga.
-   Cuando termines su página web, cambia "activo" a true,
-   agrega el "emoji", el "color" y la "url".
-
-   Más adelante esto se puede migrar a Google Sheets (CSV),
-   igual que tus otros proyectos, para no editar código cada vez.
-   ========================================================= */
-const negocios = [
-  {
-    nombre: "Panadería Ejemplo",
-    categoria: "Panadería",
-    lat: 19.7030, lng: -101.1900,
-    activo: true,
-    emoji: "🥖",
-    color: "#e8710a",
-    url: "https://tuusuario.github.io/panaderia-ejemplo/"
-  },
-  {
-    nombre: "Ferretería Ejemplo",
-    categoria: "Ferretería",
-    lat: 19.6990, lng: -101.1800,
-    activo: false // aún no le has hecho página web -> se ve gris
-  },
-  {
-    nombre: "Restaurante Ejemplo",
-    categoria: "Restaurante",
-    lat: 19.7070, lng: -101.1950,
-    activo: false
-  },
-  {
-    nombre: "Estilista Ejemplo",
-    categoria: "Estilista",
-    lat: 19.6950, lng: -101.1750,
-    activo: false
-  }
-];
-
 /* =========================================================
    MAPA
    ========================================================= */
@@ -298,34 +384,42 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 /* =========================================================
-   MARCADORES GUARDADOS (localStorage)
-   Los que agregues desde el botón "Añadir marcador" se
-   guardan en el navegador para que sigan ahí la próxima
-   vez que abras la página.
+   GOOGLE SHEETS: fuente pública de los negocios
+   -----------------------------------------------------------
+   Columnas: A Nombre · B Link · C Emoji · D Color · E Latitud · F Longitud
+   La hoja debe estar compartida como "Cualquiera con el enlace,
+   Lector" para que cualquier visitante de la página pueda leerla.
    ========================================================= */
-const CLAVE_STORAGE = 'mapaNegocios_marcadores';
+const SHEET_ID = '1AQQ8DqH7DFfgOvSrQd1E1ZbvwB7-5D1b62O5fD0FIDo';
+const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
 
-function cargarMarcadoresGuardados() {
-  try {
-    const datos = localStorage.getItem(CLAVE_STORAGE);
-    return datos ? JSON.parse(datos) : [];
-  } catch (e) {
-    return [];
-  }
+let negocios = []; // [{ nombre, url, emoji, color, lat, lng, activo }]
+const referencias = {}; // marcadores de Leaflet por índice
+
+function parseCSV(texto) {
+  const lineas = texto.trim().split(/\r?\n/);
+  const filas = lineas.slice(1); // saltamos encabezados
+  const limpiar = c => (c || '').replace(/^"|"$/g, '').trim();
+
+  return filas
+    .map((linea, i) => {
+      const campos = linea.match(/(".*?"|[^,]*)(?=,|$)/g) || [];
+      const lat = parseFloat(limpiar(campos[4]));
+      const lng = parseFloat(limpiar(campos[5]));
+      const url = limpiar(campos[1]);
+      return {
+        id: 'fila-' + i,
+        nombre: limpiar(campos[0]),
+        url: url,
+        emoji: limpiar(campos[2]),
+        color: limpiar(campos[3]) || '#1a73e8',
+        lat: lat,
+        lng: lng,
+        activo: !!url
+      };
+    })
+    .filter(n => n.nombre && !isNaN(n.lat) && !isNaN(n.lng));
 }
-
-function guardarMarcadoresEnStorage() {
-  localStorage.setItem(CLAVE_STORAGE, JSON.stringify(marcadoresGuardados));
-}
-
-// Le damos un id a cada negocio de ejemplo para poder editarlo igual que a los nuevos
-negocios.forEach((n, i) => { n.id = 'seed-' + i; });
-
-let marcadoresGuardados = cargarMarcadoresGuardados();
-let todosLosMarcadores = negocios.concat(marcadoresGuardados);
-
-// referencia leaflet + fila del sidebar por id, para poder actualizarlas
-const referencias = {};
 
 function crearIcono(n) {
   if (n.activo) {
@@ -347,57 +441,49 @@ function crearIcono(n) {
 function popupHtml(n) {
   return n.activo
     ? `<div class="popup-negocio">
-         <strong>${n.nombre || 'Sin nombre'}</strong>${n.categoria ? '<br>' + n.categoria : ''}
+         <strong>${n.nombre}</strong>
          <br><a href="${n.url}" target="_blank" rel="noopener">Ver página web</a>
        </div>`
     : `<div class="popup-negocio inactivo">
-         <strong>${n.nombre || 'Sin nombre'}</strong>${n.categoria ? '<br>' + n.categoria : ''}
+         <strong>${n.nombre}</strong>
          <p>Página web aún no disponible</p>
        </div>`;
 }
 
-function crearMarcadorEnMapa(n) {
-  const marker = L.marker([n.lat, n.lng], { icon: crearIcono(n) }).addTo(map);
-  marker.bindPopup(popupHtml(n));
-  referencias[n.id] = referencias[n.id] || {};
-  referencias[n.id].marker = marker;
+function limpiarMarcadoresDelMapa() {
+  Object.values(referencias).forEach(ref => {
+    if (ref.marker) map.removeLayer(ref.marker);
+  });
+  for (const k in referencias) delete referencias[k];
 }
 
-function refrescarMarcadorEnMapa(n) {
-  const ref = referencias[n.id];
-  if (ref && ref.marker) {
-    ref.marker.setIcon(crearIcono(n));
-    ref.marker.setPopupContent(popupHtml(n));
-  }
+function dibujarNegociosEnMapa() {
+  limpiarMarcadoresDelMapa();
+  negocios.forEach(n => {
+    const marker = L.marker([n.lat, n.lng], { icon: crearIcono(n) }).addTo(map);
+    marker.bindPopup(popupHtml(n));
+    referencias[n.id] = { marker };
+  });
 }
-
-todosLosMarcadores.forEach(crearMarcadorEnMapa);
-
-/* =========================================================
-   BARRA LATERAL: abrir/cerrar y submenú de marcadores
-   ========================================================= */
-const sidebar = document.getElementById('sidebar');
-const btnMenu = document.getElementById('btnMenu');
-const btnMarcadores = document.getElementById('btnMarcadores');
-const submenuMarcadores = document.getElementById('submenuMarcadores');
-const listaMarcadores = document.getElementById('listaMarcadores');
-const btnAnadirMarcador = document.getElementById('btnAnadirMarcador');
-const avisoColocar = document.getElementById('avisoColocar');
-
-btnMenu.addEventListener('click', () => sidebar.classList.toggle('abierto'));
-
-btnMarcadores.addEventListener('click', () => submenuMarcadores.classList.toggle('abierto'));
 
 function renderListaMarcadores() {
   listaMarcadores.innerHTML = '';
-  todosLosMarcadores.forEach(n => {
+
+  if (negocios.length === 0) {
+    const vacio = document.createElement('div');
+    vacio.className = 'vacio';
+    vacio.textContent = 'Aún no hay negocios cargados desde tu hoja.';
+    listaMarcadores.appendChild(vacio);
+    return;
+  }
+
+  negocios.forEach(n => {
     const fila = document.createElement('div');
     fila.className = 'marcador-casilla';
 
-    const btnNombre = document.createElement('button');
-    btnNombre.className = 'nombre-btn' + (n.nombre ? '' : ' sin-nombre');
-    btnNombre.textContent = n.nombre || 'Sin nombre (configurar)';
-    btnNombre.addEventListener('click', () => abrirModalConfig(n));
+    const nombreSpan = document.createElement('div');
+    nombreSpan.className = 'nombre-btn';
+    nombreSpan.textContent = n.nombre;
 
     const btnUbicar = document.createElement('button');
     btnUbicar.className = 'btn-ubicar';
@@ -406,20 +492,58 @@ function renderListaMarcadores() {
       map.flyTo([n.lat, n.lng], 17);
       const ref = referencias[n.id];
       if (ref && ref.marker) ref.marker.openPopup();
+      sidebar.classList.remove('abierto');
     });
 
-    fila.appendChild(btnNombre);
+    fila.appendChild(nombreSpan);
     fila.appendChild(btnUbicar);
     listaMarcadores.appendChild(fila);
   });
 }
-renderListaMarcadores();
+
+async function cargarNegociosDesdeSheet() {
+  estadoCarga.textContent = 'Cargando negocios desde Google Sheets…';
+  estadoCarga.classList.remove('ok', 'error');
+  try {
+    const resp = await fetch(SHEET_CSV_URL);
+    if (!resp.ok) throw new Error('respuesta no OK');
+    const texto = await resp.text();
+    negocios = parseCSV(texto);
+    dibujarNegociosEnMapa();
+    renderListaMarcadores();
+    estadoCarga.textContent = `${negocios.length} negocio(s) cargado(s) de tu hoja.`;
+    estadoCarga.classList.add('ok');
+  } catch (e) {
+    estadoCarga.textContent = 'No se pudo leer la hoja. Revisa que esté compartida como "Cualquiera con el enlace - Lector".';
+    estadoCarga.classList.add('error');
+  }
+}
+
+/* =========================================================
+   BARRA LATERAL
+   ========================================================= */
+const sidebar = document.getElementById('sidebar');
+const btnMenu = document.getElementById('btnMenu');
+const btnMarcadores = document.getElementById('btnMarcadores');
+const submenuMarcadores = document.getElementById('submenuMarcadores');
+const listaMarcadores = document.getElementById('listaMarcadores');
+const btnAnadirMarcador = document.getElementById('btnAnadirMarcador');
+const btnActualizarLista = document.getElementById('btnActualizarLista');
+const btnListaMarcadores = document.getElementById('btnListaMarcadores');
+const avisoColocar = document.getElementById('avisoColocar');
+const estadoCarga = document.getElementById('estadoCarga');
+
+btnMenu.addEventListener('click', () => sidebar.classList.toggle('abierto'));
+btnMarcadores.addEventListener('click', () => submenuMarcadores.classList.toggle('abierto'));
+btnActualizarLista.addEventListener('click', cargarNegociosDesdeSheet);
+btnListaMarcadores.addEventListener('click', () => listaMarcadores.classList.toggle('abierta'));
 
 /* =========================================================
    MODO "AÑADIR MARCADOR": el siguiente clic en el mapa
-   coloca el punto de forma fija
+   coloca un punto de vista previa y abre el formulario
    ========================================================= */
 let modoColocar = false;
+let marcadorPrevio = null;
 
 btnAnadirMarcador.addEventListener('click', () => {
   modoColocar = true;
@@ -432,73 +556,113 @@ map.on('click', function (e) {
   modoColocar = false;
   avisoColocar.style.display = 'none';
 
-  const nuevo = {
-    id: 'm-' + Date.now(),
-    nombre: '',
-    categoria: '',
-    lat: e.latlng.lat,
-    lng: e.latlng.lng,
-    activo: false
-  };
-  todosLosMarcadores.push(nuevo);
-  marcadoresGuardados.push(nuevo);
-  crearMarcadorEnMapa(nuevo);
-  renderListaMarcadores();
-  guardarMarcadoresEnStorage();
+  if (marcadorPrevio) map.removeLayer(marcadorPrevio);
+  marcadorPrevio = L.marker([e.latlng.lat, e.latlng.lng], {
+    icon: L.divIcon({ className: '', html: '<div class="marker-previo"></div>', iconSize: [26, 26], iconAnchor: [13, 13] })
+  }).addTo(map);
 
-  abrirModalConfig(nuevo);
+  abrirModalNuevo(e.latlng.lat, e.latlng.lng);
 });
 
 /* =========================================================
-   MODAL DE CONFIGURACIÓN (nombre, emoji, color, enlace)
+   MODAL: generar los datos de un marcador nuevo para copiar
    ========================================================= */
 const overlayModal = document.getElementById('overlayModal');
+const inpLat = document.getElementById('inpLat');
+const inpLng = document.getElementById('inpLng');
 const inpNombre = document.getElementById('inpNombre');
 const inpEmoji = document.getElementById('inpEmoji');
 const inpColor = document.getElementById('inpColor');
 const inpUrl = document.getElementById('inpUrl');
-const btnGuardarMarcador = document.getElementById('btnGuardarMarcador');
-const btnCancelarMarcador = document.getElementById('btnCancelarMarcador');
+const filaCopiar = document.getElementById('filaCopiar');
+const avisoCopiado = document.getElementById('avisoCopiado');
+const btnCopiarFila = document.getElementById('btnCopiarFila');
+const btnCerrarModal = document.getElementById('btnCerrarModal');
 
-let marcadorEnEdicion = null;
-
-function abrirModalConfig(n) {
-  marcadorEnEdicion = n;
-  inpNombre.value = n.nombre || '';
-  inpEmoji.value = n.emoji || '';
-  inpColor.value = n.color || '#1a73e8';
-  inpUrl.value = n.url || '';
+function abrirModalNuevo(lat, lng) {
+  inpLat.value = lat.toFixed(6);
+  inpLng.value = lng.toFixed(6);
+  inpNombre.value = '';
+  inpEmoji.value = '';
+  inpColor.value = '#1a73e8';
+  inpUrl.value = '';
+  avisoCopiado.textContent = '';
+  panelEmojis.classList.remove('abierto');
+  actualizarFilaCopiar();
   overlayModal.classList.add('abierto');
-  sidebar.classList.remove('abierto');
 }
 
-function cerrarModalConfig() {
+function cerrarModal() {
   overlayModal.classList.remove('abierto');
-  marcadorEnEdicion = null;
+  if (marcadorPrevio) { map.removeLayer(marcadorPrevio); marcadorPrevio = null; }
 }
 
-btnCancelarMarcador.addEventListener('click', cerrarModalConfig);
+function actualizarFilaCopiar() {
+  const partes = [
+    inpNombre.value.trim(),
+    inpUrl.value.trim(),
+    inpEmoji.value.trim(),
+    inpColor.value,
+    inpLat.value,
+    inpLng.value
+  ];
+  filaCopiar.textContent = partes.join('   |   ');
+  return partes.join('\t');
+}
 
-btnGuardarMarcador.addEventListener('click', () => {
-  if (!marcadorEnEdicion) return;
-
-  marcadorEnEdicion.nombre = inpNombre.value.trim();
-  marcadorEnEdicion.emoji = inpEmoji.value.trim();
-  marcadorEnEdicion.color = inpColor.value;
-  marcadorEnEdicion.url = inpUrl.value.trim();
-  // Se considera "activo" (a color, con liga) en cuanto tiene nombre y enlace
-  marcadorEnEdicion.activo = !!(marcadorEnEdicion.nombre && marcadorEnEdicion.url);
-
-  refrescarMarcadorEnMapa(marcadorEnEdicion);
-  renderListaMarcadores();
-
-  // Solo se persisten en localStorage los que TÚ agregaste (no los de ejemplo)
-  if (marcadoresGuardados.includes(marcadorEnEdicion)) {
-    guardarMarcadoresEnStorage();
-  }
-
-  cerrarModalConfig();
+[inpNombre, inpUrl, inpEmoji, inpColor].forEach(campo => {
+  campo.addEventListener('input', actualizarFilaCopiar);
 });
+
+btnCerrarModal.addEventListener('click', cerrarModal);
+
+btnCopiarFila.addEventListener('click', async () => {
+  const filaTexto = actualizarFilaCopiar();
+  try {
+    await navigator.clipboard.writeText(filaTexto);
+    avisoCopiado.textContent = '¡Copiado! Pégalo como nueva fila en tu hoja (Ctrl/Cmd + V).';
+  } catch (e) {
+    avisoCopiado.textContent = 'No se pudo copiar automático: selecciona el texto de arriba y cópialo manualmente.';
+  }
+});
+
+/* =========================================================
+   SELECTOR DE EMOJIS
+   ========================================================= */
+const EMOJIS_NEGOCIOS = [
+  '🥖','🍞','🧁','🍰','🍩','☕','🍕','🍔','🌮','🍣','🍜','🍺','🍷',
+  '🔧','🔨','🛠️','🪛','🔩','🧱','🏗️',
+  '💇‍♀️','💇‍♂️','✂️','💅','💆‍♀️','🧴',
+  '🩺','💊','🏥','🚑','🩹','🦷',
+  '🛒','🏪','🏬','🧺','🧵','🧶',
+  '🎨','🖼️','📚','✏️','🖨️',
+  '🚗','🚕','🚌','🚚','⛽','🔧',
+  '🏠','🔑','🐾','🐶','🌿','🌱','🌸','🍎','🥩','🐟','🍦','🎂'
+];
+
+const btnAbrirEmojis = document.getElementById('btnAbrirEmojis');
+const panelEmojis = document.getElementById('panelEmojis');
+
+panelEmojis.innerHTML = EMOJIS_NEGOCIOS
+  .map(e => `<button type="button">${e}</button>`)
+  .join('');
+
+btnAbrirEmojis.addEventListener('click', () => {
+  panelEmojis.classList.toggle('abierto');
+});
+
+panelEmojis.addEventListener('click', (e) => {
+  if (e.target.tagName === 'BUTTON') {
+    inpEmoji.value = e.target.textContent;
+    panelEmojis.classList.remove('abierto');
+    actualizarFilaCopiar();
+  }
+});
+
+/* =========================================================
+   ARRANQUE
+   ========================================================= */
+cargarNegociosDesdeSheet();
 </script>
 
 </body>
