@@ -396,23 +396,47 @@ const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export
 let negocios = []; // [{ nombre, url, emoji, color, lat, lng, activo }]
 const referencias = {}; // marcadores de Leaflet por índice
 
+// Separa una línea de CSV en columnas respetando comillas (evita
+// el bug de campos "fantasma" vacíos que se generaba con comas simples)
+function dividirLineaCSV(linea) {
+  const resultado = [];
+  let actual = '';
+  let dentroComillas = false;
+
+  for (let i = 0; i < linea.length; i++) {
+    const c = linea[i];
+    if (c === '"') {
+      if (dentroComillas && linea[i + 1] === '"') { actual += '"'; i++; }
+      else dentroComillas = !dentroComillas;
+    } else if (c === ',' && !dentroComillas) {
+      resultado.push(actual);
+      actual = '';
+    } else {
+      actual += c;
+    }
+  }
+  resultado.push(actual);
+  return resultado;
+}
+
 function parseCSV(texto) {
+  texto = texto.replace(/^\uFEFF/, ''); // quita BOM si Google lo agrega
   const lineas = texto.trim().split(/\r?\n/);
   const filas = lineas.slice(1); // saltamos encabezados
-  const limpiar = c => (c || '').replace(/^"|"$/g, '').trim();
+  const limpiar = c => (c || '').trim();
 
   return filas
     .map((linea, i) => {
-      const campos = linea.match(/(".*?"|[^,]*)(?=,|$)/g) || [];
-      const lat = parseFloat(limpiar(campos[4]));
-      const lng = parseFloat(limpiar(campos[5]));
-      const url = limpiar(campos[1]);
+      const campos = dividirLineaCSV(linea).map(limpiar);
+      const lat = parseFloat(campos[4]);
+      const lng = parseFloat(campos[5]);
+      const url = campos[1] || '';
       return {
         id: 'fila-' + i,
-        nombre: limpiar(campos[0]),
+        nombre: campos[0] || '',
         url: url,
-        emoji: limpiar(campos[2]),
-        color: limpiar(campos[3]) || '#1a73e8',
+        emoji: campos[2] || '',
+        color: campos[3] || '#1a73e8',
         lat: lat,
         lng: lng,
         activo: !!url
@@ -505,7 +529,10 @@ async function cargarNegociosDesdeSheet() {
   estadoCarga.textContent = 'Cargando negocios desde Google Sheets…';
   estadoCarga.classList.remove('ok', 'error');
   try {
-    const resp = await fetch(SHEET_CSV_URL);
+    // se agrega un parámetro cambiante para evitar que el navegador
+    // o Google entreguen una versión vieja guardada en caché
+    const urlSinCache = `${SHEET_CSV_URL}&_=${Date.now()}`;
+    const resp = await fetch(urlSinCache, { cache: 'no-store' });
     if (!resp.ok) throw new Error('respuesta no OK');
     const texto = await resp.text();
     negocios = parseCSV(texto);
