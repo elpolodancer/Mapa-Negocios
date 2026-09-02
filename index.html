@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa de Negocios - Prototipo</title>
+
+<!-- Leaflet (mapa gratuito, sin API key) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+  #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; }
+
+  /* Le da un aspecto "apagado" al mapa base, como si estuviera vacío de negocios */
+  .leaflet-tile-pane { filter: grayscale(35%) contrast(95%) brightness(1.03); }
+
+  .marker-gris {
+    background: #9aa0a6;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.4);
+  }
+
+  .marker-activo {
+    width: 38px; height: 38px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,.4);
+    border: 2px solid #fff;
+  }
+  .marker-activo span {
+    transform: rotate(45deg);
+    font-size: 18px;
+  }
+
+  .popup-negocio { text-align: center; font-size: 14px; }
+  .popup-negocio a {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 6px 14px;
+    background: #1a73e8;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  .popup-negocio.inactivo p { color: #777; font-size: 12px; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script>
+/* =========================================================
+   DATOS DE NEGOCIOS
+   -----------------------------------------------------------
+   Aquí va cada negocio que quieras mapear. Mientras "activo"
+   sea false, se muestra como punto gris sin liga.
+   Cuando termines su página web, cambia "activo" a true,
+   agrega el "emoji", el "color" y la "url".
+
+   Más adelante esto se puede migrar a Google Sheets (CSV),
+   igual que tus otros proyectos, para no editar código cada vez.
+   ========================================================= */
+const negocios = [
+  {
+    nombre: "Panadería Ejemplo",
+    categoria: "Panadería",
+    lat: 19.7030, lng: -101.1900,
+    activo: true,
+    emoji: "🥖",
+    color: "#e8710a",
+    url: "https://tuusuario.github.io/panaderia-ejemplo/"
+  },
+  {
+    nombre: "Ferretería Ejemplo",
+    categoria: "Ferretería",
+    lat: 19.6990, lng: -101.1800,
+    activo: false // aún no le has hecho página web -> se ve gris
+  },
+  {
+    nombre: "Restaurante Ejemplo",
+    categoria: "Restaurante",
+    lat: 19.7070, lng: -101.1950,
+    activo: false
+  },
+  {
+    nombre: "Estilista Ejemplo",
+    categoria: "Estilista",
+    lat: 19.6950, lng: -101.1750,
+    activo: false
+  }
+];
+
+/* =========================================================
+   MAPA
+   ========================================================= */
+const map = L.map('map').setView([19.7008, -101.1844], 14); // Morelia, Michoacán
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '&copy; OpenStreetMap'
+}).addTo(map);
+
+negocios.forEach(function (n) {
+  let icon;
+
+  if (n.activo) {
+    icon = L.divIcon({
+      className: '',
+      html: `<div class="marker-activo" style="background:${n.color || '#1a73e8'}"><span>${n.emoji || '📍'}</span></div>`,
+      iconSize: [38, 38],
+      iconAnchor: [19, 38]
+    });
+  } else {
+    icon = L.divIcon({
+      className: '',
+      html: `<div class="marker-gris"></div>`,
+      iconSize: [22, 22],
+      iconAnchor: [11, 11]
+    });
+  }
+
+  const marker = L.marker([n.lat, n.lng], { icon }).addTo(map);
+
+  const popupHtml = n.activo
+    ? `<div class="popup-negocio">
+         <strong>${n.nombre}</strong><br>${n.categoria}
+         <br><a href="${n.url}" target="_blank" rel="noopener">Ver página web</a>
+       </div>`
+    : `<div class="popup-negocio inactivo">
+         <strong>${n.nombre}</strong><br>${n.categoria}
+         <p>Página web aún no disponible</p>
+       </div>`;
+
+  marker.bindPopup(popupHtml);
+});
+</script>
+
+</body>
+</html>
