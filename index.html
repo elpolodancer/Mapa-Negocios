@@ -176,8 +176,6 @@
     text-align: center;
   }
 
-  #listaMarcadores { display: none; }
-  #listaMarcadores.abierta { display: block; }
   #listaMarcadores .vacio {
     padding: 12px 18px;
     font-size: 13px;
@@ -733,11 +731,17 @@
     line-height: 1.4;
   }
 
-  /* ---------- Submenú "Categorías y colores" ---------- */
-  #submenuCategorias { display: none; background: #fafafa; }
-  #submenuCategorias.abierto { display: block; }
-  #listaCategorias .vacio {
-    padding: 12px 18px;
+  /* ---------- Categorías y colores (dentro de "Marcadores") ---------- */
+  .titulo-seccion-marcadores {
+    padding: 10px 18px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #8a919a;
+  }
+  #listaCategoriasMarcadores .vacio {
+    padding: 6px 18px 12px;
     font-size: 13px;
     color: #888;
     font-style: italic;
@@ -758,6 +762,10 @@
     background: none;
     cursor: pointer;
   }
+  .btn-secundario.activo {
+    background: #1a73e8;
+    color: #fff;
+  }
 </style>
 </head>
 <body>
@@ -771,12 +779,18 @@
 <div id="sidebar">
   <button class="sb-item" id="btnMarcadores">📍 Marcadores</button>
   <div id="submenuMarcadores">
-    <button class="btn-anadir" id="btnAnadirMarcador">➕ Añadir marcador</button>
+    <button class="btn-secundario" id="btnFiltroPoloWeb">🌐 Páginas web de Polo</button>
     <button class="btn-secundario" id="btnActualizarLista">🔄 Actualizar desde Sheets</button>
-    <button class="sb-item" id="btnListaMarcadores">📋 Lista de marcadores</button>
     <div id="estadoCarga">Cargando negocios…</div>
+    <div class="titulo-seccion-marcadores">🎨 Categorías y colores</div>
+    <div id="listaCategoriasMarcadores"><!-- filas generadas por JS --></div>
+    <div class="titulo-seccion-marcadores">📋 Lista de marcadores</div>
     <div id="listaMarcadores"><!-- casillas generadas por JS --></div>
   </div>
+
+  <button class="sb-item" id="btnNuevoMarcador">➕ Nuevo marcador</button>
+
+  <button class="sb-item" id="btnMostrarTodo">🗺️ Mostrar todo</button>
 
   <button class="sb-item" id="btnBuscar">🔍 Buscar</button>
   <div id="submenuBuscar">
@@ -785,14 +799,6 @@
     </div>
     <div id="categoriasBuscar"><!-- botones de categoría generados por JS --></div>
     <div id="resultadosBuscar"><!-- resultados generados por JS --></div>
-  </div>
-
-  <button class="sb-item" id="btnCategorias">🎨 Categorías y colores</button>
-  <div id="submenuCategorias">
-    <div style="padding:10px 18px; font-size:12px; color:#888;">
-      Cada categoría guarda un solo color permanente. Aquí es el único lugar donde puedes cambiarlo.
-    </div>
-    <div id="listaCategorias"><!-- filas generadas por JS --></div>
   </div>
 </div>
 
@@ -1315,9 +1321,18 @@ function limpiarMarcadoresDelMapa() {
   for (const k in referencias) delete referencias[k];
 }
 
+// Filtro activo por hoja: null = mostrar todos los negocios; un número
+// (1, 2 o 3) = mostrar solo los de esa hoja (usado por "🌐 Páginas web
+// de Polo", que filtra a la Hoja 1). Se puede quitar con "🗺️ Mostrar todo".
+let filtroHojaActual = null;
+
+function negociosVisibles() {
+  return filtroHojaActual ? negocios.filter(n => n.hoja === filtroHojaActual) : negocios;
+}
+
 function dibujarNegociosEnMapa() {
   limpiarMarcadoresDelMapa();
-  negocios.forEach(n => {
+  negociosVisibles().forEach(n => {
     const marker = L.marker([n.lat, n.lng], { icon: crearIcono(n) }).addTo(map);
     marker.bindPopup(popupHtml(n));
     referencias[n.id] = { marker };
@@ -1326,16 +1341,19 @@ function dibujarNegociosEnMapa() {
 
 function renderListaMarcadores() {
   listaMarcadores.innerHTML = '';
+  const visibles = negociosVisibles();
 
-  if (negocios.length === 0) {
+  if (visibles.length === 0) {
     const vacio = document.createElement('div');
     vacio.className = 'vacio';
-    vacio.textContent = 'Aún no hay negocios cargados desde tu hoja.';
+    vacio.textContent = negocios.length === 0
+      ? 'Aún no hay negocios cargados desde tu hoja.'
+      : 'No hay negocios con este filtro.';
     listaMarcadores.appendChild(vacio);
     return;
   }
 
-  negocios.forEach(n => {
+  visibles.forEach(n => {
     const fila = document.createElement('div');
     fila.className = 'marcador-casilla';
 
@@ -1386,6 +1404,7 @@ async function cargarNegociosDesdeSheet() {
     inicializarColoresCategoriaDesdeDatos();
     dibujarNegociosEnMapa();
     renderListaMarcadores();
+    renderListaCategoriasMarcadores();
     renderCategorias();
     renderResultadosBuscar();
 
@@ -1400,6 +1419,22 @@ async function cargarNegociosDesdeSheet() {
     estadoCarga.textContent = 'No se pudieron leer las hojas. Revisa que estén compartidas como "Cualquiera con el enlace - Lector".';
     estadoCarga.classList.add('error');
   }
+}
+
+// Aplica el filtro "🌐 Páginas web de Polo" (Hoja 1: los negocios a los
+// que ya se les creó una página web) o lo quita con "🗺️ Mostrar todo".
+function aplicarFiltroHoja(hoja) {
+  filtroHojaActual = hoja;
+  dibujarNegociosEnMapa();
+  renderListaMarcadores();
+  btnFiltroPoloWeb.classList.toggle('activo', filtroHojaActual === 1);
+
+  const visibles = negociosVisibles();
+  estadoCarga.classList.remove('ok', 'error');
+  estadoCarga.textContent = filtroHojaActual === 1
+    ? `${visibles.length} página(s) web de Polo mostrada(s).`
+    : `${visibles.length} lugar(es) mostrado(s) en total.`;
+  estadoCarga.classList.add('ok');
 }
 
 /* =========================================================
@@ -1680,16 +1715,24 @@ const btnMenu = document.getElementById('btnMenu');
 const btnMarcadores = document.getElementById('btnMarcadores');
 const submenuMarcadores = document.getElementById('submenuMarcadores');
 const listaMarcadores = document.getElementById('listaMarcadores');
-const btnAnadirMarcador = document.getElementById('btnAnadirMarcador');
+const btnFiltroPoloWeb = document.getElementById('btnFiltroPoloWeb');
 const btnActualizarLista = document.getElementById('btnActualizarLista');
-const btnListaMarcadores = document.getElementById('btnListaMarcadores');
+const btnNuevoMarcador = document.getElementById('btnNuevoMarcador');
+const btnMostrarTodo = document.getElementById('btnMostrarTodo');
 const avisoColocar = document.getElementById('avisoColocar');
 const estadoCarga = document.getElementById('estadoCarga');
 
 btnMenu.addEventListener('click', () => sidebar.classList.toggle('abierto'));
-btnMarcadores.addEventListener('click', () => submenuMarcadores.classList.toggle('abierto'));
+btnMarcadores.addEventListener('click', () => {
+  submenuMarcadores.classList.toggle('abierto');
+  if (submenuMarcadores.classList.contains('abierto')) {
+    renderListaCategoriasMarcadores();
+    renderListaMarcadores();
+  }
+});
 btnActualizarLista.addEventListener('click', cargarNegociosDesdeSheet);
-btnListaMarcadores.addEventListener('click', () => listaMarcadores.classList.toggle('abierta'));
+btnFiltroPoloWeb.addEventListener('click', () => aplicarFiltroHoja(1));
+btnMostrarTodo.addEventListener('click', () => aplicarFiltroHoja(null));
 
 /* =========================================================
    BUSCAR (por nombre y por categoría, con chips de categoría)
@@ -1789,25 +1832,19 @@ function renderResultadosBuscar() {
 inputBuscar.addEventListener('input', renderResultadosBuscar);
 
 /* =========================================================
-   CATEGORÍAS Y COLORES (único lugar para cambiar el color
-   permanente que ya tiene asignado una categoría)
+   CATEGORÍAS Y COLORES (dentro de "📍 Marcadores"; único lugar
+   para cambiar el color permanente que ya tiene asignado una
+   categoría)
    ========================================================= */
-const btnCategorias = document.getElementById('btnCategorias');
-const submenuCategorias = document.getElementById('submenuCategorias');
-const listaCategorias = document.getElementById('listaCategorias');
+const listaCategoriasMarcadores = document.getElementById('listaCategoriasMarcadores');
 
-btnCategorias.addEventListener('click', () => {
-  submenuCategorias.classList.toggle('abierto');
-  if (submenuCategorias.classList.contains('abierto')) renderListaCategorias();
-});
-
-function renderListaCategorias() {
+function renderListaCategoriasMarcadores() {
   const cats = categoriasConocidas();
   if (!cats.length) {
-    listaCategorias.innerHTML = '<div class="vacio">Aún no hay categorías guardadas.</div>';
+    listaCategoriasMarcadores.innerHTML = '<div class="vacio">Aún no hay categorías guardadas.</div>';
     return;
   }
-  listaCategorias.innerHTML = cats.map(c => {
+  listaCategoriasMarcadores.innerHTML = cats.map(c => {
     const color = obtenerColorCategoria(c) || '#c7cbd1';
     return `
       <div class="fila-categoria-color">
@@ -1818,11 +1855,11 @@ function renderListaCategorias() {
   }).join('');
 }
 
-listaCategorias.addEventListener('input', (e) => {
+listaCategoriasMarcadores.addEventListener('input', (e) => {
   const inp = e.target.closest('.input-color-categoria');
   if (!inp) return;
   fijarColorCategoria(inp.dataset.cat, inp.value);
-  renderListaCategorias();
+  renderListaCategoriasMarcadores();
   dibujarNegociosEnMapa();
 });
 
@@ -1914,7 +1951,7 @@ overlayCategoriaSub.addEventListener('click', (e) => {
 let modoColocar = false;
 let marcadorPrevio = null;
 
-btnAnadirMarcador.addEventListener('click', () => {
+btnNuevoMarcador.addEventListener('click', () => {
   modoColocar = true;
   avisoColocar.style.display = 'block';
   sidebar.classList.remove('abierto');
