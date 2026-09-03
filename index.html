@@ -1416,6 +1416,12 @@
       <button type="button" class="btn-anadir-link" id="btnAnadirLink">➕ Añadir link</button>
     </div>
 
+    <div class="grupo-campos">
+      <div class="grupo-titulo">📝 Descripción (si no tiene links)</div>
+      <label for="inpEditDescripcionOpcional">Descripción</label>
+      <textarea id="inpEditDescripcionOpcional" rows="3" placeholder="Cuenta brevemente de qué trata este negocio (solo se usa si no le agregas ningún link arriba)…"></textarea>
+    </div>
+
     <div id="filaCopiarNegocio">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Imagen — Nombres de links — Colores de negocios — Categorías de sub negocios</div>
     <div id="ordenColumnasNegocio">Orden de columnas en tu hoja: A Nombre · B Link principal · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) si hay Link en B, o Descripción del negocio si B está vacía · I Imagen del submenú (imgbb) · J Nombres de cada link (separados por comas, en el mismo orden que los links) · K Colores de negocios extra (separados por comas, mismo orden que los links adicionales) · L Categorías de sub negocios (separadas por comas, mismo orden que los links adicionales)</div>
 
@@ -1695,16 +1701,21 @@ function parseCSV(texto, numeroHoja) {
       const url = campos[1] || '';
       const categoria = campos[2] || '';
       // Columna H: una o varias páginas web adicionales (perfil de
-      // empresa, redes sociales, etc.) separadas por comas
-      const perfiles = (campos[7] || '')
-        .split(',')
-        .map(p => p.trim())
-        .filter(p => p);
+      // empresa, redes sociales, etc.) separadas por comas. Solo se
+      // interpreta así cuando el negocio SÍ tiene link principal (columna
+      // B); si no tiene link, la columna H se usa como descripción (ver
+      // abajo) en vez de como lista de links.
+      const perfiles = url
+        ? (campos[7] || '').split(',').map(p => p.trim()).filter(p => p)
+        : [];
       // Columna I: foto que se muestra arriba en el submenú "Ver negocio" (link de imgbb)
       const imagen = campos[8] || '';
       // Columna H, cuando el negocio NO tiene link principal (columna B
       // vacía): en vez de leerse como "links adicionales", se usa como
-      // texto de descripción para el submenú "Ver negocio" del punto gris.
+      // texto de descripción para el submenú "Ver negocio" (por ejemplo,
+      // negocios sin ninguna forma de contacto: recicladoras, oficinas de
+      // gobierno, etc.). El marcador se ve igual de "activo" con o sin
+      // link: lo único que cambia es que aquí no hay botones de link.
       const descripcion = !url ? (campos[7] || '') : '';
       // Columna J: nombre/etiqueta que aparece en el botón de cada link,
       // en el mismo orden que Link (B) + Links adicionales (H)
@@ -1739,35 +1750,33 @@ function parseCSV(texto, numeroHoja) {
         etiquetas: etiquetas,
         subCategorias: subCategorias,
         subColores: subColores,
-        // "Activo" (marcador de color, con sus links) depende solo de si
-        // hay un link principal en la columna B. Un negocio sin link (B
-        // vacía) se muestra como punto gris con su botón "Ver negocio"
-        // y descripción (columna H), aunque tenga imagen (columna I).
-        activo: !!url
+        // "tieneLink": si hay un link principal en la columna B. Ya NO
+        // decide el aspecto del marcador (todos se ven igual, con color y
+        // emoji): solo decide si la columna H se interpreta como "links
+        // adicionales" o como "descripción", y si el panel "Ver negocio"
+        // muestra botones de link o solo la descripción.
+        tieneLink: !!url
       };
     })
     .filter(n => n.nombre && !isNaN(n.lat) && !isNaN(n.lng));
 }
 
 function crearIcono(n) {
-  if (n.activo) {
-    // El color de la categoría (si ya tiene uno permanente asignado)
-    // manda sobre el color guardado en la hoja, para que cambiar el
-    // color de una categoría desde "🎨 Categorías y colores" repinte
-    // todos sus marcadores sin tener que editar la hoja.
-    const color = obtenerColorCategoria(n.categoria) || n.color || '#1a73e8';
-    return L.divIcon({
-      className: '',
-      html: `<div class="marker-activo" style="background:${color}"><span>${n.emoji || '📍'}</span></div>`,
-      iconSize: [38, 38],
-      iconAnchor: [19, 38]
-    });
-  }
+  // Todos los marcadores se ven igual (color + emoji), tengan o no un
+  // link principal: hay negocios (recicladoras, oficinas de gobierno,
+  // etc.) que nunca van a tener una forma de contacto propia, y aun así
+  // deben verse como cualquier otro negocio en el mapa.
+  //
+  // El color de la categoría (si ya tiene uno permanente asignado) manda
+  // sobre el color guardado en la hoja, para que cambiar el color de una
+  // categoría desde "🎨 Categorías y colores" repinte todos sus
+  // marcadores sin tener que editar la hoja.
+  const color = obtenerColorCategoria(n.categoria) || n.color || '#1a73e8';
   return L.divIcon({
     className: '',
-    html: `<div class="marker-gris"></div>`,
-    iconSize: [22, 22],
-    iconAnchor: [11, 11]
+    html: `<div class="marker-activo" style="background:${color}"><span>${n.emoji || '📍'}</span></div>`,
+    iconSize: [38, 38],
+    iconAnchor: [19, 38]
   });
 }
 
@@ -1799,13 +1808,6 @@ function obtenerLinksNegocio(n) {
 }
 
 function popupHtml(n) {
-  if (!n.activo) {
-    return `<div class="popup-negocio inactivo">
-         <strong>${n.nombre}</strong>
-         <br><button type="button" class="btn-ver-negocio btn-ver-negocio-gris" onclick="abrirPanelNegocio('${n.id}')">Ver negocio</button>
-       </div>`;
-  }
-
   return `<div class="popup-negocio">
          <strong>${n.nombre}</strong>
          <br><button type="button" class="btn-ver-negocio" onclick="abrirPanelNegocio('${n.id}')">Ver negocio</button>
@@ -1970,17 +1972,17 @@ function abrirPanelNegocio(id) {
 
   nombrePanelNegocio.textContent = n.nombre;
 
-  if (!n.activo) {
-    // Punto gris: en vez de la lista de links, mostramos la
-    // descripción (columna H) que se edita desde ⚙️ Configuración.
-    listaLinksPanelNegocio.innerHTML = n.descripcion
-      ? `<div class="descripcion-panel-negocio">${escaparHtml(n.descripcion)}</div>`
-      : '<div class="descripcion-panel-negocio vacia">Este negocio aún no tiene descripción.</div>';
+  // Si el negocio tiene links (principal y/o adicionales), se muestran
+  // como botones normales. Si no tiene ningún link (negocios sin forma
+  // de contacto propia: recicladoras, oficinas de gobierno, etc.), se
+  // muestra la descripción (columna H) en su lugar.
+  const links = obtenerLinksNegocio(n);
+  if (links.length) {
+    listaLinksPanelNegocio.innerHTML = renderListaLinksNegocio(n, links);
+  } else if (n.descripcion) {
+    listaLinksPanelNegocio.innerHTML = `<div class="descripcion-panel-negocio">${escaparHtml(n.descripcion)}</div>`;
   } else {
-    const links = obtenerLinksNegocio(n);
-    listaLinksPanelNegocio.innerHTML = links.length
-      ? renderListaLinksNegocio(n, links)
-      : '<div class="etiqueta-link">Este negocio aún no tiene links.</div>';
+    listaLinksPanelNegocio.innerHTML = '<div class="etiqueta-link">Este negocio aún no tiene links.</div>';
   }
 
   overlayNegocio.classList.add('abierto');
@@ -2043,12 +2045,10 @@ overlayNegocio.addEventListener('click', (e) => {
 
 btnConfigNegocio.addEventListener('click', () => {
   if (!negocioAbiertoId) return;
-  const n = negocios.find(x => x.id === negocioAbiertoId);
-  if (n && !n.activo) {
-    abrirModalEditarNegocioInactivo(negocioAbiertoId);
-  } else {
-    abrirModalEditarNegocio(negocioAbiertoId);
-  }
+  // Ahora todos los negocios (tengan o no un link principal) abren el
+  // mismo panel completo de configuración: pueden editar categoría,
+  // emoji, color, links y su descripción por igual.
+  abrirModalEditarNegocio(negocioAbiertoId);
 });
 
 /* =========================================================
@@ -2071,6 +2071,7 @@ const avisoCopiadoNegocio = document.getElementById('avisoCopiadoNegocio');
 const btnCopiarFilaNegocio = document.getElementById('btnCopiarFilaNegocio');
 const btnCerrarEditarNegocio = document.getElementById('btnCerrarEditarNegocio');
 const panelEmojisEdit = document.getElementById('panelEmojisEdit');
+const inpEditDescripcionOpcional = document.getElementById('inpEditDescripcionOpcional');
 
 let contadorFilaLink = 0;
 
@@ -2130,6 +2131,7 @@ function abrirModalEditarNegocio(id) {
   inpEditEmoji.value = n.emoji;
   inpEditColor.value = n.color || '#1a73e8';
   inpEditImagen.value = n.imagen || '';
+  inpEditDescripcionOpcional.value = n.descripcion || '';
 
   listaLinksEditables.innerHTML = '';
   const links = obtenerLinksNegocio(n);
@@ -2172,7 +2174,12 @@ function actualizarFilaCopiarNegocio() {
   });
 
   const linkPrincipal = urls[0] || '';
-  const linksAdicionales = urls.slice(1).join(',');
+  // Columna H: si hay al menos un link, es la lista de links
+  // adicionales; si no hay ningún link, se usa la descripción en su
+  // lugar (negocios sin ninguna forma de contacto propia).
+  const linksAdicionales = urls.length
+    ? urls.slice(1).join(',')
+    : inpEditDescripcionOpcional.value.trim();
 
   const partes = [
     inpEditNombre.value.trim(),
@@ -2192,7 +2199,7 @@ function actualizarFilaCopiarNegocio() {
   return partes.join('\t');
 }
 
-[inpEditNombre, inpEditEmoji, inpEditImagen].forEach(campo => {
+[inpEditNombre, inpEditEmoji, inpEditImagen, inpEditDescripcionOpcional].forEach(campo => {
   campo.addEventListener('input', actualizarFilaCopiarNegocio);
 });
 
