@@ -9,6 +9,9 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+<!-- Generador de código QR (sin API externa, todo se genera en el navegador) -->
+<script src="https://unpkg.com/qrcodejs@1.0.0/qrcode.min.js"></script>
+
 <style>
   :root {
     --color-acento: #1a73e8;
@@ -348,6 +351,69 @@
   .modal-shell input[readonly] { background: #f1f3f5; color: #5f6368; }
   .modal-shell select { cursor: pointer; }
 
+  /* ---------- Modal "Compartir" ---------- */
+  #overlayCompartir {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 2200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  #overlayCompartir.abierto { display: flex; }
+  #qrCompartir {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    padding: 14px;
+    border-radius: 10px;
+    margin: 0 auto 4px;
+    width: 190px;
+    height: 190px;
+  }
+  #qrCompartir img, #qrCompartir canvas { width: 100%; height: 100%; }
+  .compartir-fila-enlace {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .compartir-fila-enlace input {
+    flex: 1;
+    min-width: 0;
+  }
+  .compartir-fila-enlace button {
+    flex-shrink: 0;
+    border: none;
+    border-radius: 6px;
+    background: var(--color-acento);
+    color: #fff;
+    padding: 0 14px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  #avisoCopiadoCompartir {
+    font-size: 12.5px;
+    color: #34a853;
+    margin-top: 8px;
+    min-height: 16px;
+    text-align: center;
+  }
+  #btnCompartirNativo {
+    width: 100%;
+    margin-top: 10px;
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    background: #fff;
+    padding: 10px;
+    font-size: 13.5px;
+    cursor: pointer;
+    display: none;
+  }
+  body.modo-oscuro #qrCompartir { background: #fff; }
+  body.modo-oscuro #btnCompartirNativo { background: #262a31; color: #e8eaed; border-color: #33373f; }
+
   .fila-doble { display: flex; gap: 8px; }
   .fila-doble > div { flex: 1; }
 
@@ -607,6 +673,17 @@
   }
   #overlayEditarNegocio.abierto { display: flex; }
 
+  #overlayEditarNegocioInactivo {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 2100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  #overlayEditarNegocioInactivo.abierto { display: flex; }
+
   .fila-link-editable {
     border: 1px solid #e3e6ea;
     border-radius: 8px;
@@ -816,6 +893,27 @@
     border-radius: 50%;
   }
   #btnCuenta.conectado { box-shadow: 0 0 0 2px #34a853, 0 2px 6px rgba(0,0,0,.3); }
+
+  /* Círculo de perfil oculto de la esquina superior derecha
+     (el inicio de sesión con Google sigue disponible desde el
+     menú lateral, en #btnCuentaSidebar) */
+  #btnCuenta { display: none; }
+
+  /* ---------- Botón circular de compartir ---------- */
+  #btnCompartir {
+    position: absolute;
+    top: 16px; right: 16px;
+    z-index: 1000;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #btnCompartir:active { background: #f1f1f1; }
 
   .sb-item.item-cuenta {
     display: flex;
@@ -1032,6 +1130,7 @@
 
   body.modo-oscuro #btnMenu,
   body.modo-oscuro #btnCuenta,
+  body.modo-oscuro #btnCompartir,
   body.modo-oscuro #tituloCentral,
   body.modo-oscuro #avisoColocar { background: #262a31; color: #e8eaed; }
 
@@ -1089,6 +1188,7 @@
 
 <button id="btnMenu" title="Menú">☰</button>
 <button id="btnCuenta" title="Iniciar sesión con Google">👤</button>
+<button id="btnCompartir" title="Compartir">🔗</button>
 <div id="tituloCentral">Polo/Mapa de Morelia</div>
 
 <div id="avisoColocar">Toca el mapa para colocar el marcador…</div>
@@ -1134,6 +1234,31 @@
     </div>
     <div id="categoriasBuscar"><!-- botones de categoría generados por JS --></div>
     <div id="resultadosBuscar"><!-- resultados generados por JS --></div>
+  </div>
+</div>
+
+<!-- ---------- Modal "Compartir" ---------- -->
+<div id="overlayCompartir">
+  <div id="modalCompartir" class="modal-shell">
+    <div class="modal-header">
+      <div class="modal-header-icono">🔗</div>
+      <div>
+        <h3>Compartir esta página</h3>
+        <div class="subtitulo">Escanea el código o copia el enlace</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div id="qrCompartir"></div>
+      <div class="compartir-fila-enlace">
+        <input type="text" id="inpEnlaceCompartir" readonly>
+        <button type="button" id="btnCopiarEnlaceCompartir">📋 Copiar</button>
+      </div>
+      <div id="avisoCopiadoCompartir"></div>
+      <button type="button" id="btnCompartirNativo">📤 Más opciones para compartir</button>
+      <div class="modal-botones" style="margin-top:14px;">
+        <button id="btnCerrarCompartir">Cerrar</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2326,6 +2451,76 @@ const avisoColocar = document.getElementById('avisoColocar');
 const estadoCarga = document.getElementById('estadoCarga');
 
 btnMenu.addEventListener('click', () => sidebar.classList.toggle('abierto'));
+
+/* =========================================================
+   COMPARTIR (botón circular + QR)
+   ========================================================= */
+const btnCompartir = document.getElementById('btnCompartir');
+const overlayCompartir = document.getElementById('overlayCompartir');
+const qrCompartir = document.getElementById('qrCompartir');
+const inpEnlaceCompartir = document.getElementById('inpEnlaceCompartir');
+const btnCopiarEnlaceCompartir = document.getElementById('btnCopiarEnlaceCompartir');
+const avisoCopiadoCompartir = document.getElementById('avisoCopiadoCompartir');
+const btnCerrarCompartir = document.getElementById('btnCerrarCompartir');
+const btnCompartirNativo = document.getElementById('btnCompartirNativo');
+
+let qrCompartirGenerado = false;
+
+function abrirModalCompartir() {
+  const enlace = window.location.href;
+  inpEnlaceCompartir.value = enlace;
+  avisoCopiadoCompartir.textContent = '';
+
+  if (!qrCompartirGenerado) {
+    new QRCode(qrCompartir, {
+      text: enlace,
+      width: 190,
+      height: 190,
+      colorDark: '#202124',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+    qrCompartirGenerado = true;
+  }
+
+  // En móviles con soporte para compartir nativo (WhatsApp, etc.)
+  if (navigator.share) {
+    btnCompartirNativo.style.display = 'block';
+  }
+
+  overlayCompartir.classList.add('abierto');
+}
+
+function cerrarModalCompartir() {
+  overlayCompartir.classList.remove('abierto');
+}
+
+btnCompartir.addEventListener('click', abrirModalCompartir);
+btnCerrarCompartir.addEventListener('click', cerrarModalCompartir);
+overlayCompartir.addEventListener('click', (e) => {
+  if (e.target === overlayCompartir) cerrarModalCompartir();
+});
+
+btnCopiarEnlaceCompartir.addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(inpEnlaceCompartir.value);
+    avisoCopiadoCompartir.textContent = '¡Enlace copiado!';
+  } catch (e) {
+    inpEnlaceCompartir.select();
+    avisoCopiadoCompartir.textContent = 'No se pudo copiar automático: selecciona el texto de arriba y cópialo manualmente.';
+  }
+});
+
+btnCompartirNativo.addEventListener('click', async () => {
+  try {
+    await navigator.share({
+      title: document.title,
+      url: inpEnlaceCompartir.value
+    });
+  } catch (e) {
+    // El usuario canceló el diálogo de compartir; no hacemos nada.
+  }
+});
 btnMarcadores.addEventListener('click', () => {
   submenuMarcadores.classList.toggle('abierto');
   if (submenuMarcadores.classList.contains('abierto')) {
