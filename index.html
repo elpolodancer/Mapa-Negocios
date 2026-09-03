@@ -612,6 +612,127 @@
     font-size: 13px;
     cursor: pointer;
   }
+
+  /* ---------- Sub negocios: separador "Otros Negocios/Empresas" ---------- */
+  .caja-link.principal { }
+  .separador-otros-negocios {
+    margin: 14px 0 10px;
+    padding-top: 12px;
+    border-top: 1px dashed #d5d9dd;
+    text-align: left;
+  }
+  .separador-otros-negocios .titulo-separador {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #8a919a;
+  }
+  .separador-otros-negocios .subtitulo-separador {
+    display: block;
+    font-size: 11px;
+    color: #b0b6bd;
+    margin-top: 2px;
+  }
+  .contenedor-otros-negocios {
+    margin-left: 8px;
+    padding-left: 12px;
+    border-left: 2px solid #e3e6ea;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .caja-link.secundario {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .caja-link.secundario .btn-visitar-link {
+    flex: 1;
+    padding: 8px;
+    font-size: 13px;
+  }
+  .btn-gear-subnegocio {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1px solid #dfe3e8;
+    background: #f4f6f8;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .btn-gear-subnegocio:hover { background: #e8eaed; }
+  .punto-categoria {
+    display: inline-block;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+    border: 1px solid rgba(0,0,0,.15);
+  }
+  .inp-categoria-link {
+    margin-top: 6px;
+  }
+
+  /* ---------- Modal "Categoría de este sub negocio" ---------- */
+  #overlayCategoriaSub {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 2200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  #overlayCategoriaSub.abierto { display: flex; }
+  .chips-categoria-sub { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip-categoria-color {
+    display: flex;
+    align-items: center;
+    border: 1.5px solid #ddd;
+    background: #fff;
+    border-radius: 16px;
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .chip-categoria-color:hover { background: #f4f6f8; }
+
+  /* ---------- Nota de color fijo/permanente por categoría ---------- */
+  .nota-color {
+    font-size: 11px;
+    color: #666;
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  /* ---------- Submenú "Categorías y colores" ---------- */
+  #submenuCategorias { display: none; background: #fafafa; }
+  #submenuCategorias.abierto { display: block; }
+  #listaCategorias .vacio {
+    padding: 12px 18px;
+    font-size: 13px;
+    color: #888;
+    font-style: italic;
+  }
+  .fila-categoria-color {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 18px;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+  }
+  .nombre-categoria-color { flex: 1; }
+  .input-color-categoria {
+    width: 34px; height: 26px;
+    border: none;
+    padding: 0;
+    background: none;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -639,6 +760,14 @@
     </div>
     <div id="categoriasBuscar"><!-- botones de categoría generados por JS --></div>
     <div id="resultadosBuscar"><!-- resultados generados por JS --></div>
+  </div>
+
+  <button class="sb-item" id="btnCategorias">🎨 Categorías y colores</button>
+  <div id="submenuCategorias">
+    <div style="padding:10px 18px; font-size:12px; color:#888;">
+      Cada categoría guarda un solo color permanente. Aquí es el único lugar donde puedes cambiarlo.
+    </div>
+    <div id="listaCategorias"><!-- filas generadas por JS --></div>
   </div>
 </div>
 
@@ -703,19 +832,21 @@
 
       <label for="inpColor">Color (opcional)</label>
       <input type="color" id="inpColor" value="#1a73e8">
+      <div class="nota-color" id="notaColorPrincipal"></div>
     </div>
 
     <div class="grupo-campos">
       <div class="grupo-titulo">🔗 Links e imagen</div>
       <label for="inpDescripcion">Links adicionales / otras páginas (opcional)</label>
       <input type="text" id="inpDescripcion" placeholder="https://facebook.com/..., https://instagram.com/...">
+      <div class="nota-color">Si tu marcador tiene varios negocios (ej. yesos, páginas web, clases de baile…), agrega aquí un link por cada uno. Luego, desde "Ver negocio → ⚙️" en cada botón, podrás asignarle su categoría.</div>
 
       <label for="inpImagen">Imagen del submenú (opcional, URL de imgbb)</label>
       <input type="url" id="inpImagen" placeholder="https://i.ibb.co/xxxxx/foto.jpg">
     </div>
 
-    <div id="filaCopiar">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Nombres de links — Imagen</div>
-    <div id="ordenColumnas">Orden de columnas en tu hoja: A Nombre · B Link · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) · I Nombres de cada link (separados por comas — se completan luego desde "Ver negocio → ⚙️ Configuración") · J Imagen (imgbb)</div>
+    <div id="filaCopiar">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Nombres de links — Imagen — Categorías de sub negocios</div>
+    <div id="ordenColumnas">Orden de columnas en tu hoja: A Nombre · B Link · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) · I Nombres de cada link (separados por comas — se completan luego desde "Ver negocio → ⚙️ Configuración") · J Imagen (imgbb) · K Categorías de sub negocios (separadas por comas, mismo orden que los links adicionales — se completan luego desde "Ver negocio → ⚙️" en cada botón)</div>
 
     <div class="modal-botones">
       <button id="btnCerrarModal">Cerrar</button>
@@ -793,6 +924,7 @@
 
       <label for="inpEditColor">Color (opcional)</label>
       <input type="color" id="inpEditColor" value="#1a73e8">
+      <div class="nota-color" id="notaColorPrincipalEdit"></div>
 
       <label for="inpEditImagen">Imagen del submenú (URL de imgbb)</label>
       <input type="url" id="inpEditImagen" placeholder="https://i.ibb.co/xxxxx/foto.jpg">
@@ -800,18 +932,50 @@
 
     <div class="grupo-campos">
       <div class="grupo-titulo">🔗 Links de la empresa</div>
+      <div class="nota-color">El primer link es el negocio principal (usa la Categoría de arriba). Los siguientes son "Otros Negocios/Empresas": puedes escribirles su categoría aquí, o asignarla más rápido con el botón ⚙️ de cada uno en el panel "Ver negocio".</div>
       <div id="listaLinksEditables"><!-- filas generadas por JS --></div>
       <button type="button" class="btn-anadir-link" id="btnAnadirLink">➕ Añadir link</button>
     </div>
 
-    <div id="filaCopiarNegocio">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Nombres de links — Imagen</div>
-    <div id="ordenColumnasNegocio">Orden de columnas en tu hoja: A Nombre · B Link principal · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) · I Nombres de cada link (separados por comas, en el mismo orden que los links) · J Imagen (imgbb)</div>
+    <div id="filaCopiarNegocio">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Nombres de links — Imagen — Categorías de sub negocios</div>
+    <div id="ordenColumnasNegocio">Orden de columnas en tu hoja: A Nombre · B Link principal · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) · I Nombres de cada link (separados por comas, en el mismo orden que los links) · J Imagen (imgbb) · K Categorías de sub negocios (separadas por comas, mismo orden que los links adicionales)</div>
 
     <div class="modal-botones">
       <button id="btnCerrarEditarNegocio">Cerrar</button>
       <button id="btnCopiarFilaNegocio">📋 Copiar línea</button>
     </div>
     <div id="avisoCopiadoNegocio"></div>
+    </div>
+  </div>
+</div>
+
+<div id="overlayCategoriaSub">
+  <div id="modalCategoriaSub" class="modal-shell" style="max-width:340px;">
+    <div class="modal-header">
+      <div class="modal-header-icono">🏷️</div>
+      <div>
+        <h3>Categoría de este negocio</h3>
+        <div class="subtitulo">Elige una categoría existente o crea una nueva.</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div id="chipsCategoriaSub" class="chips-categoria-sub"><!-- generado por JS --></div>
+
+      <label for="inputNuevaCategoriaSub" style="margin-top:12px; display:block;">O escribe una categoría nueva</label>
+      <input type="text" id="inputNuevaCategoriaSub" placeholder="Ej. Farmacia, Salón de baile…">
+
+      <div id="filaColorNuevaCategoriaSub" style="display:none; margin-top:8px;">
+        <label for="colorNuevaCategoriaSub">Color que representará a esta categoría (permanente)</label>
+        <input type="color" id="colorNuevaCategoriaSub" value="#1a73e8">
+        <div class="nota-color">Como es una categoría nueva, este color quedará guardado para siempre. Solo podrás cambiarlo luego desde 🎨 Categorías y colores.</div>
+      </div>
+
+      <div id="avisoCategoriaSub" style="font-size:12px; color:#d93025; margin-top:6px;"></div>
+
+      <div class="modal-botones" style="margin-top:14px;">
+        <button id="btnCerrarCategoriaSub">Cancelar</button>
+        <button id="btnGuardarCategoriaSub">✅ Guardar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -866,8 +1030,103 @@ const NOMBRES_HOJA = {
   3: 'Hoja 3 — bazares, tianguis, emprendimientos e instituciones',
 };
 
-let negocios = []; // [{ nombre, url, categoria, emoji, color, lat, lng, activo, hoja }]
+let negocios = []; // [{ nombre, url, categoria, emoji, color, lat, lng, activo, hoja, subCategorias }]
 const referencias = {}; // marcadores de Leaflet por índice
+
+/* =========================================================
+   COLORES PERMANENTES POR CATEGORÍA
+   -----------------------------------------------------------
+   Cada categoría (farmacia, yesos, páginas web, clases de
+   baile, etc.) tiene un único color permanente, guardado en
+   localStorage. La primera vez que aparece una categoría se
+   pide el color; de ahí en adelante ese color se usa siempre
+   y solo se puede cambiar desde el menú "🎨 Categorías y
+   colores".
+   ========================================================= */
+const CLAVE_COLORES_CATEGORIA = 'mapaColoresCategorias';
+
+function normalizarCategoria(c) {
+  return (c || '').trim().toLowerCase();
+}
+
+function cargarColoresCategoria() {
+  try {
+    return JSON.parse(localStorage.getItem(CLAVE_COLORES_CATEGORIA)) || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function guardarColoresCategoriaEnStorage() {
+  localStorage.setItem(CLAVE_COLORES_CATEGORIA, JSON.stringify(coloresCategoria));
+}
+
+let coloresCategoria = cargarColoresCategoria();
+
+// Devuelve el color permanente guardado para una categoría, o undefined
+// si esa categoría todavía no tiene uno asignado.
+function obtenerColorCategoria(categoria) {
+  const clave = normalizarCategoria(categoria);
+  return clave ? coloresCategoria[clave] : undefined;
+}
+
+// Guarda (o sobrescribe, si se hace desde "Categorías y colores") el
+// color permanente de una categoría.
+function fijarColorCategoria(categoria, color) {
+  const clave = normalizarCategoria(categoria);
+  if (!clave || !color) return;
+  coloresCategoria[clave] = color;
+  guardarColoresCategoriaEnStorage();
+}
+
+// Junta todas las categorías conocidas: las que ya tienen negocios
+// cargados, más las que ya tienen un color guardado (por si el
+// negocio con esa categoría se borró de la hoja).
+function categoriasConocidas() {
+  const set = new Set();
+  negocios.forEach(n => {
+    if (n.categoria) set.add(n.categoria.trim());
+    (n.subCategorias || []).forEach(c => { if (c) set.add(c.trim()); });
+  });
+  Object.keys(coloresCategoria).forEach(clave => {
+    if (!set.has(clave)) set.add(clave);
+  });
+  return [...set].filter(c => c).sort((a, b) => a.localeCompare(b, 'es'));
+}
+
+// Al cargar los datos de las hojas, cualquier categoría que aún no
+// tenga un color permanente adopta el color (columna E) que ya traía
+// en la hoja como su color permanente de ahí en adelante. Así las
+// categorías que ya existían no piden elegir color de nuevo; solo las
+// categorías nuevas lo pedirán.
+function inicializarColoresCategoriaDesdeDatos() {
+  negocios.forEach(n => {
+    if (n.categoria && !obtenerColorCategoria(n.categoria) && n.color) {
+      fijarColorCategoria(n.categoria, n.color);
+    }
+  });
+}
+
+// Actualiza el campo de color y su nota de ayuda según si la
+// categoría escrita ya tiene un color permanente o es nueva.
+function actualizarNotaColor(campoCategoria, campoColor, notaEl) {
+  if (!campoCategoria || !campoColor || !notaEl) return;
+  const cat = campoCategoria.value.trim();
+  if (!cat) {
+    campoColor.disabled = false;
+    notaEl.textContent = '';
+    return;
+  }
+  const colorGuardado = obtenerColorCategoria(cat);
+  if (colorGuardado) {
+    campoColor.value = colorGuardado;
+    campoColor.disabled = true;
+    notaEl.textContent = `🔒 "${cat}" ya tiene un color permanente. Para cambiarlo, usa 🎨 Categorías y colores en el menú.`;
+  } else {
+    campoColor.disabled = false;
+    notaEl.textContent = `✨ "${cat}" es una categoría nueva: el color que elijas aquí quedará guardado como su color permanente.`;
+  }
+}
 
 // Separa una línea de CSV en columnas respetando comillas (evita
 // el bug de campos "fantasma" vacíos que se generaba con comas simples)
@@ -923,6 +1182,11 @@ function parseCSV(texto, numeroHoja) {
         .map(e => e.trim());
       // Columna J: foto que se muestra arriba en el submenú "Ver negocio" (link de imgbb)
       const imagen = campos[9] || '';
+      // Columna K: categoría de cada "sub negocio" (otros negocios/empresas
+      // del mismo marcador), en el mismo orden que los links adicionales (H)
+      const subCategorias = (campos[10] || '')
+        .split(',')
+        .map(c => c.trim());
       return {
         id: 'h' + numeroHoja + '-fila-' + i,
         hoja: numeroHoja,
@@ -936,6 +1200,7 @@ function parseCSV(texto, numeroHoja) {
         perfiles: perfiles,
         imagen: imagen,
         etiquetas: etiquetas,
+        subCategorias: subCategorias,
         activo: !!url || perfiles.length > 0
       };
     })
@@ -944,9 +1209,14 @@ function parseCSV(texto, numeroHoja) {
 
 function crearIcono(n) {
   if (n.activo) {
+    // El color de la categoría (si ya tiene uno permanente asignado)
+    // manda sobre el color guardado en la hoja, para que cambiar el
+    // color de una categoría desde "🎨 Categorías y colores" repinte
+    // todos sus marcadores sin tener que editar la hoja.
+    const color = obtenerColorCategoria(n.categoria) || n.color || '#1a73e8';
     return L.divIcon({
       className: '',
-      html: `<div class="marker-activo" style="background:${n.color || '#1a73e8'}"><span>${n.emoji || '📍'}</span></div>`,
+      html: `<div class="marker-activo" style="background:${color}"><span>${n.emoji || '📍'}</span></div>`,
       iconSize: [38, 38],
       iconAnchor: [19, 38]
     });
@@ -959,15 +1229,27 @@ function crearIcono(n) {
   });
 }
 
-// Une el link principal (B) y los links adicionales (G) en una sola
-// lista, emparejando cada uno con su etiqueta de la columna I
+// Une el link principal (B) y los links adicionales (H) en una sola
+// lista, emparejando cada uno con su etiqueta de la columna I y su
+// categoría (la del negocio principal, o la de la columna K para
+// cada "sub negocio" / "otro negocio o empresa")
 function obtenerLinksNegocio(n) {
   const links = [];
   if (n.url) {
-    links.push({ url: n.url, etiqueta: (n.etiquetas && n.etiquetas[0]) || '' });
+    links.push({
+      url: n.url,
+      etiqueta: (n.etiquetas && n.etiquetas[0]) || '',
+      categoria: n.categoria || '',
+      esPrincipal: true
+    });
   }
   (n.perfiles || []).forEach((p, idx) => {
-    links.push({ url: p, etiqueta: (n.etiquetas && n.etiquetas[idx + 1]) || '' });
+    links.push({
+      url: p,
+      etiqueta: (n.etiquetas && n.etiquetas[idx + 1]) || '',
+      categoria: (n.subCategorias && n.subCategorias[idx]) || '',
+      esPrincipal: false
+    });
   });
   return links;
 }
@@ -1061,6 +1343,7 @@ async function cargarNegociosDesdeSheet() {
     });
 
     negocios = combinados;
+    inicializarColoresCategoriaDesdeDatos();
     dibujarNegociosEnMapa();
     renderListaMarcadores();
     renderCategorias();
@@ -1110,13 +1393,51 @@ function abrirPanelNegocio(id) {
 
   const links = obtenerLinksNegocio(n);
   listaLinksPanelNegocio.innerHTML = links.length
-    ? links.map(l => `
-        <div class="caja-link">
-          <a class="btn-visitar-link" href="${l.url}" target="_blank" rel="noopener">${l.etiqueta || 'Visitar página'}</a>
-        </div>`).join('')
+    ? renderListaLinksNegocio(n, links)
     : '<div class="etiqueta-link">Este negocio aún no tiene links.</div>';
 
   overlayNegocio.classList.add('abierto');
+}
+
+// Dibuja el negocio principal (primer link) y, debajo, un separador
+// "Otros Negocios/Empresas" con el resto de los negocios del mismo
+// marcador, un poco separados visualmente pero agrupados para que se
+// note que son de la misma persona. Cada uno (menos el principal)
+// tiene un botón ⚙️ para elegirle su categoría.
+function renderListaLinksNegocio(n, links) {
+  const principal = links[0];
+  const otros = links.slice(1);
+
+  let html = cajaLinkHtml(principal, 0, true);
+
+  if (otros.length) {
+    html += `
+      <div class="separador-otros-negocios">
+        <span class="titulo-separador">Otros Negocios/Empresas</span>
+        <span class="subtitulo-separador">Mismo dueño, distintos servicios</span>
+      </div>
+      <div class="contenedor-otros-negocios">
+        ${otros.map((l, idx) => cajaLinkHtml(l, idx, false)).join('')}
+      </div>`;
+  }
+
+  return html;
+}
+
+function cajaLinkHtml(l, indiceSub, esPrincipal) {
+  const color = obtenerColorCategoria(l.categoria);
+  const punto = esPrincipal
+    ? ''
+    : `<span class="punto-categoria" style="background:${color || '#c7cbd1'}" title="${l.categoria || 'Sin categoría asignada'}"></span>`;
+  const gear = esPrincipal
+    ? ''
+    : `<button type="button" class="btn-gear-subnegocio" title="Elegir categoría de este negocio" onclick="abrirSelectorCategoriaSub('${negocioAbiertoId}', ${indiceSub})">⚙️</button>`;
+
+  return `
+    <div class="caja-link ${esPrincipal ? 'principal' : 'secundario'}">
+      <a class="btn-visitar-link" href="${l.url}" target="_blank" rel="noopener">${punto}${l.etiqueta || 'Visitar página'}</a>
+      ${gear}
+    </div>`;
 }
 
 function cerrarPanelNegocio() {
@@ -1144,6 +1465,7 @@ const inpEditHoja = document.getElementById('inpEditHoja');
 const inpEditCategoria = document.getElementById('inpEditCategoria');
 const inpEditEmoji = document.getElementById('inpEditEmoji');
 const inpEditColor = document.getElementById('inpEditColor');
+const notaColorPrincipalEdit = document.getElementById('notaColorPrincipalEdit');
 const inpEditImagen = document.getElementById('inpEditImagen');
 const listaLinksEditables = document.getElementById('listaLinksEditables');
 const btnAnadirLink = document.getElementById('btnAnadirLink');
@@ -1155,14 +1477,16 @@ const panelEmojisEdit = document.getElementById('panelEmojisEdit');
 
 let contadorFilaLink = 0;
 
-function crearFilaLinkEditable(url, etiqueta) {
+function crearFilaLinkEditable(url, etiqueta, categoria, esPrincipal) {
   contadorFilaLink++;
   const fila = document.createElement('div');
   fila.className = 'fila-link-editable';
   fila.dataset.id = 'link-edit-' + contadorFilaLink;
+  fila.dataset.principal = esPrincipal ? '1' : '0';
   fila.innerHTML = `
     <input type="text" class="inp-etiqueta-link" placeholder="Nombre que se mostrará en el botón (ej. Facebook, Catálogo)" value="${etiqueta || ''}">
     <input type="url" class="inp-url-link" placeholder="https://..." value="${url || ''}">
+    ${esPrincipal ? '' : `<input type="text" class="inp-categoria-link" placeholder="Categoría de este negocio (ej. Farmacia, Clases de baile…)" value="${categoria || ''}">`}
     <button type="button" class="btn-quitar-link">✕ Quitar link</button>
   `;
   fila.querySelector('.btn-quitar-link').addEventListener('click', () => {
@@ -1176,7 +1500,7 @@ function crearFilaLinkEditable(url, etiqueta) {
 }
 
 btnAnadirLink.addEventListener('click', () => {
-  crearFilaLinkEditable('', '');
+  crearFilaLinkEditable('', '', '', false);
   actualizarFilaCopiarNegocio();
 });
 
@@ -1196,13 +1520,14 @@ function abrirModalEditarNegocio(id) {
   listaLinksEditables.innerHTML = '';
   const links = obtenerLinksNegocio(n);
   if (links.length) {
-    links.forEach(l => crearFilaLinkEditable(l.url, l.etiqueta));
+    links.forEach(l => crearFilaLinkEditable(l.url, l.etiqueta, l.categoria, l.esPrincipal));
   } else {
-    crearFilaLinkEditable('', '');
+    crearFilaLinkEditable('', '', '', true);
   }
 
   panelEmojisEdit.classList.remove('abierto');
   avisoCopiadoNegocio.textContent = '';
+  actualizarNotaColor(inpEditCategoria, inpEditColor, notaColorPrincipalEdit);
   actualizarFilaCopiarNegocio();
   overlayEditarNegocio.classList.add('abierto');
 }
@@ -1213,8 +1538,19 @@ function cerrarModalEditarNegocio() {
 
 function actualizarFilaCopiarNegocio() {
   const filasLink = Array.from(listaLinksEditables.querySelectorAll('.fila-link-editable'));
-  const urls = filasLink.map(f => f.querySelector('.inp-url-link').value.trim()).filter(u => u);
-  const etiquetas = filasLink.map(f => f.querySelector('.inp-etiqueta-link').value.trim());
+  // Nos quedamos solo con las filas que sí tienen link, para no
+  // desalinear links/etiquetas/categorías entre sí
+  const filasConUrl = filasLink.filter(f => f.querySelector('.inp-url-link').value.trim());
+  const urls = filasConUrl.map(f => f.querySelector('.inp-url-link').value.trim());
+  const etiquetas = filasConUrl.map(f => f.querySelector('.inp-etiqueta-link').value.trim());
+  // Las categorías de "sub negocios" solo existen en las filas que no
+  // son la principal (la principal usa el campo Categoría de arriba)
+  const categoriasSub = filasConUrl
+    .filter(f => f.dataset.principal !== '1')
+    .map(f => {
+      const campo = f.querySelector('.inp-categoria-link');
+      return campo ? campo.value.trim() : '';
+    });
 
   const linkPrincipal = urls[0] || '';
   const linksAdicionales = urls.slice(1).join(',');
@@ -1229,15 +1565,23 @@ function actualizarFilaCopiarNegocio() {
     inpEditLng.value,
     linksAdicionales,
     etiquetas.join(','),
-    inpEditImagen.value.trim()
+    inpEditImagen.value.trim(),
+    categoriasSub.join(',')
   ];
   filaCopiarNegocio.textContent = `[${inpEditHoja.value}]  ${partes.join('   |   ')}`;
   return partes.join('\t');
 }
 
-[inpEditNombre, inpEditCategoria, inpEditEmoji, inpEditColor, inpEditImagen].forEach(campo => {
+[inpEditNombre, inpEditEmoji, inpEditImagen].forEach(campo => {
   campo.addEventListener('input', actualizarFilaCopiarNegocio);
 });
+
+inpEditCategoria.addEventListener('input', () => {
+  actualizarNotaColor(inpEditCategoria, inpEditColor, notaColorPrincipalEdit);
+  actualizarFilaCopiarNegocio();
+});
+
+inpEditColor.addEventListener('input', actualizarFilaCopiarNegocio);
 
 btnCerrarEditarNegocio.addEventListener('click', cerrarModalEditarNegocio);
 overlayEditarNegocio.addEventListener('click', (e) => {
@@ -1245,6 +1589,12 @@ overlayEditarNegocio.addEventListener('click', (e) => {
 });
 
 btnCopiarFilaNegocio.addEventListener('click', async () => {
+  // Si la categoría principal es nueva, el color elegido aquí se
+  // vuelve su color permanente a partir de ahora
+  const catNueva = inpEditCategoria.value.trim();
+  if (catNueva && !obtenerColorCategoria(catNueva)) {
+    fijarColorCategoria(catNueva, inpEditColor.value);
+  }
   const filaTexto = actualizarFilaCopiarNegocio();
   try {
     await navigator.clipboard.writeText(filaTexto);
@@ -1371,6 +1721,125 @@ function renderResultadosBuscar() {
 inputBuscar.addEventListener('input', renderResultadosBuscar);
 
 /* =========================================================
+   CATEGORÍAS Y COLORES (único lugar para cambiar el color
+   permanente que ya tiene asignado una categoría)
+   ========================================================= */
+const btnCategorias = document.getElementById('btnCategorias');
+const submenuCategorias = document.getElementById('submenuCategorias');
+const listaCategorias = document.getElementById('listaCategorias');
+
+btnCategorias.addEventListener('click', () => {
+  submenuCategorias.classList.toggle('abierto');
+  if (submenuCategorias.classList.contains('abierto')) renderListaCategorias();
+});
+
+function renderListaCategorias() {
+  const cats = categoriasConocidas();
+  if (!cats.length) {
+    listaCategorias.innerHTML = '<div class="vacio">Aún no hay categorías guardadas.</div>';
+    return;
+  }
+  listaCategorias.innerHTML = cats.map(c => {
+    const color = obtenerColorCategoria(c) || '#c7cbd1';
+    return `
+      <div class="fila-categoria-color">
+        <span class="punto-categoria" style="background:${color}"></span>
+        <span class="nombre-categoria-color">${c}</span>
+        <input type="color" class="input-color-categoria" data-cat="${c}" value="${color}" title="Cambiar el color permanente de ${c}">
+      </div>`;
+  }).join('');
+}
+
+listaCategorias.addEventListener('input', (e) => {
+  const inp = e.target.closest('.input-color-categoria');
+  if (!inp) return;
+  fijarColorCategoria(inp.dataset.cat, inp.value);
+  renderListaCategorias();
+  dibujarNegociosEnMapa();
+});
+
+/* =========================================================
+   MODAL: elegir la categoría de un "sub negocio" (otro
+   negocio/empresa del mismo marcador), abierto con el botón
+   ⚙️ de cada uno en el panel "Ver negocio"
+   ========================================================= */
+const overlayCategoriaSub = document.getElementById('overlayCategoriaSub');
+const chipsCategoriaSub = document.getElementById('chipsCategoriaSub');
+const inputNuevaCategoriaSub = document.getElementById('inputNuevaCategoriaSub');
+const filaColorNuevaCategoriaSub = document.getElementById('filaColorNuevaCategoriaSub');
+const colorNuevaCategoriaSub = document.getElementById('colorNuevaCategoriaSub');
+const avisoCategoriaSub = document.getElementById('avisoCategoriaSub');
+const btnCerrarCategoriaSub = document.getElementById('btnCerrarCategoriaSub');
+const btnGuardarCategoriaSub = document.getElementById('btnGuardarCategoriaSub');
+
+let contextoCategoriaSub = null; // { negocioId, indiceSub }
+
+function abrirSelectorCategoriaSub(negocioId, indiceSub) {
+  const n = negocios.find(x => x.id === negocioId);
+  if (!n) return;
+  contextoCategoriaSub = { negocioId, indiceSub };
+  renderChipsCategoriaSub();
+  inputNuevaCategoriaSub.value = '';
+  colorNuevaCategoriaSub.value = '#1a73e8';
+  filaColorNuevaCategoriaSub.style.display = 'none';
+  avisoCategoriaSub.textContent = '';
+  overlayCategoriaSub.classList.add('abierto');
+}
+
+function renderChipsCategoriaSub() {
+  const cats = categoriasConocidas();
+  chipsCategoriaSub.innerHTML = cats.length
+    ? cats.map(c => {
+        const color = obtenerColorCategoria(c) || '#c7cbd1';
+        return `<button type="button" class="chip-categoria-color" data-cat="${c}" style="border-color:${color}">
+          <span class="punto-categoria" style="background:${color}"></span>${c}
+        </button>`;
+      }).join('')
+    : '<div class="vacio" style="padding:6px 0; font-size:12px; color:#888;">Aún no hay categorías guardadas.</div>';
+}
+
+chipsCategoriaSub.addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip-categoria-color');
+  if (!chip) return;
+  guardarCategoriaSub(chip.dataset.cat);
+});
+
+inputNuevaCategoriaSub.addEventListener('input', () => {
+  const cat = inputNuevaCategoriaSub.value.trim();
+  const yaTieneColor = cat && obtenerColorCategoria(cat);
+  filaColorNuevaCategoriaSub.style.display = (cat && !yaTieneColor) ? 'block' : 'none';
+});
+
+btnGuardarCategoriaSub.addEventListener('click', () => {
+  const cat = inputNuevaCategoriaSub.value.trim();
+  if (!cat) {
+    avisoCategoriaSub.textContent = 'Escribe un nombre de categoría o elige una de la lista de arriba.';
+    return;
+  }
+  if (!obtenerColorCategoria(cat)) {
+    fijarColorCategoria(cat, colorNuevaCategoriaSub.value);
+  }
+  guardarCategoriaSub(cat);
+});
+
+function guardarCategoriaSub(categoria) {
+  if (!contextoCategoriaSub) return;
+  const { negocioId, indiceSub } = contextoCategoriaSub;
+  const n = negocios.find(x => x.id === negocioId);
+  if (!n) return;
+  if (!n.subCategorias) n.subCategorias = [];
+  n.subCategorias[indiceSub] = categoria;
+  overlayCategoriaSub.classList.remove('abierto');
+  // Vuelve a abrir el panel para mostrar el punto de color actualizado
+  abrirPanelNegocio(negocioId);
+}
+
+btnCerrarCategoriaSub.addEventListener('click', () => overlayCategoriaSub.classList.remove('abierto'));
+overlayCategoriaSub.addEventListener('click', (e) => {
+  if (e.target === overlayCategoriaSub) overlayCategoriaSub.classList.remove('abierto');
+});
+
+/* =========================================================
    MODO "AÑADIR MARCADOR": el siguiente clic en el mapa
    coloca un punto de vista previa y abre el formulario
    ========================================================= */
@@ -1414,6 +1883,7 @@ const filaCopiar = document.getElementById('filaCopiar');
 const avisoCopiado = document.getElementById('avisoCopiado');
 const btnCopiarFila = document.getElementById('btnCopiarFila');
 const btnCerrarModal = document.getElementById('btnCerrarModal');
+const notaColorPrincipal = document.getElementById('notaColorPrincipal');
 
 function abrirModalNuevo(lat, lng) {
   inpLat.value = lat.toFixed(6);
@@ -1422,10 +1892,12 @@ function abrirModalNuevo(lat, lng) {
   inpCategoria.value = '';
   inpEmoji.value = '';
   inpColor.value = '#1a73e8';
+  inpColor.disabled = false;
   inpUrl.value = '';
   inpDescripcion.value = '';
   inpImagen.value = '';
   avisoCopiado.textContent = '';
+  notaColorPrincipal.textContent = '';
   panelEmojis.classList.remove('abierto');
   actualizarFilaCopiar();
   overlayModal.classList.add('abierto');
@@ -1447,20 +1919,32 @@ function actualizarFilaCopiar() {
     inpLng.value,
     inpDescripcion.value.trim(),
     '', // Nombres de cada link (columna I): se completan después desde "Ver negocio → ⚙️ Configuración" si hay varios links
-    inpImagen.value.trim()
+    inpImagen.value.trim(),
+    '' // Categorías de sub negocios (columna K): se completan después desde "Ver negocio → ⚙️" en cada botón
   ];
   const nombreHoja = selHojaDestino.options[selHojaDestino.selectedIndex].text;
   filaCopiar.textContent = `[Pegar en ${nombreHoja}]  ${partes.join('   |   ')}`;
   return partes.join('\t');
 }
 
-[inpNombre, inpUrl, inpCategoria, inpEmoji, inpColor, inpDescripcion, inpImagen, selHojaDestino].forEach(campo => {
+[inpNombre, inpUrl, inpEmoji, inpColor, inpDescripcion, inpImagen, selHojaDestino].forEach(campo => {
   campo.addEventListener('input', actualizarFilaCopiar);
+});
+
+inpCategoria.addEventListener('input', () => {
+  actualizarNotaColor(inpCategoria, inpColor, notaColorPrincipal);
+  actualizarFilaCopiar();
 });
 
 btnCerrarModal.addEventListener('click', cerrarModal);
 
 btnCopiarFila.addEventListener('click', async () => {
+  // Si la categoría es nueva, el color elegido aquí se vuelve su
+  // color permanente a partir de ahora
+  const catNueva = inpCategoria.value.trim();
+  if (catNueva && !obtenerColorCategoria(catNueva)) {
+    fijarColorCategoria(catNueva, inpColor.value);
+  }
   const filaTexto = actualizarFilaCopiar();
   const nombreHoja = selHojaDestino.options[selHojaDestino.selectedIndex].text;
   try {
