@@ -184,6 +184,71 @@
     font-style: italic;
   }
 
+  /* ---------- Submenú "Buscar" ---------- */
+  #submenuBuscar { display: none; background: #fafafa; }
+  #submenuBuscar.abierto { display: block; }
+
+  #buscarWrap { padding: 10px 18px; }
+  #inputBuscar {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+
+  #categoriasBuscar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 18px 10px;
+  }
+  .chip-categoria {
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #333;
+    border-radius: 16px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .chip-categoria:hover { background: #f1f3f4; }
+  .chip-categoria.activa {
+    background: #1a73e8;
+    color: #fff;
+    border-color: #1a73e8;
+  }
+
+  #resultadosBuscar .vacio {
+    padding: 12px 18px;
+    font-size: 13px;
+    color: #888;
+    font-style: italic;
+  }
+  .resultado-casilla {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px 10px 34px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+    background: none;
+    border-left: none; border-right: none; border-top: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+  }
+  .resultado-casilla:hover { background: #f1f3f4; }
+  .resultado-casilla .resultado-emoji { font-size: 16px; flex-shrink: 0; }
+  .resultado-casilla .resultado-texto { flex: 1; min-width: 0; }
+  .resultado-casilla .resultado-nombre { color: #202124; }
+  .resultado-casilla .resultado-categoria {
+    display: block;
+    font-size: 11px;
+    color: #888;
+  }
+
   #estadoCarga {
     padding: 8px 18px;
     font-size: 12px;
@@ -524,12 +589,28 @@
     <div id="estadoCarga">Cargando negocios…</div>
     <div id="listaMarcadores"><!-- casillas generadas por JS --></div>
   </div>
+
+  <button class="sb-item" id="btnBuscar">🔍 Buscar</button>
+  <div id="submenuBuscar">
+    <div id="buscarWrap">
+      <input type="text" id="inputBuscar" placeholder="Buscar por nombre o categoría…">
+    </div>
+    <div id="categoriasBuscar"><!-- botones de categoría generados por JS --></div>
+    <div id="resultadosBuscar"><!-- resultados generados por JS --></div>
+  </div>
 </div>
 
 <div id="overlayModal">
   <div id="modalConfig">
     <h3>Nuevo marcador</h3>
     <div class="subtitulo">Llena los datos y cópialos a tu hoja de Google.</div>
+
+    <label for="selHojaDestino">Hoja de Google Sheets</label>
+    <select id="selHojaDestino">
+      <option value="1">Hoja 1 — mini tiendas, mercados y supermercados</option>
+      <option value="2">Hoja 2 — empresas y comercios</option>
+      <option value="3">Hoja 3 — bazares, tianguis, emprendimientos e instituciones</option>
+    </select>
 
     <div class="fila-doble">
       <div>
@@ -547,6 +628,9 @@
 
     <label for="inpUrl">Enlace de la página web (opcional)</label>
     <input type="url" id="inpUrl" placeholder="https://tuusuario.github.io/sitio/">
+
+    <label for="inpCategoria">Categoría (opcional)</label>
+    <input type="text" id="inpCategoria" placeholder="Ej. Farmacia, Restaurante, Transporte…">
 
     <label for="inpEmoji">Emoji (opcional)</label>
     <div class="fila-emoji">
@@ -570,8 +654,8 @@
     <label for="inpImagen">Imagen del submenú (opcional, URL de imgbb)</label>
     <input type="url" id="inpImagen" placeholder="https://i.ibb.co/xxxxx/foto.jpg">
 
-    <div id="filaCopiar">Nombre — Link — Emoji — Color — Lat — Lng — Links adicionales — Imagen</div>
-    <div id="ordenColumnas">Orden de columnas en tu hoja: A Nombre · B Link · C Emoji · D Color · E Latitud · F Longitud · G Links adicionales (separados por comas) · H Imagen (imgbb) · I Etiquetas de cada link (opcional — se editan luego desde "Ver negocio → ⚙️ Configuración")</div>
+    <div id="filaCopiar">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Imagen</div>
+    <div id="ordenColumnas">Orden de columnas en tu hoja: A Nombre · B Link · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) · I Imagen (imgbb) · J Etiquetas de cada link (opcional — se editan luego desde "Ver negocio → ⚙️ Configuración")</div>
 
     <div class="modal-botones">
       <button id="btnCerrarModal">Cerrar</button>
@@ -613,6 +697,12 @@
     <label for="inpEditNombre">Nombre del negocio</label>
     <input type="text" id="inpEditNombre" placeholder="Ej. Panadería Ejemplo">
 
+    <label for="inpEditHoja">Hoja de Google Sheets</label>
+    <input type="text" id="inpEditHoja" readonly>
+
+    <label for="inpEditCategoria">Categoría (opcional)</label>
+    <input type="text" id="inpEditCategoria" placeholder="Ej. Farmacia, Restaurante, Transporte…">
+
     <label for="inpEditEmoji">Emoji (opcional)</label>
     <div class="fila-emoji">
       <input type="text" id="inpEditEmoji" placeholder="🥖" maxlength="4">
@@ -636,8 +726,8 @@
     <div id="listaLinksEditables"><!-- filas generadas por JS --></div>
     <button type="button" class="btn-anadir-link" id="btnAnadirLink">➕ Añadir link</button>
 
-    <div id="filaCopiarNegocio">Nombre — Link — Emoji — Color — Lat — Lng — Links adicionales — Imagen — Etiquetas</div>
-    <div id="ordenColumnasNegocio">Orden de columnas en tu hoja: A Nombre · B Link principal · C Emoji · D Color · E Latitud · F Longitud · G Links adicionales (separados por comas) · H Imagen (imgbb) · I Etiquetas de cada link (separadas por comas, en el mismo orden que los links)</div>
+    <div id="filaCopiarNegocio">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Imagen — Etiquetas</div>
+    <div id="ordenColumnasNegocio">Orden de columnas en tu hoja: A Nombre · B Link principal · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) · I Imagen (imgbb) · J Etiquetas de cada link (separadas por comas, en el mismo orden que los links)</div>
 
     <div class="modal-botones">
       <button id="btnCerrarEditarNegocio">Cerrar</button>
@@ -651,24 +741,53 @@
 /* =========================================================
    MAPA
    ========================================================= */
-const map = L.map('map').setView([19.7008, -101.1844], 14); // Morelia, Michoacán
+const map = L.map('map', { zoomControl: false, maxZoom: 21 }).setView([19.7008, -101.1844], 14); // Morelia, Michoacán
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
+  maxZoom: 21,        // permite acercarse más allá del zoom nativo de OpenStreetMap
+  maxNativeZoom: 19,   // OSM solo tiene imágenes hasta 19; de 20-21 se hace un acercamiento digital
   attribution: '&copy; OpenStreetMap'
 }).addTo(map);
 
-/* =========================================================
-   GOOGLE SHEETS: fuente pública de los negocios
-   -----------------------------------------------------------
-   Columnas: A Nombre · B Link · C Emoji · D Color · E Latitud · F Longitud
-   La hoja debe estar compartida como "Cualquiera con el enlace,
-   Lector" para que cualquier visitante de la página pueda leerla.
-   ========================================================= */
-const SHEET_ID = '1AQQ8DqH7DFfgOvSrQd1E1ZbvwB7-5D1b62O5fD0FIDo';
-const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+// Controles de zoom movidos a la esquina superior derecha (antes chocaban con el botón ☰ del menú)
+L.control.zoom({ position: 'topright' }).addTo(map);
 
-let negocios = []; // [{ nombre, url, emoji, color, lat, lng, activo }]
+/* =========================================================
+   GOOGLE SHEETS: fuentes públicas de los negocios/lugares
+   -----------------------------------------------------------
+   Ahora se leen y combinan 3 hojas de Google Sheets distintas,
+   cada una identificada con un número (hoja: 1, 2 o 3) que se
+   guarda en cada registro para saber de dónde vino:
+     Hoja 1 → mini tiendas, mercados y supermercados
+     Hoja 2 → empresas y comercios
+     Hoja 3 → bazares, tianguis, emprendimientos, instituciones, etc.
+
+   Columnas de cada hoja (todas comparten el mismo orden):
+     A Nombre · B Link · C Categoría · D Emoji · E Color ·
+     F Latitud · G Longitud · H Descripción/links adicionales ·
+     I Imagen (imgbb) · J Etiquetas de cada link
+
+   Las 3 hojas deben estar compartidas como "Cualquiera con el
+   enlace, Lector" para que cualquier visitante de la página
+   pueda leerlas.
+   ========================================================= */
+const HOJAS = [
+  { hoja: 1, id: '1AQQ8DqH7DFfgOvSrQd1E1ZbvwB7-5D1b62O5fD0FIDo', gid: 0 },
+  { hoja: 2, id: '115dZkrd91A4anClkEoGkU9nvlzrg_A_QBCz763YenJ0', gid: 0 },
+  { hoja: 3, id: '18adIttEIpAQtQoplXj8jG50gnEHvd4MhnKUqDVz0NxE', gid: 0 },
+];
+
+function urlCsvHoja(hoja) {
+  return `https://docs.google.com/spreadsheets/d/${hoja.id}/export?format=csv&gid=${hoja.gid}`;
+}
+
+const NOMBRES_HOJA = {
+  1: 'Hoja 1 — mini tiendas, mercados y supermercados',
+  2: 'Hoja 2 — empresas y comercios',
+  3: 'Hoja 3 — bazares, tianguis, emprendimientos e instituciones',
+};
+
+let negocios = []; // [{ nombre, url, categoria, emoji, color, lat, lng, activo, hoja }]
 const referencias = {}; // marcadores de Leaflet por índice
 
 // Separa una línea de CSV en columnas respetando comillas (evita
@@ -694,7 +813,9 @@ function dividirLineaCSV(linea) {
   return resultado;
 }
 
-function parseCSV(texto) {
+// numeroHoja: 1, 2 o 3 — identifica de qué hoja de Google Sheets viene
+// cada fila, para poder combinarlas y luego filtrarlas/consultarlas.
+function parseCSV(texto, numeroHoja) {
   texto = texto.replace(/^\uFEFF/, ''); // quita BOM si Google lo agrega
   const lineas = texto.trim().split(/\r?\n/);
   const filas = lineas.slice(1); // saltamos encabezados
@@ -703,28 +824,34 @@ function parseCSV(texto) {
   return filas
     .map((linea, i) => {
       const campos = dividirLineaCSV(linea).map(limpiar);
-      const lat = parseFloat(campos[4]);
-      const lng = parseFloat(campos[5]);
+      // Columnas: A Nombre(0) · B Link(1) · C Categoría(2) · D Emoji(3) ·
+      // E Color(4) · F Latitud(5) · G Longitud(6) · H Descripción/links
+      // adicionales(7) · I Imagen imgbb(8) · J Etiquetas(9)
+      const lat = parseFloat(campos[5]);
+      const lng = parseFloat(campos[6]);
       const url = campos[1] || '';
-      // Columna G: una o varias páginas web adicionales (perfil de
+      const categoria = campos[2] || '';
+      // Columna H: una o varias páginas web adicionales (perfil de
       // empresa, redes sociales, etc.) separadas por comas
-      const perfiles = (campos[6] || '')
+      const perfiles = (campos[7] || '')
         .split(',')
         .map(p => p.trim())
         .filter(p => p);
-      // Columna H: foto que se muestra arriba en el submenú "Ver negocio" (link de imgbb)
-      const imagen = campos[7] || '';
-      // Columna I: nombre/etiqueta que aparece arriba de cada recuadro de
-      // link, en el mismo orden que Link (B) + Links adicionales (G)
-      const etiquetas = (campos[8] || '')
+      // Columna I: foto que se muestra arriba en el submenú "Ver negocio" (link de imgbb)
+      const imagen = campos[8] || '';
+      // Columna J: nombre/etiqueta que aparece arriba de cada recuadro de
+      // link, en el mismo orden que Link (B) + Links adicionales (H)
+      const etiquetas = (campos[9] || '')
         .split(',')
         .map(e => e.trim());
       return {
-        id: 'fila-' + i,
+        id: 'h' + numeroHoja + '-fila-' + i,
+        hoja: numeroHoja,
         nombre: campos[0] || '',
         url: url,
-        emoji: campos[2] || '',
-        color: campos[3] || '#1a73e8',
+        categoria: categoria,
+        emoji: campos[3] || '',
+        color: campos[4] || '#1a73e8',
         lat: lat,
         lng: lng,
         perfiles: perfiles,
@@ -831,23 +958,44 @@ function renderListaMarcadores() {
   });
 }
 
+async function cargarUnaHoja(hoja) {
+  // se agrega un parámetro cambiante para evitar que el navegador
+  // o Google entreguen una versión vieja guardada en caché
+  const urlSinCache = `${urlCsvHoja(hoja)}&_=${Date.now()}`;
+  const resp = await fetch(urlSinCache, { cache: 'no-store' });
+  if (!resp.ok) throw new Error('respuesta no OK (hoja ' + hoja.hoja + ')');
+  const texto = await resp.text();
+  return parseCSV(texto, hoja.hoja);
+}
+
 async function cargarNegociosDesdeSheet() {
-  estadoCarga.textContent = 'Cargando negocios desde Google Sheets…';
+  estadoCarga.textContent = 'Cargando negocios desde las 3 hojas de Google Sheets…';
   estadoCarga.classList.remove('ok', 'error');
   try {
-    // se agrega un parámetro cambiante para evitar que el navegador
-    // o Google entreguen una versión vieja guardada en caché
-    const urlSinCache = `${SHEET_CSV_URL}&_=${Date.now()}`;
-    const resp = await fetch(urlSinCache, { cache: 'no-store' });
-    if (!resp.ok) throw new Error('respuesta no OK');
-    const texto = await resp.text();
-    negocios = parseCSV(texto);
+    const resultados = await Promise.allSettled(HOJAS.map(cargarUnaHoja));
+
+    const combinados = [];
+    let hojasConError = [];
+    resultados.forEach((r, idx) => {
+      if (r.status === 'fulfilled') combinados.push(...r.value);
+      else hojasConError.push(HOJAS[idx].hoja);
+    });
+
+    negocios = combinados;
     dibujarNegociosEnMapa();
     renderListaMarcadores();
-    estadoCarga.textContent = `${negocios.length} negocio(s) cargado(s) de tu hoja.`;
-    estadoCarga.classList.add('ok');
+    renderCategorias();
+    renderResultadosBuscar();
+
+    if (hojasConError.length === 0) {
+      estadoCarga.textContent = `${negocios.length} lugar(es) cargado(s) de las 3 hojas.`;
+      estadoCarga.classList.add('ok');
+    } else {
+      estadoCarga.textContent = `${negocios.length} lugar(es) cargado(s). No se pudo leer la hoja ${hojasConError.join(', ')} (revisa que esté compartida como "Cualquiera con el enlace - Lector").`;
+      estadoCarga.classList.add('error');
+    }
   } catch (e) {
-    estadoCarga.textContent = 'No se pudo leer la hoja. Revisa que esté compartida como "Cualquiera con el enlace - Lector".';
+    estadoCarga.textContent = 'No se pudieron leer las hojas. Revisa que estén compartidas como "Cualquiera con el enlace - Lector".';
     estadoCarga.classList.add('error');
   }
 }
@@ -914,6 +1062,8 @@ const overlayEditarNegocio = document.getElementById('overlayEditarNegocio');
 const inpEditLat = document.getElementById('inpEditLat');
 const inpEditLng = document.getElementById('inpEditLng');
 const inpEditNombre = document.getElementById('inpEditNombre');
+const inpEditHoja = document.getElementById('inpEditHoja');
+const inpEditCategoria = document.getElementById('inpEditCategoria');
 const inpEditEmoji = document.getElementById('inpEditEmoji');
 const inpEditColor = document.getElementById('inpEditColor');
 const inpEditImagen = document.getElementById('inpEditImagen');
@@ -959,6 +1109,8 @@ function abrirModalEditarNegocio(id) {
   inpEditLat.value = n.lat;
   inpEditLng.value = n.lng;
   inpEditNombre.value = n.nombre;
+  inpEditHoja.value = NOMBRES_HOJA[n.hoja] || ('Hoja ' + n.hoja);
+  inpEditCategoria.value = n.categoria || '';
   inpEditEmoji.value = n.emoji;
   inpEditColor.value = n.color || '#1a73e8';
   inpEditImagen.value = n.imagen || '';
@@ -992,6 +1144,7 @@ function actualizarFilaCopiarNegocio() {
   const partes = [
     inpEditNombre.value.trim(),
     linkPrincipal,
+    inpEditCategoria.value.trim(),
     inpEditEmoji.value.trim(),
     inpEditColor.value,
     inpEditLat.value,
@@ -1000,11 +1153,11 @@ function actualizarFilaCopiarNegocio() {
     inpEditImagen.value.trim(),
     etiquetas.join(',')
   ];
-  filaCopiarNegocio.textContent = partes.join('   |   ');
+  filaCopiarNegocio.textContent = `[${inpEditHoja.value}]  ${partes.join('   |   ')}`;
   return partes.join('\t');
 }
 
-[inpEditNombre, inpEditEmoji, inpEditColor, inpEditImagen].forEach(campo => {
+[inpEditNombre, inpEditCategoria, inpEditEmoji, inpEditColor, inpEditImagen].forEach(campo => {
   campo.addEventListener('input', actualizarFilaCopiarNegocio);
 });
 
@@ -1017,7 +1170,7 @@ btnCopiarFilaNegocio.addEventListener('click', async () => {
   const filaTexto = actualizarFilaCopiarNegocio();
   try {
     await navigator.clipboard.writeText(filaTexto);
-    avisoCopiadoNegocio.textContent = '¡Copiado! Pega esta línea sobre la fila del negocio en tu hoja (Ctrl/Cmd + V).';
+    avisoCopiadoNegocio.textContent = `¡Copiado! Pega esta línea sobre la fila del negocio en ${inpEditHoja.value} (Ctrl/Cmd + V).`;
   } catch (e) {
     avisoCopiadoNegocio.textContent = 'No se pudo copiar automático: selecciona el texto de arriba y cópialo manualmente.';
   }
@@ -1041,6 +1194,103 @@ btnMenu.addEventListener('click', () => sidebar.classList.toggle('abierto'));
 btnMarcadores.addEventListener('click', () => submenuMarcadores.classList.toggle('abierto'));
 btnActualizarLista.addEventListener('click', cargarNegociosDesdeSheet);
 btnListaMarcadores.addEventListener('click', () => listaMarcadores.classList.toggle('abierta'));
+
+/* =========================================================
+   BUSCAR (por nombre y por categoría, con chips de categoría)
+   ========================================================= */
+const btnBuscar = document.getElementById('btnBuscar');
+const submenuBuscar = document.getElementById('submenuBuscar');
+const inputBuscar = document.getElementById('inputBuscar');
+const categoriasBuscar = document.getElementById('categoriasBuscar');
+const resultadosBuscar = document.getElementById('resultadosBuscar');
+
+let categoriaSeleccionada = null;
+
+btnBuscar.addEventListener('click', () => {
+  submenuBuscar.classList.toggle('abierto');
+  if (submenuBuscar.classList.contains('abierto')) {
+    renderCategorias();
+    renderResultadosBuscar();
+    inputBuscar.focus();
+  }
+});
+
+function renderCategorias() {
+  const categorias = [...new Set(
+    negocios.map(n => (n.categoria || '').trim()).filter(c => c)
+  )].sort((a, b) => a.localeCompare(b, 'es'));
+
+  if (categoriaSeleccionada && !categorias.includes(categoriaSeleccionada)) {
+    categoriaSeleccionada = null;
+  }
+
+  if (categorias.length === 0) {
+    categoriasBuscar.innerHTML = '';
+    return;
+  }
+
+  categoriasBuscar.innerHTML = categorias.map(cat => `
+    <button type="button" class="chip-categoria${cat === categoriaSeleccionada ? ' activa' : ''}" data-cat="${cat}">${cat}</button>
+  `).join('');
+}
+
+categoriasBuscar.addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip-categoria');
+  if (!chip) return;
+  const cat = chip.dataset.cat;
+  categoriaSeleccionada = (categoriaSeleccionada === cat) ? null : cat;
+  renderCategorias();
+  renderResultadosBuscar();
+});
+
+function renderResultadosBuscar() {
+  const termino = normalizarTexto(inputBuscar.value.trim());
+
+  let resultados = negocios;
+
+  if (categoriaSeleccionada) {
+    resultados = resultados.filter(n => (n.categoria || '') === categoriaSeleccionada);
+  }
+
+  if (termino) {
+    resultados = resultados.filter(n => {
+      const texto = normalizarTexto((n.nombre || '') + ' ' + (n.categoria || ''));
+      return texto.includes(termino);
+    });
+  }
+
+  if (!termino && !categoriaSeleccionada) {
+    resultadosBuscar.innerHTML = '<div class="vacio">Escribe un nombre o elige una categoría para buscar.</div>';
+    return;
+  }
+
+  if (resultados.length === 0) {
+    resultadosBuscar.innerHTML = '<div class="vacio">No se encontraron lugares.</div>';
+    return;
+  }
+
+  resultadosBuscar.innerHTML = '';
+  resultados.forEach(n => {
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'resultado-casilla';
+    boton.innerHTML = `
+      <span class="resultado-emoji">${n.emoji || '📍'}</span>
+      <span class="resultado-texto">
+        <span class="resultado-nombre">${n.nombre}</span>
+        ${n.categoria ? `<span class="resultado-categoria">${n.categoria}</span>` : ''}
+      </span>`;
+    boton.addEventListener('click', () => {
+      map.flyTo([n.lat, n.lng], 17);
+      const ref = referencias[n.id];
+      if (ref && ref.marker) ref.marker.openPopup();
+      sidebar.classList.remove('abierto');
+    });
+    resultadosBuscar.appendChild(boton);
+  });
+}
+
+inputBuscar.addEventListener('input', renderResultadosBuscar);
 
 /* =========================================================
    MODO "AÑADIR MARCADOR": el siguiente clic en el mapa
@@ -1075,11 +1325,13 @@ const overlayModal = document.getElementById('overlayModal');
 const inpLat = document.getElementById('inpLat');
 const inpLng = document.getElementById('inpLng');
 const inpNombre = document.getElementById('inpNombre');
+const inpCategoria = document.getElementById('inpCategoria');
 const inpEmoji = document.getElementById('inpEmoji');
 const inpColor = document.getElementById('inpColor');
 const inpUrl = document.getElementById('inpUrl');
 const inpDescripcion = document.getElementById('inpDescripcion');
 const inpImagen = document.getElementById('inpImagen');
+const selHojaDestino = document.getElementById('selHojaDestino');
 const filaCopiar = document.getElementById('filaCopiar');
 const avisoCopiado = document.getElementById('avisoCopiado');
 const btnCopiarFila = document.getElementById('btnCopiarFila');
@@ -1089,6 +1341,7 @@ function abrirModalNuevo(lat, lng) {
   inpLat.value = lat.toFixed(6);
   inpLng.value = lng.toFixed(6);
   inpNombre.value = '';
+  inpCategoria.value = '';
   inpEmoji.value = '';
   inpColor.value = '#1a73e8';
   inpUrl.value = '';
@@ -1109,19 +1362,21 @@ function actualizarFilaCopiar() {
   const partes = [
     inpNombre.value.trim(),
     inpUrl.value.trim(),
+    inpCategoria.value.trim(),
     inpEmoji.value.trim(),
     inpColor.value,
     inpLat.value,
     inpLng.value,
     inpDescripcion.value.trim(),
     inpImagen.value.trim(),
-    '' // Etiquetas (columna I): se completan después desde "Ver negocio → ⚙️ Configuración" si hay varios links
+    '' // Etiquetas (columna J): se completan después desde "Ver negocio → ⚙️ Configuración" si hay varios links
   ];
-  filaCopiar.textContent = partes.join('   |   ');
+  const nombreHoja = selHojaDestino.options[selHojaDestino.selectedIndex].text;
+  filaCopiar.textContent = `[Pegar en ${nombreHoja}]  ${partes.join('   |   ')}`;
   return partes.join('\t');
 }
 
-[inpNombre, inpUrl, inpEmoji, inpColor, inpDescripcion, inpImagen].forEach(campo => {
+[inpNombre, inpUrl, inpCategoria, inpEmoji, inpColor, inpDescripcion, inpImagen, selHojaDestino].forEach(campo => {
   campo.addEventListener('input', actualizarFilaCopiar);
 });
 
@@ -1129,9 +1384,10 @@ btnCerrarModal.addEventListener('click', cerrarModal);
 
 btnCopiarFila.addEventListener('click', async () => {
   const filaTexto = actualizarFilaCopiar();
+  const nombreHoja = selHojaDestino.options[selHojaDestino.selectedIndex].text;
   try {
     await navigator.clipboard.writeText(filaTexto);
-    avisoCopiado.textContent = '¡Copiado! Pégalo como nueva fila en tu hoja (Ctrl/Cmd + V).';
+    avisoCopiado.textContent = `¡Copiado! Pégalo como nueva fila en ${nombreHoja} (Ctrl/Cmd + V).`;
   } catch (e) {
     avisoCopiado.textContent = 'No se pudo copiar automático: selecciona el texto de arriba y cópialo manualmente.';
   }
