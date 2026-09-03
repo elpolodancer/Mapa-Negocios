@@ -11,7 +11,7 @@
 
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+  body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: #e9edf1; }
   #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; }
 
   /* Le da un aspecto "apagado" al mapa base */
@@ -81,7 +81,7 @@
     top: 0; left: 0; bottom: 0;
     width: 300px;
     max-width: 85vw;
-    background: #fff;
+    background: #f4f6f8;
     z-index: 999;
     box-shadow: 2px 0 10px rgba(0,0,0,.25);
     transform: translateX(-100%);
@@ -101,12 +101,13 @@
     padding: 14px 18px;
     background: none;
     border: none;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #e3e6ea;
     text-align: left;
     font-size: 15px;
     cursor: pointer;
+    color: #202124;
   }
-  .sb-item:hover { background: #f6f6f6; }
+  .sb-item:hover { background: #eaedf0; }
 
   #submenuMarcadores { display: none; background: #fafafa; }
   #submenuMarcadores.abierto { display: block; }
@@ -257,43 +258,87 @@
   #estadoCarga.ok { color: #188038; }
   #estadoCarga.error { color: #d93025; }
 
-  /* ---------- Modal "datos para copiar a Sheets" ---------- */
+  /* ---------- Modales: cascarón compartido con cabecera y tarjetas ---------- */
   #overlayModal {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,.4);
+    background: rgba(0,0,0,.45);
     z-index: 2000;
     display: none;
     align-items: center;
     justify-content: center;
   }
   #overlayModal.abierto { display: flex; }
-  #modalConfig {
-    background: #fff;
-    width: 320px;
+
+  .modal-shell {
+    background: #eef1f4;
+    width: 340px;
     max-width: 90vw;
-    max-height: 85vh;
+    max-height: 88vh;
     overflow-y: auto;
-    border-radius: 10px;
-    padding: 18px;
-    box-shadow: 0 4px 20px rgba(0,0,0,.3);
+    border-radius: 16px;
+    box-shadow: 0 10px 34px rgba(0,0,0,.35);
   }
-  #modalConfig h3 { margin-bottom: 4px; font-size: 16px; }
-  #modalConfig .subtitulo { font-size: 12px; color: #666; margin-bottom: 10px; }
-  #modalConfig label {
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 20px;
+    background: linear-gradient(135deg, #1a73e8, #0f4fa8);
+    color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .modal-header-icono {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.18);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .modal-header h3 { font-size: 16px; font-weight: 600; }
+  .modal-header .subtitulo { font-size: 12px; color: rgba(255,255,255,.85); margin-top: 2px; }
+
+  .modal-body { padding: 16px; }
+
+  .grupo-campos {
+    background: #fff;
+    border: 1px solid #e3e6ea;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .grupo-titulo {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #1a73e8;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .grupo-campos label:first-of-type { margin-top: 0; }
+
+  .modal-shell label {
     display: block;
     font-size: 12px;
-    color: #555;
+    color: #5f6368;
     margin: 10px 0 4px;
   }
-  #modalConfig input {
+  .modal-shell input, .modal-shell select {
     width: 100%;
     padding: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid #d4d8dd;
     border-radius: 6px;
     font-size: 14px;
+    background: #fff;
+    font-family: inherit;
   }
-  #modalConfig input[readonly] { background: #f5f5f5; color: #555; }
+  .modal-shell input[readonly] { background: #f1f3f5; color: #5f6368; }
+  .modal-shell select { cursor: pointer; }
 
   .fila-doble { display: flex; gap: 8px; }
   .fila-doble > div { flex: 1; }
@@ -385,7 +430,7 @@
   #filaCopiar {
     margin-top: 14px;
     padding: 10px;
-    background: #f5f5f5;
+    background: #f1f3f5;
     border-radius: 8px;
     font-family: monospace;
     font-size: 11px;
@@ -398,27 +443,33 @@
     margin-top: 4px;
   }
 
+  /* Vista previa de la línea para Sheets: se calcula igual que antes,
+     pero ya no se muestra en el modal de "Configuración del negocio"
+     para no ensuciar la vista — el botón "Copiar línea" la sigue
+     copiando al portapapeles igual que siempre. */
+  #filaCopiarNegocio, #ordenColumnasNegocio { display: none; }
+
   .modal-botones {
     display: flex;
     gap: 8px;
-    margin-top: 14px;
+    margin-top: 4px;
   }
   .modal-botones button {
     flex: 1;
-    padding: 9px;
+    padding: 10px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 14px;
     cursor: pointer;
   }
-  #btnCopiarFila { background: #1a73e8; color: #fff; }
-  #btnCerrarModal { background: #eee; color: #333; }
+  #btnCopiarFila, #btnCopiarFilaNegocio { background: #1a73e8; color: #fff; }
+  #btnCerrarModal, #btnCerrarEditarNegocio { background: #e3e6ea; color: #333; }
 
-  #avisoCopiado {
+  #avisoCopiado, #avisoCopiadoNegocio {
     font-size: 12px;
     color: #188038;
     text-align: center;
-    margin-top: 6px;
+    margin-top: 8px;
     min-height: 16px;
   }
 
@@ -440,7 +491,7 @@
   #overlayNegocio {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,.4);
+    background: rgba(0,0,0,.45);
     z-index: 2000;
     display: none;
     align-items: center;
@@ -450,13 +501,13 @@
 
   #panelNegocio {
     position: relative;
-    background: #fff;
+    background: #f4f6f8;
     width: 320px;
     max-width: 90vw;
     max-height: 85vh;
     overflow-y: auto;
-    border-radius: 14px;
-    box-shadow: 0 4px 20px rgba(0,0,0,.3);
+    border-radius: 16px;
+    box-shadow: 0 10px 34px rgba(0,0,0,.35);
   }
 
   .panel-negocio-imagen {
@@ -469,12 +520,12 @@
   .panel-negocio-imagen-vacia {
     width: 100%;
     height: 160px;
-    background: #e8eaed;
+    background: linear-gradient(135deg, #dde3ea, #eef1f4);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 40px;
-    color: #aaa;
+    color: #9aa3ad;
   }
 
   .btn-cerrar-panel, .btn-gear-panel {
@@ -497,10 +548,10 @@
 
   .lista-links-negocio { display: flex; flex-direction: column; gap: 10px; }
   .caja-link {
-    border: 1px solid #eee;
+    border: 1px solid #e3e6ea;
     border-radius: 10px;
-    padding: 10px;
-    background: #fafafa;
+    padding: 8px;
+    background: #fff;
   }
   .etiqueta-link {
     font-size: 12px;
@@ -517,13 +568,14 @@
     border-radius: 8px;
     font-size: 14px;
     box-sizing: border-box;
+    font-weight: 500;
   }
 
   /* ---------- Modal "Configuración" del negocio ---------- */
   #overlayEditarNegocio {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,.4);
+    background: rgba(0,0,0,.45);
     z-index: 2100;
     display: none;
     align-items: center;
@@ -531,22 +583,12 @@
   }
   #overlayEditarNegocio.abierto { display: flex; }
 
-  #modalEditarNegocio {
-    background: #fff;
-    width: 320px;
-    max-width: 90vw;
-    max-height: 85vh;
-    overflow-y: auto;
-    border-radius: 10px;
-    padding: 18px;
-    box-shadow: 0 4px 20px rgba(0,0,0,.3);
-  }
-
   .fila-link-editable {
-    border: 1px solid #eee;
+    border: 1px solid #e3e6ea;
     border-radius: 8px;
     padding: 8px;
     margin-top: 8px;
+    background: #fafbfc;
   }
   .fila-link-editable input { display: block; width: 100%; margin-bottom: 6px; }
   .fila-link-editable input:last-of-type { margin-bottom: 0; }
@@ -601,67 +643,86 @@
 </div>
 
 <div id="overlayModal">
-  <div id="modalConfig">
-    <h3>Nuevo marcador</h3>
-    <div class="subtitulo">Llena los datos y cópialos a tu hoja de Google.</div>
-
-    <label for="selHojaDestino">Hoja de Google Sheets</label>
-    <select id="selHojaDestino">
-      <option value="1">Hoja 1 — mini tiendas, mercados y supermercados</option>
-      <option value="2">Hoja 2 — empresas y comercios</option>
-      <option value="3">Hoja 3 — bazares, tianguis, emprendimientos e instituciones</option>
-    </select>
-
-    <div class="fila-doble">
+  <div id="modalConfig" class="modal-shell">
+    <div class="modal-header">
+      <div class="modal-header-icono">📍</div>
       <div>
-        <label for="inpLat">Latitud</label>
-        <input type="text" id="inpLat" readonly>
+        <h3>Nuevo marcador</h3>
+        <div class="subtitulo">Llena los datos y cópialos a tu hoja de Google.</div>
       </div>
-      <div>
-        <label for="inpLng">Longitud</label>
-        <input type="text" id="inpLng" readonly>
+    </div>
+    <div class="modal-body">
+
+    <div class="grupo-campos">
+      <div class="grupo-titulo">🗂️ Hoja y ubicación</div>
+      <label for="selHojaDestino">Hoja de Google Sheets</label>
+      <select id="selHojaDestino">
+        <option value="1">Hoja 1 — mini tiendas, mercados y supermercados</option>
+        <option value="2">Hoja 2 — empresas y comercios</option>
+        <option value="3">Hoja 3 — bazares, tianguis, emprendimientos e instituciones</option>
+      </select>
+
+      <div class="fila-doble">
+        <div>
+          <label for="inpLat">Latitud</label>
+          <input type="text" id="inpLat" readonly>
+        </div>
+        <div>
+          <label for="inpLng">Longitud</label>
+          <input type="text" id="inpLng" readonly>
+        </div>
       </div>
     </div>
 
-    <label for="inpNombre">Nombre del negocio</label>
-    <input type="text" id="inpNombre" placeholder="Ej. Panadería Ejemplo">
+    <div class="grupo-campos">
+      <div class="grupo-titulo">🏷️ Datos generales</div>
+      <label for="inpNombre">Nombre del negocio</label>
+      <input type="text" id="inpNombre" placeholder="Ej. Panadería Ejemplo">
 
-    <label for="inpUrl">Enlace de la página web (opcional)</label>
-    <input type="url" id="inpUrl" placeholder="https://tuusuario.github.io/sitio/">
+      <label for="inpCategoria">Categoría (opcional)</label>
+      <input type="text" id="inpCategoria" placeholder="Ej. Farmacia, Restaurante, Transporte…">
 
-    <label for="inpCategoria">Categoría (opcional)</label>
-    <input type="text" id="inpCategoria" placeholder="Ej. Farmacia, Restaurante, Transporte…">
-
-    <label for="inpEmoji">Emoji (opcional)</label>
-    <div class="fila-emoji">
-      <input type="text" id="inpEmoji" placeholder="🥖" maxlength="4">
-      <button type="button" id="btnAbrirEmojis" title="Elegir emoji">😀</button>
+      <label for="inpUrl">Enlace de la página web (opcional)</label>
+      <input type="url" id="inpUrl" placeholder="https://tuusuario.github.io/sitio/">
     </div>
-    <div id="panelEmojis">
-      <div id="buscarEmojiWrap">
-        <input type="text" id="buscarEmoji" placeholder="🔎 Buscar emoji… (ej. pan, taxi, doctor)">
+
+    <div class="grupo-campos">
+      <div class="grupo-titulo">🎨 Apariencia</div>
+      <label for="inpEmoji">Emoji (opcional)</label>
+      <div class="fila-emoji">
+        <input type="text" id="inpEmoji" placeholder="🥖" maxlength="4">
+        <button type="button" id="btnAbrirEmojis" title="Elegir emoji">😀</button>
       </div>
-      <div id="tabsEmojiCategorias"><!-- pestañas generadas por JS --></div>
-      <div id="gridEmojis"><!-- emojis generados por JS --></div>
+      <div id="panelEmojis">
+        <div id="buscarEmojiWrap">
+          <input type="text" id="buscarEmoji" placeholder="🔎 Buscar emoji… (ej. pan, taxi, doctor)">
+        </div>
+        <div id="tabsEmojiCategorias"><!-- pestañas generadas por JS --></div>
+        <div id="gridEmojis"><!-- emojis generados por JS --></div>
+      </div>
+
+      <label for="inpColor">Color (opcional)</label>
+      <input type="color" id="inpColor" value="#1a73e8">
     </div>
 
-    <label for="inpColor">Color (opcional)</label>
-    <input type="color" id="inpColor" value="#1a73e8">
+    <div class="grupo-campos">
+      <div class="grupo-titulo">🔗 Links e imagen</div>
+      <label for="inpDescripcion">Links adicionales / otras páginas (opcional)</label>
+      <input type="text" id="inpDescripcion" placeholder="https://facebook.com/..., https://instagram.com/...">
 
-    <label for="inpDescripcion">Links adicionales / otras páginas (opcional)</label>
-    <input type="text" id="inpDescripcion" placeholder="https://facebook.com/..., https://instagram.com/...">
+      <label for="inpImagen">Imagen del submenú (opcional, URL de imgbb)</label>
+      <input type="url" id="inpImagen" placeholder="https://i.ibb.co/xxxxx/foto.jpg">
+    </div>
 
-    <label for="inpImagen">Imagen del submenú (opcional, URL de imgbb)</label>
-    <input type="url" id="inpImagen" placeholder="https://i.ibb.co/xxxxx/foto.jpg">
-
-    <div id="filaCopiar">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Imagen</div>
-    <div id="ordenColumnas">Orden de columnas en tu hoja: A Nombre · B Link · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) · I Imagen (imgbb) · J Etiquetas de cada link (opcional — se editan luego desde "Ver negocio → ⚙️ Configuración")</div>
+    <div id="filaCopiar">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Nombres de links — Imagen</div>
+    <div id="ordenColumnas">Orden de columnas en tu hoja: A Nombre · B Link · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) · I Nombres de cada link (separados por comas — se completan luego desde "Ver negocio → ⚙️ Configuración") · J Imagen (imgbb)</div>
 
     <div class="modal-botones">
       <button id="btnCerrarModal">Cerrar</button>
       <button id="btnCopiarFila">📋 Copiar fila</button>
     </div>
     <div id="avisoCopiado"></div>
+    </div>
   </div>
 </div>
 
@@ -679,61 +740,79 @@
 </div>
 
 <div id="overlayEditarNegocio">
-  <div id="modalEditarNegocio">
-    <h3>Configuración del negocio</h3>
-    <div class="subtitulo">Edita los datos y copia la línea actualizada a tu hoja.</div>
-
-    <div class="fila-doble">
+  <div id="modalEditarNegocio" class="modal-shell">
+    <div class="modal-header">
+      <div class="modal-header-icono">⚙️</div>
       <div>
-        <label for="inpEditLat">Latitud</label>
-        <input type="text" id="inpEditLat" readonly>
+        <h3>Configuración del negocio</h3>
+        <div class="subtitulo">Edita los datos y cópialos a tu hoja.</div>
       </div>
-      <div>
-        <label for="inpEditLng">Longitud</label>
-        <input type="text" id="inpEditLng" readonly>
+    </div>
+    <div class="modal-body">
+
+    <div class="grupo-campos">
+      <div class="grupo-titulo">🗂️ Hoja y ubicación</div>
+      <label for="inpEditHoja">Hoja de Google Sheets</label>
+      <input type="text" id="inpEditHoja" readonly>
+
+      <div class="fila-doble">
+        <div>
+          <label for="inpEditLat">Latitud</label>
+          <input type="text" id="inpEditLat" readonly>
+        </div>
+        <div>
+          <label for="inpEditLng">Longitud</label>
+          <input type="text" id="inpEditLng" readonly>
+        </div>
       </div>
     </div>
 
-    <label for="inpEditNombre">Nombre del negocio</label>
-    <input type="text" id="inpEditNombre" placeholder="Ej. Panadería Ejemplo">
+    <div class="grupo-campos">
+      <div class="grupo-titulo">🏷️ Datos generales</div>
+      <label for="inpEditNombre">Nombre del negocio</label>
+      <input type="text" id="inpEditNombre" placeholder="Ej. Panadería Ejemplo">
 
-    <label for="inpEditHoja">Hoja de Google Sheets</label>
-    <input type="text" id="inpEditHoja" readonly>
-
-    <label for="inpEditCategoria">Categoría (opcional)</label>
-    <input type="text" id="inpEditCategoria" placeholder="Ej. Farmacia, Restaurante, Transporte…">
-
-    <label for="inpEditEmoji">Emoji (opcional)</label>
-    <div class="fila-emoji">
-      <input type="text" id="inpEditEmoji" placeholder="🥖" maxlength="4">
-      <button type="button" id="btnAbrirEmojisEdit" title="Elegir emoji">😀</button>
+      <label for="inpEditCategoria">Categoría (opcional)</label>
+      <input type="text" id="inpEditCategoria" placeholder="Ej. Farmacia, Restaurante, Transporte…">
     </div>
-    <div id="panelEmojisEdit">
-      <div id="buscarEmojiWrapEdit">
-        <input type="text" id="buscarEmojiEdit" placeholder="🔎 Buscar emoji… (ej. pan, taxi, doctor)">
+
+    <div class="grupo-campos">
+      <div class="grupo-titulo">🎨 Apariencia</div>
+      <label for="inpEditEmoji">Emoji (opcional)</label>
+      <div class="fila-emoji">
+        <input type="text" id="inpEditEmoji" placeholder="🥖" maxlength="4">
+        <button type="button" id="btnAbrirEmojisEdit" title="Elegir emoji">😀</button>
       </div>
-      <div id="tabsEmojiCategoriasEdit"><!-- pestañas generadas por JS --></div>
-      <div id="gridEmojisEdit"><!-- emojis generados por JS --></div>
+      <div id="panelEmojisEdit">
+        <div id="buscarEmojiWrapEdit">
+          <input type="text" id="buscarEmojiEdit" placeholder="🔎 Buscar emoji… (ej. pan, taxi, doctor)">
+        </div>
+        <div id="tabsEmojiCategoriasEdit"><!-- pestañas generadas por JS --></div>
+        <div id="gridEmojisEdit"><!-- emojis generados por JS --></div>
+      </div>
+
+      <label for="inpEditColor">Color (opcional)</label>
+      <input type="color" id="inpEditColor" value="#1a73e8">
+
+      <label for="inpEditImagen">Imagen del submenú (URL de imgbb)</label>
+      <input type="url" id="inpEditImagen" placeholder="https://i.ibb.co/xxxxx/foto.jpg">
     </div>
 
-    <label for="inpEditColor">Color (opcional)</label>
-    <input type="color" id="inpEditColor" value="#1a73e8">
+    <div class="grupo-campos">
+      <div class="grupo-titulo">🔗 Links de la empresa</div>
+      <div id="listaLinksEditables"><!-- filas generadas por JS --></div>
+      <button type="button" class="btn-anadir-link" id="btnAnadirLink">➕ Añadir link</button>
+    </div>
 
-    <label for="inpEditImagen">Imagen del submenú (URL de imgbb)</label>
-    <input type="url" id="inpEditImagen" placeholder="https://i.ibb.co/xxxxx/foto.jpg">
-
-    <label>Links de la empresa</label>
-    <div id="listaLinksEditables"><!-- filas generadas por JS --></div>
-    <button type="button" class="btn-anadir-link" id="btnAnadirLink">➕ Añadir link</button>
-
-    <div id="filaCopiarNegocio">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Imagen — Etiquetas</div>
-    <div id="ordenColumnasNegocio">Orden de columnas en tu hoja: A Nombre · B Link principal · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) · I Imagen (imgbb) · J Etiquetas de cada link (separadas por comas, en el mismo orden que los links)</div>
+    <div id="filaCopiarNegocio">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Nombres de links — Imagen</div>
+    <div id="ordenColumnasNegocio">Orden de columnas en tu hoja: A Nombre · B Link principal · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) · I Nombres de cada link (separados por comas, en el mismo orden que los links) · J Imagen (imgbb)</div>
 
     <div class="modal-botones">
       <button id="btnCerrarEditarNegocio">Cerrar</button>
       <button id="btnCopiarFilaNegocio">📋 Copiar línea</button>
     </div>
     <div id="avisoCopiadoNegocio"></div>
+    </div>
   </div>
 </div>
 
@@ -765,7 +844,7 @@ L.control.zoom({ position: 'topright' }).addTo(map);
    Columnas de cada hoja (todas comparten el mismo orden):
      A Nombre · B Link · C Categoría · D Emoji · E Color ·
      F Latitud · G Longitud · H Descripción/links adicionales ·
-     I Imagen (imgbb) · J Etiquetas de cada link
+     I Nombres de cada link (separados por comas) · J Imagen (imgbb)
 
    Las 3 hojas deben estar compartidas como "Cualquiera con el
    enlace, Lector" para que cualquier visitante de la página
@@ -826,7 +905,7 @@ function parseCSV(texto, numeroHoja) {
       const campos = dividirLineaCSV(linea).map(limpiar);
       // Columnas: A Nombre(0) · B Link(1) · C Categoría(2) · D Emoji(3) ·
       // E Color(4) · F Latitud(5) · G Longitud(6) · H Descripción/links
-      // adicionales(7) · I Imagen imgbb(8) · J Etiquetas(9)
+      // adicionales(7) · I Nombres de cada link / etiquetas(8) · J Imagen imgbb(9)
       const lat = parseFloat(campos[5]);
       const lng = parseFloat(campos[6]);
       const url = campos[1] || '';
@@ -837,13 +916,13 @@ function parseCSV(texto, numeroHoja) {
         .split(',')
         .map(p => p.trim())
         .filter(p => p);
-      // Columna I: foto que se muestra arriba en el submenú "Ver negocio" (link de imgbb)
-      const imagen = campos[8] || '';
-      // Columna J: nombre/etiqueta que aparece arriba de cada recuadro de
-      // link, en el mismo orden que Link (B) + Links adicionales (H)
-      const etiquetas = (campos[9] || '')
+      // Columna I: nombre/etiqueta que aparece en el botón de cada link,
+      // en el mismo orden que Link (B) + Links adicionales (H)
+      const etiquetas = (campos[8] || '')
         .split(',')
         .map(e => e.trim());
+      // Columna J: foto que se muestra arriba en el submenú "Ver negocio" (link de imgbb)
+      const imagen = campos[9] || '';
       return {
         id: 'h' + numeroHoja + '-fila-' + i,
         hoja: numeroHoja,
@@ -1033,8 +1112,7 @@ function abrirPanelNegocio(id) {
   listaLinksPanelNegocio.innerHTML = links.length
     ? links.map(l => `
         <div class="caja-link">
-          ${l.etiqueta ? `<div class="etiqueta-link">${l.etiqueta}</div>` : ''}
-          <a class="btn-visitar-link" href="${l.url}" target="_blank" rel="noopener">Visitar página</a>
+          <a class="btn-visitar-link" href="${l.url}" target="_blank" rel="noopener">${l.etiqueta || 'Visitar página'}</a>
         </div>`).join('')
     : '<div class="etiqueta-link">Este negocio aún no tiene links.</div>';
 
@@ -1083,7 +1161,7 @@ function crearFilaLinkEditable(url, etiqueta) {
   fila.className = 'fila-link-editable';
   fila.dataset.id = 'link-edit-' + contadorFilaLink;
   fila.innerHTML = `
-    <input type="text" class="inp-etiqueta-link" placeholder="Nombre de la empresa para este link (opcional)" value="${etiqueta || ''}">
+    <input type="text" class="inp-etiqueta-link" placeholder="Nombre que se mostrará en el botón (ej. Facebook, Catálogo)" value="${etiqueta || ''}">
     <input type="url" class="inp-url-link" placeholder="https://..." value="${url || ''}">
     <button type="button" class="btn-quitar-link">✕ Quitar link</button>
   `;
@@ -1150,8 +1228,8 @@ function actualizarFilaCopiarNegocio() {
     inpEditLat.value,
     inpEditLng.value,
     linksAdicionales,
-    inpEditImagen.value.trim(),
-    etiquetas.join(',')
+    etiquetas.join(','),
+    inpEditImagen.value.trim()
   ];
   filaCopiarNegocio.textContent = `[${inpEditHoja.value}]  ${partes.join('   |   ')}`;
   return partes.join('\t');
@@ -1368,8 +1446,8 @@ function actualizarFilaCopiar() {
     inpLat.value,
     inpLng.value,
     inpDescripcion.value.trim(),
-    inpImagen.value.trim(),
-    '' // Etiquetas (columna J): se completan después desde "Ver negocio → ⚙️ Configuración" si hay varios links
+    '', // Nombres de cada link (columna I): se completan después desde "Ver negocio → ⚙️ Configuración" si hay varios links
+    inpImagen.value.trim()
   ];
   const nombreHoja = selHojaDestino.options[selHojaDestino.selectedIndex].text;
   filaCopiar.textContent = `[Pegar en ${nombreHoja}]  ${partes.join('   |   ')}`;
