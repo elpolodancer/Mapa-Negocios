@@ -1937,6 +1937,19 @@ function normalizarCategoria(c) {
   return (c || '').trim().toLowerCase();
 }
 
+// Da formato consistente a una categoría escrita por el usuario: quita
+// espacios sobrantes y deja la primera letra en mayúscula y el resto en
+// minúscula, sin importar cómo se haya escrito originalmente en la hoja
+// de Google Sheets (p. ej. "farmacia", "FARMACIA" y "Farmacia" se
+// convierten todas en "Farmacia"). Así el buscador y los filtros de tipo
+// de negocio nunca muestran la misma categoría dos veces por un problema
+// de mayúsculas/minúsculas.
+function formatearCategoria(c) {
+  const limpio = (c || '').trim();
+  if (!limpio) return '';
+  return limpio.charAt(0).toUpperCase() + limpio.slice(1).toLowerCase();
+}
+
 function cargarColoresCategoria() {
   try {
     return JSON.parse(localStorage.getItem(CLAVE_COLORES_CATEGORIA)) || {};
@@ -2058,7 +2071,7 @@ function parseCSV(texto, numeroHoja) {
       const lat = parseFloat(campos[5]);
       const lng = parseFloat(campos[6]);
       const url = campos[1] || '';
-      const categoria = campos[2] || '';
+      const categoria = formatearCategoria(campos[2] || '');
       // Columna H: una o varias páginas web adicionales (perfil de
       // empresa, redes sociales, etc.) separadas por comas. Solo se
       // interpreta así cuando el negocio SÍ tiene link principal (columna
@@ -2092,7 +2105,7 @@ function parseCSV(texto, numeroHoja) {
       // del mismo marcador), en el mismo orden que los links adicionales (H)
       const subCategorias = (campos[11] || '')
         .split(',')
-        .map(c => c.trim());
+        .map(c => formatearCategoria(c.trim()));
       return {
         id: 'h' + numeroHoja + '-fila-' + i,
         hoja: numeroHoja,
