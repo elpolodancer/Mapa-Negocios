@@ -902,7 +902,7 @@
   /* ---------- Botón circular de compartir ---------- */
   #btnCompartir {
     position: absolute;
-    top: 16px; right: 16px;
+    top: 16px; right: 72px;
     z-index: 1000;
     width: 48px; height: 48px;
     border-radius: 50%;
@@ -914,6 +914,40 @@
     display: flex; align-items: center; justify-content: center;
   }
   #btnCompartir:active { background: #f1f1f1; }
+
+  /* ---------- Botón circular de "mi ubicación" ---------- */
+  #btnUbicacion {
+    position: absolute;
+    bottom: 24px; right: 16px;
+    z-index: 1000;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #btnUbicacion:active { background: #f1f1f1; }
+  #btnUbicacion svg { width: 22px; height: 22px; }
+  #btnUbicacion.cargando svg { animation: girarUbicacion 1s linear infinite; }
+  @keyframes girarUbicacion { to { transform: rotate(360deg); } }
+
+  #toastUbicacion {
+    position: absolute;
+    bottom: 84px; right: 16px;
+    max-width: 220px;
+    z-index: 1000;
+    background: #202124;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    line-height: 1.4;
+    box-shadow: 0 2px 8px rgba(0,0,0,.3);
+    display: none;
+  }
+  #toastUbicacion.visible { display: block; }
 
   .sb-item.item-cuenta {
     display: flex;
@@ -1131,6 +1165,7 @@
   body.modo-oscuro #btnMenu,
   body.modo-oscuro #btnCuenta,
   body.modo-oscuro #btnCompartir,
+  body.modo-oscuro #btnUbicacion,
   body.modo-oscuro #tituloCentral,
   body.modo-oscuro #avisoColocar { background: #262a31; color: #e8eaed; }
 
@@ -1189,6 +1224,13 @@
 <button id="btnMenu" title="Menú">☰</button>
 <button id="btnCuenta" title="Iniciar sesión con Google">👤</button>
 <button id="btnCompartir" title="Compartir">🔗</button>
+<button id="btnUbicacion" title="Ver mi ubicación">
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="3" fill="#1a73e8"/>
+    <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#1a73e8" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+</button>
+<div id="toastUbicacion"></div>
 <div id="tituloCentral">Polo/Mapa de Morelia</div>
 
 <div id="avisoColocar">Toca el mapa para colocar el marcador…</div>
@@ -1645,6 +1687,86 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 // Controles de zoom movidos a la esquina superior derecha (antes chocaban con el botón ☰ del menú)
 L.control.zoom({ position: 'topright' }).addTo(map);
+
+/* =========================================================
+   MI UBICACIÓN
+   -----------------------------------------------------------
+   Al presionar el botón, el navegador muestra su propio aviso
+   nativo de permiso de ubicación (con las opciones "Mientras
+   se usa la app / Solo esta vez / Nunca" o equivalentes según
+   el navegador). Ese aviso no se puede diseñar desde el sitio;
+   simplemente aparece al llamar a navigator.geolocation.
+   ========================================================= */
+const btnUbicacion = document.getElementById('btnUbicacion');
+const toastUbicacion = document.getElementById('toastUbicacion');
+let marcadorUbicacion = null;
+let circuloPrecisionUbicacion = null;
+let toastUbicacionTimeout = null;
+
+function mostrarToastUbicacion(texto) {
+  toastUbicacion.textContent = texto;
+  toastUbicacion.classList.add('visible');
+  clearTimeout(toastUbicacionTimeout);
+  toastUbicacionTimeout = setTimeout(() => {
+    toastUbicacion.classList.remove('visible');
+  }, 5000);
+}
+
+function alObtenerUbicacionExito(pos) {
+  btnUbicacion.classList.remove('cargando');
+  const { latitude, longitude, accuracy } = pos.coords;
+
+  if (!marcadorUbicacion) {
+    marcadorUbicacion = L.circleMarker([latitude, longitude], {
+      radius: 8,
+      color: '#fff',
+      weight: 3,
+      fillColor: '#1a73e8',
+      fillOpacity: 1
+    }).addTo(map);
+  } else {
+    marcadorUbicacion.setLatLng([latitude, longitude]);
+  }
+
+  if (!circuloPrecisionUbicacion) {
+    circuloPrecisionUbicacion = L.circle([latitude, longitude], {
+      radius: accuracy,
+      color: '#1a73e8',
+      weight: 1,
+      fillColor: '#1a73e8',
+      fillOpacity: .12
+    }).addTo(map);
+  } else {
+    circuloPrecisionUbicacion.setLatLng([latitude, longitude]);
+    circuloPrecisionUbicacion.setRadius(accuracy);
+  }
+
+  map.setView([latitude, longitude], 17);
+}
+
+function alObtenerUbicacionError(err) {
+  btnUbicacion.classList.remove('cargando');
+  if (err.code === err.PERMISSION_DENIED) {
+    mostrarToastUbicacion('Bloqueaste el acceso a tu ubicación. Actívalo desde los permisos del sitio en tu navegador si quieres usar esta función.');
+  } else if (err.code === err.TIMEOUT) {
+    mostrarToastUbicacion('No pudimos obtener tu ubicación a tiempo. Inténtalo de nuevo.');
+  } else {
+    mostrarToastUbicacion('No se pudo obtener tu ubicación en este momento.');
+  }
+}
+
+btnUbicacion.addEventListener('click', () => {
+  if (!navigator.geolocation) {
+    mostrarToastUbicacion('Tu navegador no soporta geolocalización.');
+    return;
+  }
+  btnUbicacion.classList.add('cargando');
+  navigator.geolocation.getCurrentPosition(alObtenerUbicacionExito, alObtenerUbicacionError, {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 0
+  });
+});
 
 /* =========================================================
    GOOGLE SHEETS: fuentes públicas de los negocios/lugares
