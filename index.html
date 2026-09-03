@@ -132,6 +132,17 @@
   }
   .sb-item:hover { background: #eaedf0; }
 
+  /* Botón "Aviso de privacidad": se empuja hasta el fondo de la
+     barra lateral (gracias a que #sidebar es un flex column) y se
+     separa visualmente del resto de los botones con un margen y un
+     borde superior propio. */
+  .sb-item-pie {
+    margin-top: auto;
+    border-top: 1px solid #d7dbe0;
+    color: var(--color-texto-suave);
+    font-size: 13.5px;
+  }
+
   #submenuMarcadores { display: none; background: #fafafa; }
   #submenuMarcadores.abierto { display: block; }
 
@@ -926,6 +937,73 @@
   }
   #btnCompartir:active { background: #f1f1f1; }
 
+  /* ---------- Botón + panel: filtrar por tipo de negocio ----------
+     Se ubica a la izquierda del botón de compartir (72px + 48px de
+     ancho + 8px de separación = 128px desde el borde derecho). */
+  #btnFiltroTipoNegocio {
+    position: absolute;
+    top: 16px; right: 128px;
+    z-index: 1000;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    font-size: 19px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #btnFiltroTipoNegocio:active { background: #f1f1f1; }
+  #btnFiltroTipoNegocio.activo {
+    box-shadow: 0 0 0 2px var(--color-acento), 0 2px 6px rgba(0,0,0,.3);
+  }
+
+  #panelFiltroTipoNegocio {
+    position: absolute;
+    top: 70px; right: 16px;
+    z-index: 1000;
+    width: 260px;
+    max-width: 80vw;
+    max-height: 55vh;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.3);
+    padding: 12px;
+    display: none;
+  }
+  #panelFiltroTipoNegocio.abierto { display: block; }
+  #panelFiltroTipoNegocio input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  #listaFiltroTipoNegocio { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .chip-tipo-negocio {
+    border: none;
+    border-radius: 14px;
+    padding: 6px 12px;
+    background: #eee;
+    color: #333;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .chip-tipo-negocio.activa { background: var(--color-acento); color: #fff; }
+  #listaFiltroTipoNegocio .vacio { font-size: 13px; color: var(--color-texto-suave); padding: 4px 2px; }
+  #btnQuitarFiltroTipoNegocio {
+    width: 100%;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    background: #eee;
+    color: #333;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
   /* ---------- Botón circular de "mi ubicación" ---------- */
   #btnUbicacion {
     position: absolute;
@@ -1176,9 +1254,16 @@
   body.modo-oscuro #btnMenu,
   body.modo-oscuro #btnCuenta,
   body.modo-oscuro #btnCompartir,
+  body.modo-oscuro #btnFiltroTipoNegocio,
   body.modo-oscuro #btnUbicacion,
   body.modo-oscuro #tituloCentral,
   body.modo-oscuro #avisoColocar { background: #262a31; color: #e8eaed; }
+
+  body.modo-oscuro #panelFiltroTipoNegocio { background: #1c1f24; color: #e8eaed; }
+  body.modo-oscuro #panelFiltroTipoNegocio input,
+  body.modo-oscuro .chip-tipo-negocio,
+  body.modo-oscuro #btnQuitarFiltroTipoNegocio { background: #262a31; color: #e8eaed; border-color: #33373f; }
+  body.modo-oscuro #listaFiltroTipoNegocio .vacio { color: #9aa0a6; }
 
   body.modo-oscuro #sidebar,
   body.modo-oscuro #submenuMarcadores,
@@ -1193,6 +1278,7 @@
   body.modo-oscuro .resultado-casilla,
   body.modo-oscuro .fila-categoria-color,
   body.modo-oscuro .titulo-seccion-marcadores { color: #e8eaed; border-color: #33373f; }
+  body.modo-oscuro .sb-item-pie { color: #9aa0a6; }
   body.modo-oscuro .sb-item:hover,
   body.modo-oscuro .resultado-casilla:hover { background: #262a31; }
   body.modo-oscuro .nombre-btn,
@@ -1234,6 +1320,14 @@
 
 <button id="btnMenu" title="Menú">☰</button>
 <button id="btnCuenta" title="Iniciar sesión con Google">👤</button>
+
+<button id="btnFiltroTipoNegocio" title="Filtrar por tipo de negocio">🔍</button>
+<div id="panelFiltroTipoNegocio">
+  <input type="text" id="inputFiltroTipoNegocio" placeholder="Buscar tipo de negocio…">
+  <div id="listaFiltroTipoNegocio"><!-- chips de categoría generados por JS --></div>
+  <button type="button" id="btnQuitarFiltroTipoNegocio">✖️ Quitar filtro</button>
+</div>
+
 <button id="btnCompartir" title="Compartir">🔗</button>
 <button id="btnUbicacion" title="Ver mi ubicación">
   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1263,8 +1357,6 @@
     <span class="cuenta-info" id="cuentaInfoSidebar">👤 Iniciar sesión con Google</span>
   </button>
 
-  <button class="sb-item" id="btnAvisoPrivacidad">🔒 Aviso de privacidad</button>
-
   <button class="sb-item" id="btnMarcadores">📍 Marcadores</button>
   <div id="submenuMarcadores">
     <button class="btn-secundario" id="btnFiltroPoloWeb">🌐 Páginas web de Polo</button>
@@ -1288,6 +1380,8 @@
     <div id="categoriasBuscar"><!-- botones de categoría generados por JS --></div>
     <div id="resultadosBuscar"><!-- resultados generados por JS --></div>
   </div>
+
+  <button class="sb-item sb-item-pie" id="btnAvisoPrivacidad">🔒 Aviso de privacidad</button>
 </div>
 
 <!-- ---------- Modal "Compartir" ---------- -->
@@ -1446,6 +1540,7 @@
         <option value="1">Hoja 1 — mini tiendas, mercados y supermercados</option>
         <option value="2">Hoja 2 — empresas y comercios</option>
         <option value="3">Hoja 3 — bazares, tianguis, emprendimientos e instituciones</option>
+        <option value="4">Tiendas</option>
       </select>
 
       <div class="fila-doble">
@@ -1782,12 +1877,16 @@ btnUbicacion.addEventListener('click', () => {
 /* =========================================================
    GOOGLE SHEETS: fuentes públicas de los negocios/lugares
    -----------------------------------------------------------
-   Ahora se leen y combinan 3 hojas de Google Sheets distintas,
-   cada una identificada con un número (hoja: 1, 2 o 3) que se
+   Ahora se leen y combinan 4 hojas de Google Sheets distintas,
+   cada una identificada con un número (hoja: 1, 2, 3 o 4) que se
    guarda en cada registro para saber de dónde vino:
      Hoja 1 → mini tiendas, mercados y supermercados
      Hoja 2 → empresas y comercios
      Hoja 3 → bazares, tianguis, emprendimientos, instituciones, etc.
+     Hoja 4 → "Tiendas" (pestaña dentro del mismo archivo de la Hoja 1,
+               identificada por su propio gid, ya que el nombre de una
+               pestaña de Google Sheets se puede cambiar sin que
+               cambie su gid)
 
    Columnas de cada hoja (todas comparten el mismo orden):
      A Nombre · B Link · C Categoría · D Emoji · E Color ·
@@ -1797,7 +1896,7 @@ btnUbicacion.addEventListener('click', () => {
      por comas, mismo orden que los links adicionales) · L Categorías
      de sub negocios (separadas por comas, mismo orden)
 
-   Las 3 hojas deben estar compartidas como "Cualquiera con el
+   Las 4 hojas deben estar compartidas como "Cualquiera con el
    enlace, Lector" para que cualquier visitante de la página
    pueda leerlas.
    ========================================================= */
@@ -1805,6 +1904,7 @@ const HOJAS = [
   { hoja: 1, id: '1AQQ8DqH7DFfgOvSrQd1E1ZbvwB7-5D1b62O5fD0FIDo', gid: 0 },
   { hoja: 2, id: '115dZkrd91A4anClkEoGkU9nvlzrg_A_QBCz763YenJ0', gid: 0 },
   { hoja: 3, id: '18adIttEIpAQtQoplXj8jG50gnEHvd4MhnKUqDVz0NxE', gid: 0 },
+  { hoja: 4, id: '1AQQ8DqH7DFfgOvSrQd1E1ZbvwB7-5D1b62O5fD0FIDo', gid: 292452162 },
 ];
 
 function urlCsvHoja(hoja) {
@@ -1815,6 +1915,7 @@ const NOMBRES_HOJA = {
   1: 'Hoja 1 — mini tiendas, mercados y supermercados',
   2: 'Hoja 2 — empresas y comercios',
   3: 'Hoja 3 — bazares, tianguis, emprendimientos e instituciones',
+  4: 'Tiendas',
 };
 
 let negocios = []; // [{ nombre, url, categoria, emoji, color, lat, lng, activo, hoja, subCategorias, subColores }]
@@ -2083,9 +2184,14 @@ function limpiarMarcadoresDelMapa() {
 // (1, 2 o 3) = mostrar solo los de esa hoja (usado por "🌐 Páginas web
 // de Polo", que filtra a la Hoja 1). Se puede quitar con "🗺️ Mostrar todo".
 let filtroHojaActual = null;
+let filtroCategoriaActual = null;
 
 function negociosVisibles() {
-  return filtroHojaActual ? negocios.filter(n => n.hoja === filtroHojaActual) : negocios;
+  let lista = filtroHojaActual ? negocios.filter(n => n.hoja === filtroHojaActual) : negocios;
+  if (filtroCategoriaActual) {
+    lista = lista.filter(n => (n.categoria || '') === filtroCategoriaActual);
+  }
+  return lista;
 }
 
 function dibujarNegociosEnMapa() {
@@ -2146,7 +2252,7 @@ async function cargarUnaHoja(hoja) {
 }
 
 async function cargarNegociosDesdeSheet() {
-  estadoCarga.textContent = 'Cargando negocios desde las 3 hojas de Google Sheets…';
+  estadoCarga.textContent = 'Cargando negocios desde las hojas de Google Sheets…';
   estadoCarga.classList.remove('ok', 'error');
   try {
     const resultados = await Promise.allSettled(HOJAS.map(cargarUnaHoja));
@@ -2165,9 +2271,10 @@ async function cargarNegociosDesdeSheet() {
     renderListaCategoriasMarcadores();
     renderCategorias();
     renderResultadosBuscar();
+    renderFiltroTipoNegocio();
 
     if (hojasConError.length === 0) {
-      estadoCarga.textContent = `${negocios.length} lugar(es) cargado(s) de las 3 hojas.`;
+      estadoCarga.textContent = `${negocios.length} lugar(es) cargado(s) de todas las hojas.`;
       estadoCarga.classList.add('ok');
     } else {
       estadoCarga.textContent = `${negocios.length} lugar(es) cargado(s). No se pudo leer la hoja ${hojasConError.join(', ')} (revisa que esté compartida como "Cualquiera con el enlace - Lector").`;
@@ -2194,6 +2301,80 @@ function aplicarFiltroHoja(hoja) {
     : `${visibles.length} lugar(es) mostrado(s) en total.`;
   estadoCarga.classList.add('ok');
 }
+
+/* =========================================================
+   FILTRO POR TIPO DE NEGOCIO (botón 🔍 a la izquierda de Compartir)
+   -----------------------------------------------------------
+   Panel rápido, independiente del menú lateral, que deja filtrar
+   los marcadores del mapa por categoría (tipo de negocio). Se
+   puede combinar con el filtro de hoja ("🌐 Páginas web de Polo").
+   ========================================================= */
+const btnFiltroTipoNegocio = document.getElementById('btnFiltroTipoNegocio');
+const panelFiltroTipoNegocio = document.getElementById('panelFiltroTipoNegocio');
+const inputFiltroTipoNegocio = document.getElementById('inputFiltroTipoNegocio');
+const listaFiltroTipoNegocio = document.getElementById('listaFiltroTipoNegocio');
+const btnQuitarFiltroTipoNegocio = document.getElementById('btnQuitarFiltroTipoNegocio');
+
+function renderFiltroTipoNegocio() {
+  const termino = normalizarTexto(inputFiltroTipoNegocio.value.trim());
+  let categorias = categoriasConocidas();
+
+  if (termino) {
+    categorias = categorias.filter(c => normalizarTexto(c).includes(termino));
+  }
+
+  if (categorias.length === 0) {
+    listaFiltroTipoNegocio.innerHTML = '<div class="vacio">No hay tipos de negocio con ese nombre.</div>';
+    return;
+  }
+
+  listaFiltroTipoNegocio.innerHTML = categorias.map(cat => `
+    <button type="button" class="chip-tipo-negocio${cat === filtroCategoriaActual ? ' activa' : ''}" data-cat="${cat}">${cat}</button>
+  `).join('');
+}
+
+function aplicarFiltroCategoria(categoria) {
+  filtroCategoriaActual = categoria;
+  dibujarNegociosEnMapa();
+  renderListaMarcadores();
+  renderFiltroTipoNegocio();
+  btnFiltroTipoNegocio.classList.toggle('activo', !!filtroCategoriaActual);
+
+  const visibles = negociosVisibles();
+  estadoCarga.classList.remove('ok', 'error');
+  estadoCarga.textContent = filtroCategoriaActual
+    ? `${visibles.length} lugar(es) de "${filtroCategoriaActual}" mostrado(s).`
+    : `${visibles.length} lugar(es) mostrado(s) en total.`;
+  estadoCarga.classList.add('ok');
+}
+
+btnFiltroTipoNegocio.addEventListener('click', () => {
+  panelFiltroTipoNegocio.classList.toggle('abierto');
+  if (panelFiltroTipoNegocio.classList.contains('abierto')) {
+    renderFiltroTipoNegocio();
+    inputFiltroTipoNegocio.focus();
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (!panelFiltroTipoNegocio.classList.contains('abierto')) return;
+  if (panelFiltroTipoNegocio.contains(e.target) || e.target === btnFiltroTipoNegocio) return;
+  panelFiltroTipoNegocio.classList.remove('abierto');
+});
+
+inputFiltroTipoNegocio.addEventListener('input', renderFiltroTipoNegocio);
+
+listaFiltroTipoNegocio.addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip-tipo-negocio');
+  if (!chip) return;
+  const cat = chip.dataset.cat;
+  aplicarFiltroCategoria(filtroCategoriaActual === cat ? null : cat);
+});
+
+btnQuitarFiltroTipoNegocio.addEventListener('click', () => {
+  inputFiltroTipoNegocio.value = '';
+  aplicarFiltroCategoria(null);
+});
 
 /* =========================================================
    PANEL "VER NEGOCIO" (submenú abierto desde el popup del mapa)
@@ -2664,12 +2845,13 @@ btnMarcadores.addEventListener('click', () => {
 btnActualizarLista.addEventListener('click', cargarNegociosDesdeSheet);
 btnFiltroPoloWeb.addEventListener('click', () => aplicarFiltroHoja(1));
 
-// "Mostrar todo" primero vuelve a leer las 3 hojas de Google Sheets
+// "Mostrar todo" primero vuelve a leer las hojas de Google Sheets
 // (para traer altas recientes, como un negocio que acabas de agregar)
 // y después quita cualquier filtro que estuviera activo.
 btnMostrarTodo.addEventListener('click', async () => {
   await cargarNegociosDesdeSheet();
   aplicarFiltroHoja(null);
+  aplicarFiltroCategoria(null);
 });
 
 /* =========================================================
