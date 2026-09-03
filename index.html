@@ -10,8 +10,17 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
+  :root {
+    --color-acento: #1a73e8;
+    --color-fondo: #e9edf1;
+    --color-fondo-panel: #f4f6f8;
+    --color-fondo-tarjeta: #fff;
+    --color-texto: #202124;
+    --color-texto-suave: #5f6368;
+    --color-borde: #e3e6ea;
+  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: #e9edf1; }
+  body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--color-fondo); }
   #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; }
 
   /* Le da un aspecto "apagado" al mapa base */
@@ -43,7 +52,7 @@
     width: 26px; height: 26px;
     border-radius: 50%;
     background: rgba(26,115,232,.25);
-    border: 3px dashed #1a73e8;
+    border: 3px dashed var(--color-acento);
   }
 
   .popup-negocio { text-align: center; font-size: 14px; }
@@ -51,7 +60,7 @@
     display: inline-block;
     margin-top: 6px;
     padding: 6px 14px;
-    background: #1a73e8;
+    background: var(--color-acento);
     color: #fff;
     text-decoration: none;
     border-radius: 6px;
@@ -133,7 +142,7 @@
   .btn-ubicar {
     border: none;
     background: #e8f0fe;
-    color: #1a73e8;
+    color: var(--color-acento);
     border-radius: 14px;
     padding: 5px 10px;
     font-size: 12px;
@@ -144,7 +153,7 @@
   .btn-anadir {
     margin: 8px 18px 6px 18px;
     padding: 10px;
-    background: #1a73e8;
+    background: var(--color-acento);
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -214,9 +223,9 @@
   }
   .chip-categoria:hover { background: #f1f3f4; }
   .chip-categoria.activa {
-    background: #1a73e8;
+    background: var(--color-acento);
     color: #fff;
-    border-color: #1a73e8;
+    border-color: var(--color-acento);
   }
 
   #resultadosBuscar .vacio {
@@ -283,7 +292,7 @@
     align-items: center;
     gap: 12px;
     padding: 18px 20px;
-    background: linear-gradient(135deg, #1a73e8, #0f4fa8);
+    background: linear-gradient(135deg, var(--color-acento), #0f4fa8);
     color: #fff;
     position: sticky;
     top: 0;
@@ -312,7 +321,7 @@
   .grupo-titulo {
     font-size: 12.5px;
     font-weight: 600;
-    color: #1a73e8;
+    color: var(--color-acento);
     margin-bottom: 8px;
     display: flex;
     align-items: center;
@@ -395,7 +404,7 @@
   }
   .tab-categoria.activa {
     opacity: 1;
-    border-bottom: 2px solid #1a73e8;
+    border-bottom: 2px solid var(--color-acento);
   }
 
   #gridEmojis, #gridEmojisEdit {
@@ -460,8 +469,8 @@
     font-size: 14px;
     cursor: pointer;
   }
-  #btnCopiarFila, #btnCopiarFilaNegocio { background: #1a73e8; color: #fff; }
-  #btnCerrarModal, #btnCerrarEditarNegocio, #btnCerrarPrivacidad { background: #e3e6ea; color: #333; }
+  #btnCopiarFila, #btnCopiarFilaNegocio, #btnGuardarApodo { background: var(--color-acento); color: #fff; }
+  #btnCerrarModal, #btnCerrarEditarNegocio, #btnCerrarPrivacidad, #btnCerrarAjustesCuenta { background: #e3e6ea; color: #333; }
 
   #avisoCopiado, #avisoCopiadoNegocio {
     font-size: 12px;
@@ -476,7 +485,7 @@
     display: inline-block;
     margin-top: 6px;
     padding: 6px 14px;
-    background: #1a73e8;
+    background: var(--color-acento);
     color: #fff;
     border: none;
     border-radius: 6px;
@@ -560,7 +569,7 @@
     display: block;
     width: 100%;
     padding: 9px;
-    background: #1a73e8;
+    background: var(--color-acento);
     color: #fff;
     text-decoration: none;
     border-radius: 8px;
@@ -603,9 +612,9 @@
     width: 100%;
     margin-top: 10px;
     padding: 9px;
-    border: 1px dashed #1a73e8;
+    border: 1px dashed var(--color-acento);
     background: #fff;
-    color: #1a73e8;
+    color: var(--color-acento);
     border-radius: 8px;
     font-size: 13px;
     cursor: pointer;
@@ -763,7 +772,7 @@
     cursor: pointer;
   }
   .btn-secundario.activo {
-    background: #1a73e8;
+    background: var(--color-acento);
     color: #fff;
   }
 
@@ -876,7 +885,7 @@
   .privacidad-seccion { margin-bottom: 14px; }
   .privacidad-seccion h4 {
     font-size: 13px;
-    color: #1a73e8;
+    color: var(--color-acento);
     margin-bottom: 4px;
   }
   .privacidad-seccion p {
@@ -890,6 +899,168 @@
     text-align: center;
     margin-top: 6px;
   }
+
+  /* ---------- Título central "Polo/Mapa de Morelia" ---------- */
+  #tituloCentral {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 900;
+    background: rgba(255,255,255,.75);
+    color: #4a4f57;
+    padding: 5px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    pointer-events: none;
+    white-space: nowrap;
+    max-width: calc(100vw - 150px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 1px 4px rgba(0,0,0,.12);
+  }
+
+  /* ---------- Panel de ajustes de cuenta ---------- */
+  #overlayAjustesCuenta {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 3100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  #overlayAjustesCuenta.abierto { display: flex; }
+  #modalAjustesCuenta { width: 300px; }
+
+  .ajustes-cuenta-perfil {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .ajustes-cuenta-perfil img {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .ajustes-cuenta-perfil .correo-cuenta {
+    font-size: 11.5px;
+    color: var(--color-texto-suave);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ajustes-fila-modo {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .ajustes-fila-modo button {
+    flex: 1;
+    padding: 9px;
+    border: 1px solid var(--color-borde);
+    background: var(--color-fondo-tarjeta);
+    color: var(--color-texto);
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .ajustes-fila-modo button.activo {
+    background: var(--color-acento);
+    color: #fff;
+    border-color: var(--color-acento);
+  }
+
+  .ajustes-fila-color {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .ajustes-fila-color input[type="color"] {
+    width: 40px; height: 32px;
+    padding: 0;
+    border: 1px solid var(--color-borde);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  #btnCerrarSesionAjustes {
+    margin-top: 16px;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #fbe4e4;
+    color: #b3261e;
+    font-size: 13.5px;
+    cursor: pointer;
+  }
+
+  /* =========================================================
+     MODO OSCURO
+     -----------------------------------------------------------
+     Se activa agregando la clase "modo-oscuro" al <body>. La
+     preferencia se guarda en localStorage, por dispositivo/
+     navegador ("en sus pantallas personales"), no es algo que
+     se comparta entre usuarios.
+     ========================================================= */
+  body.modo-oscuro { background: #14161a; }
+  body.modo-oscuro #map { filter: brightness(.92); }
+  body.modo-oscuro .leaflet-tile-pane { filter: grayscale(45%) contrast(95%) brightness(.62); }
+
+  body.modo-oscuro #btnMenu,
+  body.modo-oscuro #btnCuenta,
+  body.modo-oscuro #tituloCentral,
+  body.modo-oscuro #avisoColocar { background: #262a31; color: #e8eaed; }
+
+  body.modo-oscuro #sidebar,
+  body.modo-oscuro #submenuMarcadores,
+  body.modo-oscuro #submenuBuscar,
+  body.modo-oscuro #panelNegocio,
+  body.modo-oscuro .modal-shell {
+    background: #1c1f24;
+    color: #e8eaed;
+  }
+  body.modo-oscuro .sb-item,
+  body.modo-oscuro .marcador-casilla,
+  body.modo-oscuro .resultado-casilla,
+  body.modo-oscuro .fila-categoria-color,
+  body.modo-oscuro .titulo-seccion-marcadores { color: #e8eaed; border-color: #33373f; }
+  body.modo-oscuro .sb-item:hover,
+  body.modo-oscuro .resultado-casilla:hover { background: #262a31; }
+  body.modo-oscuro .nombre-btn,
+  body.modo-oscuro .resultado-nombre,
+  body.modo-oscuro .cuenta-nombre { color: #e8eaed; }
+
+  body.modo-oscuro .grupo-campos,
+  body.modo-oscuro .fila-link-editable,
+  body.modo-oscuro .caja-link,
+  body.modo-oscuro #filaCopiar { background: #262a31; border-color: #33373f; color: #e8eaed; }
+  body.modo-oscuro .modal-shell input,
+  body.modo-oscuro .modal-shell select,
+  body.modo-oscuro .ajustes-fila-modo button { background: #262a31; color: #e8eaed; border-color: #33373f; }
+  body.modo-oscuro .modal-shell input[readonly] { background: #1c1f24; color: #9aa0a6; }
+  body.modo-oscuro .modal-shell label,
+  body.modo-oscuro .grupo-titulo,
+  body.modo-oscuro .privacidad-seccion p,
+  body.modo-oscuro .panel-negocio-nombre,
+  body.modo-oscuro .etiqueta-link,
+  body.modo-oscuro .correo-cuenta { color: #c4c8cd; }
+
+  body.modo-oscuro #btnCerrarModal,
+  body.modo-oscuro #btnCerrarEditarNegocio,
+  body.modo-oscuro #btnCerrarPrivacidad,
+  body.modo-oscuro #btnCerrarAjustesCuenta,
+  body.modo-oscuro .btn-secundario { background: #33373f; color: #e8eaed; }
+
+  body.modo-oscuro #estadoCarga { color: #9aa0a6; }
+  body.modo-oscuro .separador-otros-negocios { border-color: #33373f; }
+  body.modo-oscuro .btn-gear-subnegocio { background: #262a31; border-color: #33373f; color: #e8eaed; }
 </style>
 </head>
 <body>
@@ -898,6 +1069,7 @@
 
 <button id="btnMenu" title="Menú">☰</button>
 <button id="btnCuenta" title="Iniciar sesión con Google">👤</button>
+<div id="tituloCentral">Polo/Mapa de Morelia</div>
 
 <div id="avisoColocar">Toca el mapa para colocar el marcador…</div>
 
@@ -1001,6 +1173,58 @@
 
       <div class="modal-botones">
         <button id="btnCerrarPrivacidad">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ---------- Modal "Ajustes de cuenta" ---------- -->
+<div id="overlayAjustesCuenta">
+  <div id="modalAjustesCuenta" class="modal-shell">
+    <div class="modal-header">
+      <div class="modal-header-icono">⚙️</div>
+      <div>
+        <h3>Ajustes de cuenta</h3>
+        <div class="subtitulo">Solo se aplican en esta pantalla</div>
+      </div>
+    </div>
+    <div class="modal-body">
+
+      <div class="ajustes-cuenta-perfil">
+        <img id="imgAjustesCuenta" src="" alt="" style="display:none;">
+        <div>
+          <div id="nombreAjustesCuenta" style="font-size:14px; font-weight:600;"></div>
+          <div class="correo-cuenta" id="correoAjustesCuenta"></div>
+        </div>
+      </div>
+
+      <div class="grupo-campos">
+        <div class="grupo-titulo">✏️ Nombre para mostrar</div>
+        <label for="inpApodoCuenta">Cómo quieres que se te muestre aquí</label>
+        <input type="text" id="inpApodoCuenta" placeholder="Tu nombre de Google">
+        <div class="modal-botones">
+          <button id="btnGuardarApodo">Guardar nombre</button>
+        </div>
+      </div>
+
+      <div class="grupo-campos">
+        <div class="grupo-titulo">🎨 Apariencia de tu pantalla</div>
+        <label>Modo</label>
+        <div class="ajustes-fila-modo">
+          <button type="button" id="btnModoClaro">☀️ Claro</button>
+          <button type="button" id="btnModoOscuro">🌙 Oscuro</button>
+        </div>
+        <label style="margin-top:12px;">Color de acento</label>
+        <div class="ajustes-fila-color">
+          <input type="color" id="inpColorAcento" value="#1a73e8">
+          <span style="font-size:12px; color:var(--color-texto-suave);">Se aplica solo en tu navegador</span>
+        </div>
+      </div>
+
+      <button id="btnCerrarSesionAjustes">🚪 Cerrar sesión</button>
+
+      <div class="modal-botones" style="margin-top:10px;">
+        <button id="btnCerrarAjustesCuenta">Cerrar</button>
       </div>
     </div>
   </div>
@@ -1936,7 +2160,14 @@ btnMarcadores.addEventListener('click', () => {
 });
 btnActualizarLista.addEventListener('click', cargarNegociosDesdeSheet);
 btnFiltroPoloWeb.addEventListener('click', () => aplicarFiltroHoja(1));
-btnMostrarTodo.addEventListener('click', () => aplicarFiltroHoja(null));
+
+// "Mostrar todo" primero vuelve a leer las 3 hojas de Google Sheets
+// (para traer altas recientes, como un negocio que acabas de agregar)
+// y después quita cualquier filtro que estuviera activo.
+btnMostrarTodo.addEventListener('click', async () => {
+  await cargarNegociosDesdeSheet();
+  aplicarFiltroHoja(null);
+});
 
 /* =========================================================
    BUSCAR (por nombre y por categoría, con chips de categoría)
@@ -3297,6 +3528,86 @@ overlayPrivacidad.addEventListener('click', (e) => {
 });
 
 /* =========================================================
+   AJUSTES DE CUENTA (nombre visible, modo oscuro y color de
+   acento). El modo oscuro y el color de acento se guardan en
+   localStorage: son una preferencia "de este navegador", no
+   algo que se comparta con nadie más. El apodo se guarda por
+   cuenta (uid de Google) para que cada quien vea su propio
+   nombre en este mismo navegador.
+   ========================================================= */
+const overlayAjustesCuenta = document.getElementById('overlayAjustesCuenta');
+const imgAjustesCuenta = document.getElementById('imgAjustesCuenta');
+const nombreAjustesCuenta = document.getElementById('nombreAjustesCuenta');
+const correoAjustesCuenta = document.getElementById('correoAjustesCuenta');
+const inpApodoCuenta = document.getElementById('inpApodoCuenta');
+const btnGuardarApodo = document.getElementById('btnGuardarApodo');
+const btnModoClaro = document.getElementById('btnModoClaro');
+const btnModoOscuro = document.getElementById('btnModoOscuro');
+const inpColorAcento = document.getElementById('inpColorAcento');
+const btnCerrarSesionAjustes = document.getElementById('btnCerrarSesionAjustes');
+const btnCerrarAjustesCuenta = document.getElementById('btnCerrarAjustesCuenta');
+
+const CLAVE_MODO_OSCURO = 'mapaModoOscuro';
+const CLAVE_COLOR_ACENTO = 'mapaColorAcento';
+const claveApodo = (uid) => 'mapaApodo_' + uid;
+
+function aplicarModoOscuro(activo) {
+  document.body.classList.toggle('modo-oscuro', activo);
+  btnModoClaro.classList.toggle('activo', !activo);
+  btnModoOscuro.classList.toggle('activo', activo);
+  localStorage.setItem(CLAVE_MODO_OSCURO, activo ? '1' : '0');
+}
+
+function aplicarColorAcento(color) {
+  document.documentElement.style.setProperty('--color-acento', color);
+  inpColorAcento.value = color;
+  localStorage.setItem(CLAVE_COLOR_ACENTO, color);
+}
+
+// Aplica de inmediato las preferencias que ya estaban guardadas en
+// este navegador (funciona haya o no sesión iniciada).
+aplicarModoOscuro(localStorage.getItem(CLAVE_MODO_OSCURO) === '1');
+const colorAcentoGuardado = localStorage.getItem(CLAVE_COLOR_ACENTO);
+if (colorAcentoGuardado) aplicarColorAcento(colorAcentoGuardado);
+
+btnModoClaro.addEventListener('click', () => aplicarModoOscuro(false));
+btnModoOscuro.addEventListener('click', () => aplicarModoOscuro(true));
+inpColorAcento.addEventListener('input', (e) => aplicarColorAcento(e.target.value));
+
+btnCerrarAjustesCuenta.addEventListener('click', () => overlayAjustesCuenta.classList.remove('abierto'));
+overlayAjustesCuenta.addEventListener('click', (e) => {
+  if (e.target === overlayAjustesCuenta) overlayAjustesCuenta.classList.remove('abierto');
+});
+
+// El botón de cuenta (arriba a la derecha y en el menú) abre este
+// panel cuando ya hay sesión iniciada; el propio script de Firebase
+// (más abajo) llama a esta función y a cerrarSesionGoogle().
+window.abrirAjustesCuenta = function (usuario) {
+  const apodoGuardado = localStorage.getItem(claveApodo(usuario.uid));
+  imgAjustesCuenta.style.display = usuario.photoURL ? 'block' : 'none';
+  if (usuario.photoURL) imgAjustesCuenta.src = usuario.photoURL;
+  nombreAjustesCuenta.textContent = apodoGuardado || usuario.displayName || 'Tu cuenta';
+  correoAjustesCuenta.textContent = usuario.email || '';
+  inpApodoCuenta.value = apodoGuardado || '';
+  overlayAjustesCuenta.classList.add('abierto');
+};
+
+btnGuardarApodo.addEventListener('click', () => {
+  const usuario = window.firebaseAuth && window.firebaseAuth.currentUser;
+  if (!usuario) return;
+  const nuevoApodo = inpApodoCuenta.value.trim();
+  if (nuevoApodo) localStorage.setItem(claveApodo(usuario.uid), nuevoApodo);
+  else localStorage.removeItem(claveApodo(usuario.uid));
+  nombreAjustesCuenta.textContent = nuevoApodo || usuario.displayName || 'Tu cuenta';
+  if (window.refrescarUiCuenta) window.refrescarUiCuenta();
+});
+
+btnCerrarSesionAjustes.addEventListener('click', () => {
+  overlayAjustesCuenta.classList.remove('abierto');
+  if (window.cerrarSesionGoogle) window.cerrarSesionGoogle();
+});
+
+/* =========================================================
    ARRANQUE
    ========================================================= */
 cargarNegociosDesdeSheet();
@@ -3369,18 +3680,25 @@ cargarNegociosDesdeSheet();
       await signOut(auth);
     }
   }
+  window.cerrarSesionGoogle = cerrarSesionGoogle;
 
   function actualizarUiCuenta(usuario) {
     if (usuario) {
+      // Si la persona guardó un apodo desde "Ajustes de cuenta", ese
+      // nombre manda sobre el nombre de su cuenta de Google — solo
+      // en este navegador (se guarda con localStorage).
+      const apodoGuardado = localStorage.getItem('mapaApodo_' + usuario.uid);
+      const nombreMostrado = apodoGuardado || usuario.displayName || usuario.email;
+
       btnCuenta.classList.add('conectado');
-      btnCuenta.title = `Sesión iniciada como ${usuario.displayName || usuario.email} — clic para cerrar sesión`;
+      btnCuenta.title = `Sesión iniciada como ${nombreMostrado} — clic para ver ajustes de cuenta`;
       btnCuenta.innerHTML = usuario.photoURL
-        ? `<img src="${usuario.photoURL}" alt="${usuario.displayName || 'Cuenta'}">`
+        ? `<img src="${usuario.photoURL}" alt="${nombreMostrado}">`
         : '🙂';
 
       cuentaInfoSidebar.innerHTML = usuario.photoURL
-        ? `<img src="${usuario.photoURL}" alt=""> <span class="cuenta-nombre">${usuario.displayName || usuario.email}</span>`
-        : `👤 <span class="cuenta-nombre">${usuario.displayName || usuario.email}</span>`;
+        ? `<img src="${usuario.photoURL}" alt=""> <span class="cuenta-nombre">${nombreMostrado}</span>`
+        : `👤 <span class="cuenta-nombre">${nombreMostrado}</span>`;
     } else {
       btnCuenta.classList.remove('conectado');
       btnCuenta.title = 'Iniciar sesión con Google';
@@ -3389,13 +3707,17 @@ cargarNegociosDesdeSheet();
     }
   }
 
+  // Permite que "Ajustes de cuenta" refresque el botón y el menú
+  // en cuanto se guarda un apodo nuevo, sin esperar a otro evento.
+  window.refrescarUiCuenta = () => actualizarUiCuenta(auth.currentUser);
+
   onAuthStateChanged(auth, (usuario) => {
     actualizarUiCuenta(usuario);
   });
 
   function alPresionarBotonCuenta() {
     if (auth.currentUser) {
-      cerrarSesionGoogle();
+      if (window.abrirAjustesCuenta) window.abrirAjustesCuenta(auth.currentUser);
     } else {
       iniciarSesionGoogle();
     }
