@@ -335,7 +335,7 @@
     color: #5f6368;
     margin: 10px 0 4px;
   }
-  .modal-shell input, .modal-shell select {
+  .modal-shell input, .modal-shell select, .modal-shell textarea {
     width: 100%;
     padding: 8px;
     border: 1px solid #d4d8dd;
@@ -344,6 +344,7 @@
     background: #fff;
     font-family: inherit;
   }
+  .modal-shell textarea { resize: vertical; }
   .modal-shell input[readonly] { background: #f1f3f5; color: #5f6368; }
   .modal-shell select { cursor: pointer; }
 
@@ -454,7 +455,8 @@
      pero ya no se muestra en el modal de "Configuración del negocio"
      para no ensuciar la vista — el botón "Copiar línea" la sigue
      copiando al portapapeles igual que siempre. */
-  #filaCopiarNegocio, #ordenColumnasNegocio { display: none; }
+  #filaCopiarNegocio, #ordenColumnasNegocio,
+  #filaCopiarNegocioInactivo, #ordenColumnasNegocioInactivo { display: none; }
 
   .modal-botones {
     display: flex;
@@ -469,10 +471,10 @@
     font-size: 14px;
     cursor: pointer;
   }
-  #btnCopiarFila, #btnCopiarFilaNegocio, #btnGuardarApodo { background: var(--color-acento); color: #fff; }
-  #btnCerrarModal, #btnCerrarEditarNegocio, #btnCerrarPrivacidad, #btnCerrarAjustesCuenta { background: #e3e6ea; color: #333; }
+  #btnCopiarFila, #btnCopiarFilaNegocio, #btnCopiarFilaNegocioInactivo, #btnGuardarApodo { background: var(--color-acento); color: #fff; }
+  #btnCerrarModal, #btnCerrarEditarNegocio, #btnCerrarEditarNegocioInactivo, #btnCerrarPrivacidad, #btnCerrarAjustesCuenta { background: #e3e6ea; color: #333; }
 
-  #avisoCopiado, #avisoCopiadoNegocio {
+  #avisoCopiado, #avisoCopiadoNegocio, #avisoCopiadoNegocioInactivo {
     font-size: 12px;
     color: #188038;
     text-align: center;
@@ -492,6 +494,21 @@
     font-size: 13px;
     cursor: pointer;
     font-family: inherit;
+  }
+  .btn-ver-negocio-gris { background: #9aa0a6; }
+
+  /* ---------- Descripción del negocio sin página (punto gris) ---------- */
+  .descripcion-panel-negocio {
+    text-align: left;
+    font-size: 14px;
+    color: var(--color-texto);
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+  .descripcion-panel-negocio.vacia {
+    color: #888;
+    font-style: italic;
+    text-align: center;
   }
 
   /* ---------- Panel de negocio (submenú al presionar "Ver negocio") ---------- */
@@ -1043,6 +1060,7 @@
   body.modo-oscuro #filaCopiar { background: #262a31; border-color: #33373f; color: #e8eaed; }
   body.modo-oscuro .modal-shell input,
   body.modo-oscuro .modal-shell select,
+  body.modo-oscuro .modal-shell textarea,
   body.modo-oscuro .ajustes-fila-modo button { background: #262a31; color: #e8eaed; border-color: #33373f; }
   body.modo-oscuro .modal-shell input[readonly] { background: #1c1f24; color: #9aa0a6; }
   body.modo-oscuro .modal-shell label,
@@ -1050,10 +1068,12 @@
   body.modo-oscuro .privacidad-seccion p,
   body.modo-oscuro .panel-negocio-nombre,
   body.modo-oscuro .etiqueta-link,
+  body.modo-oscuro .descripcion-panel-negocio,
   body.modo-oscuro .correo-cuenta { color: #c4c8cd; }
 
   body.modo-oscuro #btnCerrarModal,
   body.modo-oscuro #btnCerrarEditarNegocio,
+  body.modo-oscuro #btnCerrarEditarNegocioInactivo,
   body.modo-oscuro #btnCerrarPrivacidad,
   body.modo-oscuro #btnCerrarAjustesCuenta,
   body.modo-oscuro .btn-secundario { background: #33373f; color: #e8eaed; }
@@ -1090,6 +1110,8 @@
     <span class="cuenta-info" id="cuentaInfoSidebar">👤 Iniciar sesión con Google</span>
   </button>
 
+  <button class="sb-item" id="btnAvisoPrivacidad">🔒 Aviso de privacidad</button>
+
   <button class="sb-item" id="btnMarcadores">📍 Marcadores</button>
   <div id="submenuMarcadores">
     <button class="btn-secundario" id="btnFiltroPoloWeb">🌐 Páginas web de Polo</button>
@@ -1113,8 +1135,6 @@
     <div id="categoriasBuscar"><!-- botones de categoría generados por JS --></div>
     <div id="resultadosBuscar"><!-- resultados generados por JS --></div>
   </div>
-
-  <button class="sb-item" id="btnAvisoPrivacidad">🔒 Aviso de privacidad</button>
 </div>
 
 <!-- ---------- Modal "Aviso de privacidad" ---------- -->
@@ -1131,17 +1151,17 @@
 
       <div class="privacidad-seccion">
         <h4>1. Responsable del sitio</h4>
-        <p>Este sitio ("Mapa de Negocios") es operado por <strong>[NOMBRE O RAZÓN SOCIAL DEL RESPONSABLE]</strong>, con domicilio y datos de contacto en <strong>[DOMICILIO / CORREO DE CONTACTO]</strong>. Sustituye estos datos por la información legal real antes de publicar el aviso.</p>
+        <p>Este sitio ("Mapa de Negocios") es operado por <strong><a href="https://elpologr.github.io/elpolo/" target="_blank" rel="noopener">El Polo Network</a></strong>, con domicilio y datos de contacto en <strong>pologuzrod@gmail.com</strong>.</p>
       </div>
 
       <div class="privacidad-seccion">
         <h4>2. Datos que recabamos</h4>
-        <p>Si decides iniciar sesión con tu cuenta de Google, recibimos tu nombre, correo electrónico y foto de perfil públicos de esa cuenta. Además, mediante Google Analytics (Firebase) recabamos datos de uso del sitio (páginas visitadas, dispositivo, ubicación aproximada). No es obligatorio iniciar sesión para usar el mapa.</p>
+        <p>Si decides iniciar sesión con tu cuenta de Google, recibimos tu nombre, correo electrónico y foto de perfil públicos de esa cuenta. Además, mediante Google Analytics (Firebase) recabamos datos de uso del sitio (páginas visitadas, dispositivo, ubicación aproximada). No es obligatorio iniciar sesión para usar el mapa y no recaudamos datos sin motivos afines al uso debido y estrictamente necesario para el uso de los servicios de esta página.</p>
       </div>
 
       <div class="privacidad-seccion">
         <h4>3. Finalidad del tratamiento</h4>
-        <p>Usamos estos datos para permitirte iniciar sesión, identificar tu cuenta dentro del sitio, entender cómo se usa el mapa y mejorar su funcionamiento. No vendemos tus datos personales a terceros.</p>
+        <p>Usamos estos datos para permitirte iniciar sesión, identificar tu cuenta dentro del sitio, entender cómo se usa el mapa y mejorar su funcionamiento. No vendemos ni otorgamos tus datos personales a terceros bajo ninguna circunstancia.</p>
       </div>
 
       <div class="privacidad-seccion">
@@ -1156,7 +1176,7 @@
 
       <div class="privacidad-seccion">
         <h4>6. Derechos ARCO</h4>
-        <p>Puedes solicitar acceder, rectificar, cancelar u oponerte al uso de tus datos personales (derechos ARCO), o revocar tu consentimiento, escribiendo a <strong>[CORREO DE CONTACTO PARA PRIVACIDAD]</strong>.</p>
+        <p>Puedes solicitar acceder, rectificar, cancelar u oponerte al uso de tus datos personales (derechos ARCO), o revocar tu consentimiento, escribiendo a <strong>pologuzrod@gmail.com</strong> o por nuestro WhatsApp que puedes encontrar en <a href="https://elpologr.github.io/elpolo/" target="_blank" rel="noopener">https://elpologr.github.io/elpolo/</a>.</p>
       </div>
 
       <div class="privacidad-seccion">
@@ -1305,7 +1325,7 @@
     </div>
 
     <div id="filaCopiar">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Imagen — Nombres de links — Colores de negocios — Categorías de sub negocios</div>
-    <div id="ordenColumnas">Orden de columnas en tu hoja: A Nombre · B Link · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) · I Imagen del submenú (imgbb) · J Nombres de cada link (separados por comas — se completan luego desde "Ver negocio → ⚙️ Configuración") · K Colores de negocios extra (separados por comas, mismo orden que los links adicionales — se completan luego desde "Ver negocio → ⚙️ Configuración") · L Categorías de sub negocios (separadas por comas, mismo orden — se completan luego desde "Ver negocio → ⚙️" en cada botón)</div>
+    <div id="ordenColumnas">Orden de columnas en tu hoja: A Nombre · B Link · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) si hay Link en B, o Descripción del negocio si B está vacía · I Imagen del submenú (imgbb) · J Nombres de cada link (separados por comas — se completan luego desde "Ver negocio → ⚙️ Configuración") · K Colores de negocios extra (separados por comas, mismo orden que los links adicionales — se completan luego desde "Ver negocio → ⚙️ Configuración") · L Categorías de sub negocios (separadas por comas, mismo orden — se completan luego desde "Ver negocio → ⚙️" en cada botón)</div>
 
     <div class="modal-botones">
       <button id="btnCerrarModal">Cerrar</button>
@@ -1397,13 +1417,54 @@
     </div>
 
     <div id="filaCopiarNegocio">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Imagen — Nombres de links — Colores de negocios — Categorías de sub negocios</div>
-    <div id="ordenColumnasNegocio">Orden de columnas en tu hoja: A Nombre · B Link principal · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) · I Imagen del submenú (imgbb) · J Nombres de cada link (separados por comas, en el mismo orden que los links) · K Colores de negocios extra (separados por comas, mismo orden que los links adicionales) · L Categorías de sub negocios (separadas por comas, mismo orden que los links adicionales)</div>
+    <div id="ordenColumnasNegocio">Orden de columnas en tu hoja: A Nombre · B Link principal · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) si hay Link en B, o Descripción del negocio si B está vacía · I Imagen del submenú (imgbb) · J Nombres de cada link (separados por comas, en el mismo orden que los links) · K Colores de negocios extra (separados por comas, mismo orden que los links adicionales) · L Categorías de sub negocios (separadas por comas, mismo orden que los links adicionales)</div>
 
     <div class="modal-botones">
       <button id="btnCerrarEditarNegocio">Cerrar</button>
       <button id="btnCopiarFilaNegocio">📋 Copiar línea</button>
     </div>
     <div id="avisoCopiadoNegocio"></div>
+    </div>
+  </div>
+</div>
+
+<div id="overlayEditarNegocioInactivo">
+  <div id="modalEditarNegocioInactivo" class="modal-shell">
+    <div class="modal-header">
+      <div class="modal-header-icono">⚙️</div>
+      <div>
+        <h3>Configuración del negocio</h3>
+        <div class="subtitulo">Edita los datos y cópialos a tu hoja.</div>
+      </div>
+    </div>
+    <div class="modal-body">
+
+    <div class="grupo-campos">
+      <div class="grupo-titulo">🗂️ Hoja y ubicación</div>
+      <label for="inpEditHojaInactivo">Hoja de Google Sheets</label>
+      <input type="text" id="inpEditHojaInactivo" readonly>
+    </div>
+
+    <div class="grupo-campos">
+      <div class="grupo-titulo">🏷️ Datos generales</div>
+      <label for="inpEditNombreInactivo">Nombre del negocio</label>
+      <input type="text" id="inpEditNombreInactivo" placeholder="Ej. Panadería Ejemplo">
+
+      <label for="inpEditDescripcionInactivo">Descripción</label>
+      <textarea id="inpEditDescripcionInactivo" rows="4" placeholder="Cuenta brevemente de qué trata este negocio…"></textarea>
+
+      <label for="inpEditImagenInactivo">Imagen del submenú (URL de imgbb)</label>
+      <input type="url" id="inpEditImagenInactivo" placeholder="https://i.ibb.co/xxxxx/foto.jpg">
+    </div>
+
+    <div id="filaCopiarNegocioInactivo">Nombre — Descripción — Imagen</div>
+    <div id="ordenColumnasNegocioInactivo">Columnas en tu hoja: A Nombre · H Descripción · I Imagen del submenú (imgbb)</div>
+
+    <div class="modal-botones">
+      <button id="btnCerrarEditarNegocioInactivo">Cerrar</button>
+      <button id="btnCopiarFilaNegocioInactivo">📋 Copiar datos</button>
+    </div>
+    <div id="avisoCopiadoNegocioInactivo"></div>
     </div>
   </div>
 </div>
@@ -1641,6 +1702,10 @@ function parseCSV(texto, numeroHoja) {
         .filter(p => p);
       // Columna I: foto que se muestra arriba en el submenú "Ver negocio" (link de imgbb)
       const imagen = campos[8] || '';
+      // Columna H, cuando el negocio NO tiene link principal (columna B
+      // vacía): en vez de leerse como "links adicionales", se usa como
+      // texto de descripción para el submenú "Ver negocio" del punto gris.
+      const descripcion = !url ? (campos[7] || '') : '';
       // Columna J: nombre/etiqueta que aparece en el botón de cada link,
       // en el mismo orden que Link (B) + Links adicionales (H)
       const etiquetas = (campos[9] || '')
@@ -1670,10 +1735,15 @@ function parseCSV(texto, numeroHoja) {
         lng: lng,
         perfiles: perfiles,
         imagen: imagen,
+        descripcion: descripcion,
         etiquetas: etiquetas,
         subCategorias: subCategorias,
         subColores: subColores,
-        activo: !!url || perfiles.length > 0
+        // "Activo" (marcador de color, con sus links) depende solo de si
+        // hay un link principal en la columna B. Un negocio sin link (B
+        // vacía) se muestra como punto gris con su botón "Ver negocio"
+        // y descripción (columna H), aunque tenga imagen (columna I).
+        activo: !!url
       };
     })
     .filter(n => n.nombre && !isNaN(n.lat) && !isNaN(n.lng));
@@ -1732,7 +1802,7 @@ function popupHtml(n) {
   if (!n.activo) {
     return `<div class="popup-negocio inactivo">
          <strong>${n.nombre}</strong>
-         <p>Página web aún no disponible</p>
+         <br><button type="button" class="btn-ver-negocio btn-ver-negocio-gris" onclick="abrirPanelNegocio('${n.id}')">Ver negocio</button>
        </div>`;
   }
 
@@ -1878,6 +1948,12 @@ const btnConfigNegocio = document.getElementById('btnConfigNegocio');
 
 let negocioAbiertoId = null;
 
+function escaparHtml(texto) {
+  const div = document.createElement('div');
+  div.textContent = texto || '';
+  return div.innerHTML;
+}
+
 function abrirPanelNegocio(id) {
   const n = negocios.find(x => x.id === id);
   if (!n) return;
@@ -1894,10 +1970,18 @@ function abrirPanelNegocio(id) {
 
   nombrePanelNegocio.textContent = n.nombre;
 
-  const links = obtenerLinksNegocio(n);
-  listaLinksPanelNegocio.innerHTML = links.length
-    ? renderListaLinksNegocio(n, links)
-    : '<div class="etiqueta-link">Este negocio aún no tiene links.</div>';
+  if (!n.activo) {
+    // Punto gris: en vez de la lista de links, mostramos la
+    // descripción (columna H) que se edita desde ⚙️ Configuración.
+    listaLinksPanelNegocio.innerHTML = n.descripcion
+      ? `<div class="descripcion-panel-negocio">${escaparHtml(n.descripcion)}</div>`
+      : '<div class="descripcion-panel-negocio vacia">Este negocio aún no tiene descripción.</div>';
+  } else {
+    const links = obtenerLinksNegocio(n);
+    listaLinksPanelNegocio.innerHTML = links.length
+      ? renderListaLinksNegocio(n, links)
+      : '<div class="etiqueta-link">Este negocio aún no tiene links.</div>';
+  }
 
   overlayNegocio.classList.add('abierto');
 }
@@ -1959,7 +2043,12 @@ overlayNegocio.addEventListener('click', (e) => {
 
 btnConfigNegocio.addEventListener('click', () => {
   if (!negocioAbiertoId) return;
-  abrirModalEditarNegocio(negocioAbiertoId);
+  const n = negocios.find(x => x.id === negocioAbiertoId);
+  if (n && !n.activo) {
+    abrirModalEditarNegocioInactivo(negocioAbiertoId);
+  } else {
+    abrirModalEditarNegocio(negocioAbiertoId);
+  }
 });
 
 /* =========================================================
@@ -2132,6 +2221,85 @@ btnCopiarFilaNegocio.addEventListener('click', async () => {
     avisoCopiadoNegocio.textContent = `¡Copiado! Pega esta línea sobre la fila del negocio en ${inpEditHoja.value} (Ctrl/Cmd + V).`;
   } catch (e) {
     avisoCopiadoNegocio.textContent = 'No se pudo copiar automático: selecciona el texto de arriba y cópialo manualmente.';
+  }
+});
+
+/* =========================================================
+   MODAL "CONFIGURACIÓN" para negocios sin link (punto gris):
+   solo nombre, descripción (columna H) e imagen (columna I).
+   ========================================================= */
+const overlayEditarNegocioInactivo = document.getElementById('overlayEditarNegocioInactivo');
+const inpEditHojaInactivo = document.getElementById('inpEditHojaInactivo');
+const inpEditNombreInactivo = document.getElementById('inpEditNombreInactivo');
+const inpEditDescripcionInactivo = document.getElementById('inpEditDescripcionInactivo');
+const inpEditImagenInactivo = document.getElementById('inpEditImagenInactivo');
+const filaCopiarNegocioInactivo = document.getElementById('filaCopiarNegocioInactivo');
+const avisoCopiadoNegocioInactivo = document.getElementById('avisoCopiadoNegocioInactivo');
+const btnCopiarFilaNegocioInactivo = document.getElementById('btnCopiarFilaNegocioInactivo');
+const btnCerrarEditarNegocioInactivo = document.getElementById('btnCerrarEditarNegocioInactivo');
+
+let negocioEditandoInactivoId = null;
+
+function abrirModalEditarNegocioInactivo(id) {
+  const n = negocios.find(x => x.id === id);
+  if (!n) return;
+  negocioEditandoInactivoId = id;
+
+  inpEditHojaInactivo.value = NOMBRES_HOJA[n.hoja] || ('Hoja ' + n.hoja);
+  inpEditNombreInactivo.value = n.nombre;
+  inpEditDescripcionInactivo.value = n.descripcion || '';
+  inpEditImagenInactivo.value = n.imagen || '';
+
+  avisoCopiadoNegocioInactivo.textContent = '';
+  actualizarFilaCopiarNegocioInactivo();
+  overlayEditarNegocioInactivo.classList.add('abierto');
+}
+
+function cerrarModalEditarNegocioInactivo() {
+  overlayEditarNegocioInactivo.classList.remove('abierto');
+}
+
+// Arma la fila completa (mismas 12 columnas que el resto de la hoja)
+// para copiar y pegar sobre la fila del negocio: conserva los valores
+// que no se editan aquí (categoría, emoji, color, lat/lng, etc.) y
+// solo actualiza Nombre (A), Descripción (H) e Imagen (I).
+function actualizarFilaCopiarNegocioInactivo() {
+  const n = negocios.find(x => x.id === negocioEditandoInactivoId);
+  if (!n) return '';
+  const partes = [
+    inpEditNombreInactivo.value.trim(),
+    '',
+    n.categoria || '',
+    n.emoji || '',
+    n.color || '',
+    n.lat,
+    n.lng,
+    inpEditDescripcionInactivo.value.trim(),
+    inpEditImagenInactivo.value.trim(),
+    (n.etiquetas || []).join(','),
+    (n.subColores || []).join(','),
+    (n.subCategorias || []).join(',')
+  ];
+  filaCopiarNegocioInactivo.textContent = `[${inpEditHojaInactivo.value}]  ${partes.join('   |   ')}`;
+  return partes.join('\t');
+}
+
+[inpEditNombreInactivo, inpEditDescripcionInactivo, inpEditImagenInactivo].forEach(campo => {
+  campo.addEventListener('input', actualizarFilaCopiarNegocioInactivo);
+});
+
+btnCerrarEditarNegocioInactivo.addEventListener('click', cerrarModalEditarNegocioInactivo);
+overlayEditarNegocioInactivo.addEventListener('click', (e) => {
+  if (e.target === overlayEditarNegocioInactivo) cerrarModalEditarNegocioInactivo();
+});
+
+btnCopiarFilaNegocioInactivo.addEventListener('click', async () => {
+  const filaTexto = actualizarFilaCopiarNegocioInactivo();
+  try {
+    await navigator.clipboard.writeText(filaTexto);
+    avisoCopiadoNegocioInactivo.textContent = `¡Copiado! Pega esta línea sobre la fila del negocio en ${inpEditHojaInactivo.value} (Ctrl/Cmd + V).`;
+  } catch (e) {
+    avisoCopiadoNegocioInactivo.textContent = 'No se pudo copiar automático: selecciona el texto de arriba y cópialo manualmente.';
   }
 });
 
