@@ -461,7 +461,7 @@
     cursor: pointer;
   }
   #btnCopiarFila, #btnCopiarFilaNegocio { background: #1a73e8; color: #fff; }
-  #btnCerrarModal, #btnCerrarEditarNegocio { background: #e3e6ea; color: #333; }
+  #btnCerrarModal, #btnCerrarEditarNegocio, #btnCerrarPrivacidad { background: #e3e6ea; color: #333; }
 
   #avisoCopiado, #avisoCopiadoNegocio {
     font-size: 12px;
@@ -766,6 +766,130 @@
     background: #1a73e8;
     color: #fff;
   }
+
+  /* ---------- Botón de cuenta (Google Sign-In) ---------- */
+  #btnCuenta {
+    position: absolute;
+    top: 16px; right: 16px;
+    z-index: 1000;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    padding: 0;
+  }
+  #btnCuenta:active { background: #f1f1f1; }
+  #btnCuenta img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+  #btnCuenta.conectado { box-shadow: 0 0 0 2px #34a853, 0 2px 6px rgba(0,0,0,.3); }
+
+  .sb-item.item-cuenta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .cuenta-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  .cuenta-info img {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .cuenta-info .cuenta-nombre {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+  }
+
+  /* ---------- Barra delgada de aviso de cookies / almacenamiento local ---------- */
+  #barraCookies {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 3500;
+    background: #e8dcc8;
+    color: #4a3b2a;
+    padding: 8px 14px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 12.5px;
+    line-height: 1.4;
+    box-shadow: 0 -2px 8px rgba(0,0,0,.15);
+  }
+  #barraCookies.visible { display: flex; }
+  #barraCookies .texto-cookies { flex: 1 1 260px; min-width: 200px; }
+  #barraCookies .enlace-privacidad {
+    background: none;
+    border: none;
+    padding: 0;
+    margin-left: 4px;
+    color: #4a3b2a;
+    text-decoration: underline;
+    font-size: 12.5px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .barra-cookies-botones {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .barra-cookies-botones button {
+    border: none;
+    border-radius: 16px;
+    padding: 6px 14px;
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+  #btnAceptarCookies { background: #8a6a45; color: #fff; }
+  #btnIgnorarCookies { background: transparent; color: #4a3b2a; border: 1px solid #b7a486 !important; }
+
+  /* ---------- Modal "Aviso de privacidad" ---------- */
+  #overlayPrivacidad {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 3000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  #overlayPrivacidad.abierto { display: flex; }
+  #modalPrivacidad { width: 420px; }
+  #modalPrivacidad .modal-body { text-align: left; }
+  .privacidad-seccion { margin-bottom: 14px; }
+  .privacidad-seccion h4 {
+    font-size: 13px;
+    color: #1a73e8;
+    margin-bottom: 4px;
+  }
+  .privacidad-seccion p {
+    font-size: 12.5px;
+    color: #333;
+    line-height: 1.5;
+  }
+  .privacidad-fecha {
+    font-size: 11px;
+    color: #888;
+    text-align: center;
+    margin-top: 6px;
+  }
 </style>
 </head>
 <body>
@@ -773,10 +897,27 @@
 <div id="map"></div>
 
 <button id="btnMenu" title="Menú">☰</button>
+<button id="btnCuenta" title="Iniciar sesión con Google">👤</button>
 
 <div id="avisoColocar">Toca el mapa para colocar el marcador…</div>
 
+<!-- ---------- Barra delgada de cookies / almacenamiento local ---------- -->
+<div id="barraCookies">
+  <div class="texto-cookies">
+    🍪 Usamos cookies y almacenamiento local del navegador para recordar tus preferencias y, si inicias sesión, mantener tu cuenta activa.
+    <button type="button" id="btnVerPrivacidadCookies" class="enlace-privacidad">Más información</button>
+  </div>
+  <div class="barra-cookies-botones">
+    <button type="button" id="btnAceptarCookies">Aceptar</button>
+    <button type="button" id="btnIgnorarCookies">Ignorar</button>
+  </div>
+</div>
+
 <div id="sidebar">
+  <button class="sb-item item-cuenta" id="btnCuentaSidebar">
+    <span class="cuenta-info" id="cuentaInfoSidebar">👤 Iniciar sesión con Google</span>
+  </button>
+
   <button class="sb-item" id="btnMarcadores">📍 Marcadores</button>
   <div id="submenuMarcadores">
     <button class="btn-secundario" id="btnFiltroPoloWeb">🌐 Páginas web de Polo</button>
@@ -799,6 +940,69 @@
     </div>
     <div id="categoriasBuscar"><!-- botones de categoría generados por JS --></div>
     <div id="resultadosBuscar"><!-- resultados generados por JS --></div>
+  </div>
+
+  <button class="sb-item" id="btnAvisoPrivacidad">🔒 Aviso de privacidad</button>
+</div>
+
+<!-- ---------- Modal "Aviso de privacidad" ---------- -->
+<div id="overlayPrivacidad">
+  <div id="modalPrivacidad" class="modal-shell">
+    <div class="modal-header">
+      <div class="modal-header-icono">🔒</div>
+      <div>
+        <h3>Aviso de privacidad</h3>
+        <div class="subtitulo">Cómo tratamos tus datos en este sitio</div>
+      </div>
+    </div>
+    <div class="modal-body">
+
+      <div class="privacidad-seccion">
+        <h4>1. Responsable del sitio</h4>
+        <p>Este sitio ("Mapa de Negocios") es operado por <strong>[NOMBRE O RAZÓN SOCIAL DEL RESPONSABLE]</strong>, con domicilio y datos de contacto en <strong>[DOMICILIO / CORREO DE CONTACTO]</strong>. Sustituye estos datos por la información legal real antes de publicar el aviso.</p>
+      </div>
+
+      <div class="privacidad-seccion">
+        <h4>2. Datos que recabamos</h4>
+        <p>Si decides iniciar sesión con tu cuenta de Google, recibimos tu nombre, correo electrónico y foto de perfil públicos de esa cuenta. Además, mediante Google Analytics (Firebase) recabamos datos de uso del sitio (páginas visitadas, dispositivo, ubicación aproximada). No es obligatorio iniciar sesión para usar el mapa.</p>
+      </div>
+
+      <div class="privacidad-seccion">
+        <h4>3. Finalidad del tratamiento</h4>
+        <p>Usamos estos datos para permitirte iniciar sesión, identificar tu cuenta dentro del sitio, entender cómo se usa el mapa y mejorar su funcionamiento. No vendemos tus datos personales a terceros.</p>
+      </div>
+
+      <div class="privacidad-seccion">
+        <h4>4. Cookies y almacenamiento local (caché)</h4>
+        <p>Este sitio usa cookies y almacenamiento local del navegador (localStorage) para recordar tus preferencias — como los colores de categorías del mapa y si ya aceptaste este aviso — y, en caso de que inicies sesión, mantener tu sesión activa sin pedirte tus credenciales cada vez. Puedes borrar esta información desde la configuración de tu navegador.</p>
+      </div>
+
+      <div class="privacidad-seccion">
+        <h4>5. Terceros con quienes compartimos datos</h4>
+        <p>Usamos servicios de Google (Firebase Authentication, Firebase Analytics y Google Sheets) como encargados técnicos para operar el sitio. Estos proveedores procesan datos conforme a sus propias políticas de privacidad.</p>
+      </div>
+
+      <div class="privacidad-seccion">
+        <h4>6. Derechos ARCO</h4>
+        <p>Puedes solicitar acceder, rectificar, cancelar u oponerte al uso de tus datos personales (derechos ARCO), o revocar tu consentimiento, escribiendo a <strong>[CORREO DE CONTACTO PARA PRIVACIDAD]</strong>.</p>
+      </div>
+
+      <div class="privacidad-seccion">
+        <h4>7. Uso de inteligencia artificial en el sitio</h4>
+        <p>Parte del código y contenido de este sitio fue desarrollado con apoyo de herramientas de inteligencia artificial. Esto no afecta el tratamiento de tus datos personales descrito en este aviso.</p>
+      </div>
+
+      <div class="privacidad-seccion">
+        <h4>8. Cambios a este aviso</h4>
+        <p>Este aviso puede actualizarse. Los cambios se publicarán en esta misma sección.</p>
+      </div>
+
+      <div class="privacidad-fecha">Última actualización: [FECHA]</div>
+
+      <div class="modal-botones">
+        <button id="btnCerrarPrivacidad">Cerrar</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -3044,9 +3248,161 @@ crearSelectorEmoji({
 });
 
 /* =========================================================
+   AVISO DE COOKIES / ALMACENAMIENTO LOCAL
+   -----------------------------------------------------------
+   Se guarda en localStorage si el usuario ya respondió al
+   aviso (con "Aceptar" o "Ignorar"). Una vez respondido, no
+   se le vuelve a mostrar en este navegador, sin importar si
+   inició sesión o no.
+   ========================================================= */
+const CLAVE_COOKIES_ACEPTADAS = 'mapaCookiesRespondidas';
+const barraCookies = document.getElementById('barraCookies');
+
+function mostrarBarraCookiesSiHaceFalta() {
+  if (!localStorage.getItem(CLAVE_COOKIES_ACEPTADAS)) {
+    barraCookies.classList.add('visible');
+  }
+}
+
+function ocultarBarraCookies() {
+  localStorage.setItem(CLAVE_COOKIES_ACEPTADAS, '1');
+  barraCookies.classList.remove('visible');
+}
+
+document.getElementById('btnAceptarCookies').addEventListener('click', ocultarBarraCookies);
+document.getElementById('btnIgnorarCookies').addEventListener('click', ocultarBarraCookies);
+
+mostrarBarraCookiesSiHaceFalta();
+
+/* =========================================================
+   MODAL "AVISO DE PRIVACIDAD"
+   ========================================================= */
+const overlayPrivacidad = document.getElementById('overlayPrivacidad');
+
+function abrirAvisoPrivacidad() {
+  overlayPrivacidad.classList.add('abierto');
+}
+function cerrarAvisoPrivacidad() {
+  overlayPrivacidad.classList.remove('abierto');
+}
+
+document.getElementById('btnAvisoPrivacidad').addEventListener('click', () => {
+  sidebar.classList.remove('abierto');
+  abrirAvisoPrivacidad();
+});
+document.getElementById('btnVerPrivacidadCookies').addEventListener('click', abrirAvisoPrivacidad);
+document.getElementById('btnCerrarPrivacidad').addEventListener('click', cerrarAvisoPrivacidad);
+overlayPrivacidad.addEventListener('click', (e) => {
+  if (e.target === overlayPrivacidad) cerrarAvisoPrivacidad();
+});
+
+/* =========================================================
    ARRANQUE
    ========================================================= */
 cargarNegociosDesdeSheet();
+</script>
+
+<!-- ==========================================================
+     Firebase (App + Analytics), cargado como módulo desde el CDN
+     de Google (no usamos npm/bundler en esta página, así que se
+     importa directo con URLs completas — es la forma recomendada
+     para páginas HTML sueltas como esta).
+     ========================================================== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-analytics.js";
+  import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+  // Configuración de tu app Firebase (elpolodancer)
+  const firebaseConfig = {
+    apiKey: "AIzaSyA80l29AWAR3x1NCDoRPyhtM6c0JOYqoAA",
+    authDomain: "elpolodancer.firebaseapp.com",
+    projectId: "elpolodancer",
+    storageBucket: "elpolodancer.firebasestorage.app",
+    messagingSenderId: "397139900415",
+    appId: "1:397139900415:web:607e9bf57256af3363d9ca",
+    measurementId: "G-Q1EQZX0EZK"
+  };
+
+  const firebaseApp = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(firebaseApp);
+
+  // Se exponen por si luego quieres usarlos desde el script principal
+  // (por ejemplo, para registrar eventos con logEvent(analytics, "...")).
+  window.firebaseApp = firebaseApp;
+  window.firebaseAnalytics = analytics;
+
+  /* =========================================================
+     INICIO DE SESIÓN CON GOOGLE (Firebase Authentication)
+     -----------------------------------------------------------
+     Botón circular #btnCuenta (arriba a la derecha) e ítem del
+     menú lateral #btnCuentaSidebar hacen lo mismo: si no hay
+     sesión, abren el popup de Google; si ya hay sesión, piden
+     confirmación para cerrarla. onAuthStateChanged mantiene
+     ambos elementos sincronizados con el estado real de Firebase.
+     ========================================================= */
+  const auth = getAuth(firebaseApp);
+  const proveedorGoogle = new GoogleAuthProvider();
+  window.firebaseAuth = auth;
+
+  const btnCuenta = document.getElementById('btnCuenta');
+  const btnCuentaSidebar = document.getElementById('btnCuentaSidebar');
+  const cuentaInfoSidebar = document.getElementById('cuentaInfoSidebar');
+
+  async function iniciarSesionGoogle() {
+    try {
+      await signInWithPopup(auth, proveedorGoogle);
+    } catch (error) {
+      console.error('No se pudo iniciar sesión con Google:', error);
+      alert('No se pudo iniciar sesión con Google. Inténtalo de nuevo.');
+    }
+  }
+
+  async function cerrarSesionGoogle() {
+    if (confirm('¿Cerrar la sesión de tu cuenta de Google?')) {
+      await signOut(auth);
+    }
+  }
+
+  function actualizarUiCuenta(usuario) {
+    if (usuario) {
+      btnCuenta.classList.add('conectado');
+      btnCuenta.title = `Sesión iniciada como ${usuario.displayName || usuario.email} — clic para cerrar sesión`;
+      btnCuenta.innerHTML = usuario.photoURL
+        ? `<img src="${usuario.photoURL}" alt="${usuario.displayName || 'Cuenta'}">`
+        : '🙂';
+
+      cuentaInfoSidebar.innerHTML = usuario.photoURL
+        ? `<img src="${usuario.photoURL}" alt=""> <span class="cuenta-nombre">${usuario.displayName || usuario.email}</span>`
+        : `👤 <span class="cuenta-nombre">${usuario.displayName || usuario.email}</span>`;
+    } else {
+      btnCuenta.classList.remove('conectado');
+      btnCuenta.title = 'Iniciar sesión con Google';
+      btnCuenta.innerHTML = '👤';
+      cuentaInfoSidebar.innerHTML = '👤 Iniciar sesión con Google';
+    }
+  }
+
+  onAuthStateChanged(auth, (usuario) => {
+    actualizarUiCuenta(usuario);
+  });
+
+  function alPresionarBotonCuenta() {
+    if (auth.currentUser) {
+      cerrarSesionGoogle();
+    } else {
+      iniciarSesionGoogle();
+    }
+  }
+
+  btnCuenta.addEventListener('click', alPresionarBotonCuenta);
+  btnCuentaSidebar.addEventListener('click', alPresionarBotonCuenta);
 </script>
 
 </body>
