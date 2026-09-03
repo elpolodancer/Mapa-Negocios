@@ -675,6 +675,31 @@
   .inp-categoria-link {
     margin-top: 6px;
   }
+  .fila-color-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .chk-color-propio {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #555;
+    cursor: pointer;
+  }
+  .chk-color-propio input { display: inline-block !important; width: auto !important; margin: 0 !important; }
+  .inp-color-link {
+    width: 44px !important;
+    height: 30px;
+    padding: 0;
+    border: 1px solid #dfe3e8;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .inp-color-link:disabled { opacity: .4; cursor: not-allowed; }
 
   /* ---------- Modal "Categoría de este sub negocio" ---------- */
   #overlayCategoriaSub {
@@ -839,14 +864,14 @@
       <div class="grupo-titulo">🔗 Links e imagen</div>
       <label for="inpDescripcion">Links adicionales / otras páginas (opcional)</label>
       <input type="text" id="inpDescripcion" placeholder="https://facebook.com/..., https://instagram.com/...">
-      <div class="nota-color">Si tu marcador tiene varios negocios (ej. yesos, páginas web, clases de baile…), agrega aquí un link por cada uno. Luego, desde "Ver negocio → ⚙️" en cada botón, podrás asignarle su categoría.</div>
+      <div class="nota-color">Si tu marcador tiene varios negocios (ej. yesos, páginas web, clases de baile…), agrega aquí un link por cada uno. Luego, desde "Ver negocio → ⚙️" en cada botón, podrás asignarle su categoría y, si quieres, un color propio.</div>
 
       <label for="inpImagen">Imagen del submenú (opcional, URL de imgbb)</label>
       <input type="url" id="inpImagen" placeholder="https://i.ibb.co/xxxxx/foto.jpg">
     </div>
 
-    <div id="filaCopiar">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Nombres de links — Imagen — Categorías de sub negocios</div>
-    <div id="ordenColumnas">Orden de columnas en tu hoja: A Nombre · B Link · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) · I Nombres de cada link (separados por comas — se completan luego desde "Ver negocio → ⚙️ Configuración") · J Imagen (imgbb) · K Categorías de sub negocios (separadas por comas, mismo orden que los links adicionales — se completan luego desde "Ver negocio → ⚙️" en cada botón)</div>
+    <div id="filaCopiar">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Imagen — Nombres de links — Colores de negocios — Categorías de sub negocios</div>
+    <div id="ordenColumnas">Orden de columnas en tu hoja: A Nombre · B Link · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) · I Imagen del submenú (imgbb) · J Nombres de cada link (separados por comas — se completan luego desde "Ver negocio → ⚙️ Configuración") · K Colores de negocios extra (separados por comas, mismo orden que los links adicionales — se completan luego desde "Ver negocio → ⚙️ Configuración") · L Categorías de sub negocios (separadas por comas, mismo orden — se completan luego desde "Ver negocio → ⚙️" en cada botón)</div>
 
     <div class="modal-botones">
       <button id="btnCerrarModal">Cerrar</button>
@@ -932,13 +957,13 @@
 
     <div class="grupo-campos">
       <div class="grupo-titulo">🔗 Links de la empresa</div>
-      <div class="nota-color">El primer link es el negocio principal (usa la Categoría de arriba). Los siguientes son "Otros Negocios/Empresas": puedes escribirles su categoría aquí, o asignarla más rápido con el botón ⚙️ de cada uno en el panel "Ver negocio".</div>
+      <div class="nota-color">El primer link es el negocio principal (usa la Categoría y Color de arriba). Los siguientes son "Otros Negocios/Empresas": puedes escribirles su categoría aquí (o asignarla más rápido con el botón ⚙️ de cada uno en el panel "Ver negocio"), y activar "Color propio" si quieres que use un color distinto al de su categoría.</div>
       <div id="listaLinksEditables"><!-- filas generadas por JS --></div>
       <button type="button" class="btn-anadir-link" id="btnAnadirLink">➕ Añadir link</button>
     </div>
 
-    <div id="filaCopiarNegocio">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Nombres de links — Imagen — Categorías de sub negocios</div>
-    <div id="ordenColumnasNegocio">Orden de columnas en tu hoja: A Nombre · B Link principal · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) · I Nombres de cada link (separados por comas, en el mismo orden que los links) · J Imagen (imgbb) · K Categorías de sub negocios (separadas por comas, mismo orden que los links adicionales)</div>
+    <div id="filaCopiarNegocio">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Imagen — Nombres de links — Colores de negocios — Categorías de sub negocios</div>
+    <div id="ordenColumnasNegocio">Orden de columnas en tu hoja: A Nombre · B Link principal · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) · I Imagen del submenú (imgbb) · J Nombres de cada link (separados por comas, en el mismo orden que los links) · K Colores de negocios extra (separados por comas, mismo orden que los links adicionales) · L Categorías de sub negocios (separadas por comas, mismo orden que los links adicionales)</div>
 
     <div class="modal-botones">
       <button id="btnCerrarEditarNegocio">Cerrar</button>
@@ -1007,8 +1032,11 @@ L.control.zoom({ position: 'topright' }).addTo(map);
 
    Columnas de cada hoja (todas comparten el mismo orden):
      A Nombre · B Link · C Categoría · D Emoji · E Color ·
-     F Latitud · G Longitud · H Descripción/links adicionales ·
-     I Nombres de cada link (separados por comas) · J Imagen (imgbb)
+     F Latitud · G Longitud · H Links adicionales (separados por
+     comas) · I Imagen del submenú (imgbb) · J Nombres de cada link
+     (separados por comas) · K Colores de negocios extra (separados
+     por comas, mismo orden que los links adicionales) · L Categorías
+     de sub negocios (separadas por comas, mismo orden)
 
    Las 3 hojas deben estar compartidas como "Cualquiera con el
    enlace, Lector" para que cualquier visitante de la página
@@ -1030,7 +1058,7 @@ const NOMBRES_HOJA = {
   3: 'Hoja 3 — bazares, tianguis, emprendimientos e instituciones',
 };
 
-let negocios = []; // [{ nombre, url, categoria, emoji, color, lat, lng, activo, hoja, subCategorias }]
+let negocios = []; // [{ nombre, url, categoria, emoji, color, lat, lng, activo, hoja, subCategorias, subColores }]
 const referencias = {}; // marcadores de Leaflet por índice
 
 /* =========================================================
@@ -1163,8 +1191,10 @@ function parseCSV(texto, numeroHoja) {
     .map((linea, i) => {
       const campos = dividirLineaCSV(linea).map(limpiar);
       // Columnas: A Nombre(0) · B Link(1) · C Categoría(2) · D Emoji(3) ·
-      // E Color(4) · F Latitud(5) · G Longitud(6) · H Descripción/links
-      // adicionales(7) · I Nombres de cada link / etiquetas(8) · J Imagen imgbb(9)
+      // E Color(4) · F Latitud(5) · G Longitud(6) · H Links
+      // adicionales(7) · I Imagen imgbb(8) · J Nombres de cada link /
+      // etiquetas(9) · K Colores de negocios extra(10) · L Categorías
+      // de sub negocios(11)
       const lat = parseFloat(campos[5]);
       const lng = parseFloat(campos[6]);
       const url = campos[1] || '';
@@ -1175,16 +1205,23 @@ function parseCSV(texto, numeroHoja) {
         .split(',')
         .map(p => p.trim())
         .filter(p => p);
-      // Columna I: nombre/etiqueta que aparece en el botón de cada link,
+      // Columna I: foto que se muestra arriba en el submenú "Ver negocio" (link de imgbb)
+      const imagen = campos[8] || '';
+      // Columna J: nombre/etiqueta que aparece en el botón de cada link,
       // en el mismo orden que Link (B) + Links adicionales (H)
-      const etiquetas = (campos[8] || '')
+      const etiquetas = (campos[9] || '')
         .split(',')
         .map(e => e.trim());
-      // Columna J: foto que se muestra arriba en el submenú "Ver negocio" (link de imgbb)
-      const imagen = campos[9] || '';
-      // Columna K: categoría de cada "sub negocio" (otros negocios/empresas
+      // Columna K: color propio de cada "sub negocio" (otros negocios/
+      // empresas del mismo marcador), en el mismo orden que los links
+      // adicionales (H). Si viene vacío para alguno, ese negocio usa el
+      // color de su categoría (columna L) en vez de un color propio.
+      const subColores = (campos[10] || '')
+        .split(',')
+        .map(c => c.trim());
+      // Columna L: categoría de cada "sub negocio" (otros negocios/empresas
       // del mismo marcador), en el mismo orden que los links adicionales (H)
-      const subCategorias = (campos[10] || '')
+      const subCategorias = (campos[11] || '')
         .split(',')
         .map(c => c.trim());
       return {
@@ -1201,6 +1238,7 @@ function parseCSV(texto, numeroHoja) {
         imagen: imagen,
         etiquetas: etiquetas,
         subCategorias: subCategorias,
+        subColores: subColores,
         activo: !!url || perfiles.length > 0
       };
     })
@@ -1230,9 +1268,10 @@ function crearIcono(n) {
 }
 
 // Une el link principal (B) y los links adicionales (H) en una sola
-// lista, emparejando cada uno con su etiqueta de la columna I y su
-// categoría (la del negocio principal, o la de la columna K para
-// cada "sub negocio" / "otro negocio o empresa")
+// lista, emparejando cada uno con su etiqueta de la columna J, su
+// color propio de la columna K (si tiene) y su categoría (la del
+// negocio principal, o la de la columna L para cada "sub negocio" /
+// "otro negocio o empresa")
 function obtenerLinksNegocio(n) {
   const links = [];
   if (n.url) {
@@ -1248,6 +1287,7 @@ function obtenerLinksNegocio(n) {
       url: p,
       etiqueta: (n.etiquetas && n.etiquetas[idx + 1]) || '',
       categoria: (n.subCategorias && n.subCategorias[idx]) || '',
+      color: (n.subColores && n.subColores[idx]) || '',
       esPrincipal: false
     });
   });
@@ -1425,10 +1465,15 @@ function renderListaLinksNegocio(n, links) {
 }
 
 function cajaLinkHtml(l, indiceSub, esPrincipal) {
-  const color = obtenerColorCategoria(l.categoria);
+  // El color propio del negocio (columna K) manda sobre el color de su
+  // categoría; si no tiene ninguno de los dos, se muestra un punto gris.
+  const color = l.color || obtenerColorCategoria(l.categoria);
+  const tituloPunto = l.color
+    ? 'Color propio de este negocio'
+    : (l.categoria || 'Sin categoría ni color asignado');
   const punto = esPrincipal
     ? ''
-    : `<span class="punto-categoria" style="background:${color || '#c7cbd1'}" title="${l.categoria || 'Sin categoría asignada'}"></span>`;
+    : `<span class="punto-categoria" style="background:${color || '#c7cbd1'}" title="${tituloPunto}"></span>`;
   const gear = esPrincipal
     ? ''
     : `<button type="button" class="btn-gear-subnegocio" title="Elegir categoría de este negocio" onclick="abrirSelectorCategoriaSub('${negocioAbiertoId}', ${indiceSub})">⚙️</button>`;
@@ -1477,22 +1522,39 @@ const panelEmojisEdit = document.getElementById('panelEmojisEdit');
 
 let contadorFilaLink = 0;
 
-function crearFilaLinkEditable(url, etiqueta, categoria, esPrincipal) {
+function crearFilaLinkEditable(url, etiqueta, categoria, esPrincipal, color) {
   contadorFilaLink++;
   const fila = document.createElement('div');
   fila.className = 'fila-link-editable';
   fila.dataset.id = 'link-edit-' + contadorFilaLink;
   fila.dataset.principal = esPrincipal ? '1' : '0';
+  const tieneColorPropio = !esPrincipal && !!color;
   fila.innerHTML = `
     <input type="text" class="inp-etiqueta-link" placeholder="Nombre que se mostrará en el botón (ej. Facebook, Catálogo)" value="${etiqueta || ''}">
     <input type="url" class="inp-url-link" placeholder="https://..." value="${url || ''}">
     ${esPrincipal ? '' : `<input type="text" class="inp-categoria-link" placeholder="Categoría de este negocio (ej. Farmacia, Clases de baile…)" value="${categoria || ''}">`}
+    ${esPrincipal ? '' : `
+    <div class="fila-color-link">
+      <label class="chk-color-propio">
+        <input type="checkbox" class="chk-usar-color-link" ${tieneColorPropio ? 'checked' : ''}>
+        Color propio para este negocio
+      </label>
+      <input type="color" class="inp-color-link" value="${color || '#1a73e8'}" ${tieneColorPropio ? '' : 'disabled'}>
+    </div>`}
     <button type="button" class="btn-quitar-link">✕ Quitar link</button>
   `;
   fila.querySelector('.btn-quitar-link').addEventListener('click', () => {
     fila.remove();
     actualizarFilaCopiarNegocio();
   });
+  const chkColor = fila.querySelector('.chk-usar-color-link');
+  const inpColorLink = fila.querySelector('.inp-color-link');
+  if (chkColor && inpColorLink) {
+    chkColor.addEventListener('change', () => {
+      inpColorLink.disabled = !chkColor.checked;
+      actualizarFilaCopiarNegocio();
+    });
+  }
   fila.querySelectorAll('input').forEach(inp => {
     inp.addEventListener('input', actualizarFilaCopiarNegocio);
   });
@@ -1500,7 +1562,7 @@ function crearFilaLinkEditable(url, etiqueta, categoria, esPrincipal) {
 }
 
 btnAnadirLink.addEventListener('click', () => {
-  crearFilaLinkEditable('', '', '', false);
+  crearFilaLinkEditable('', '', '', false, '');
   actualizarFilaCopiarNegocio();
 });
 
@@ -1520,9 +1582,9 @@ function abrirModalEditarNegocio(id) {
   listaLinksEditables.innerHTML = '';
   const links = obtenerLinksNegocio(n);
   if (links.length) {
-    links.forEach(l => crearFilaLinkEditable(l.url, l.etiqueta, l.categoria, l.esPrincipal));
+    links.forEach(l => crearFilaLinkEditable(l.url, l.etiqueta, l.categoria, l.esPrincipal, l.color));
   } else {
-    crearFilaLinkEditable('', '', '', true);
+    crearFilaLinkEditable('', '', '', true, '');
   }
 
   panelEmojisEdit.classList.remove('abierto');
@@ -1543,14 +1605,19 @@ function actualizarFilaCopiarNegocio() {
   const filasConUrl = filasLink.filter(f => f.querySelector('.inp-url-link').value.trim());
   const urls = filasConUrl.map(f => f.querySelector('.inp-url-link').value.trim());
   const etiquetas = filasConUrl.map(f => f.querySelector('.inp-etiqueta-link').value.trim());
-  // Las categorías de "sub negocios" solo existen en las filas que no
-  // son la principal (la principal usa el campo Categoría de arriba)
-  const categoriasSub = filasConUrl
-    .filter(f => f.dataset.principal !== '1')
-    .map(f => {
-      const campo = f.querySelector('.inp-categoria-link');
-      return campo ? campo.value.trim() : '';
-    });
+  // Las categorías y los colores propios de "sub negocios" solo existen
+  // en las filas que no son la principal (la principal usa el campo
+  // Categoría / Color de arriba)
+  const filasSub = filasConUrl.filter(f => f.dataset.principal !== '1');
+  const categoriasSub = filasSub.map(f => {
+    const campo = f.querySelector('.inp-categoria-link');
+    return campo ? campo.value.trim() : '';
+  });
+  const coloresSub = filasSub.map(f => {
+    const chk = f.querySelector('.chk-usar-color-link');
+    const campo = f.querySelector('.inp-color-link');
+    return (chk && chk.checked && campo) ? campo.value.trim() : '';
+  });
 
   const linkPrincipal = urls[0] || '';
   const linksAdicionales = urls.slice(1).join(',');
@@ -1564,8 +1631,9 @@ function actualizarFilaCopiarNegocio() {
     inpEditLat.value,
     inpEditLng.value,
     linksAdicionales,
-    etiquetas.join(','),
     inpEditImagen.value.trim(),
+    etiquetas.join(','),
+    coloresSub.join(','),
     categoriasSub.join(',')
   ];
   filaCopiarNegocio.textContent = `[${inpEditHoja.value}]  ${partes.join('   |   ')}`;
@@ -1918,9 +1986,10 @@ function actualizarFilaCopiar() {
     inpLat.value,
     inpLng.value,
     inpDescripcion.value.trim(),
-    '', // Nombres de cada link (columna I): se completan después desde "Ver negocio → ⚙️ Configuración" si hay varios links
     inpImagen.value.trim(),
-    '' // Categorías de sub negocios (columna K): se completan después desde "Ver negocio → ⚙️" en cada botón
+    '', // Nombres de cada link (columna J): se completan después desde "Ver negocio → ⚙️ Configuración" si hay varios links
+    '', // Colores de negocios extra (columna K): se completan después desde "Ver negocio → ⚙️ Configuración"
+    '' // Categorías de sub negocios (columna L): se completan después desde "Ver negocio → ⚙️" en cada botón
   ];
   const nombreHoja = selHojaDestino.options[selHojaDestino.selectedIndex].text;
   filaCopiar.textContent = `[Pegar en ${nombreHoja}]  ${partes.join('   |   ')}`;
