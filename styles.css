@@ -922,8 +922,8 @@
     position: absolute;
     top: 16px; right: 128px;
     z-index: 1000;
-    width: 48px; height: 48px;
-    border-radius: 50%;
+    width: 192px; height: 48px;
+    border-radius: 24px;
     background: #fff;
     border: none;
     box-shadow: 0 2px 6px rgba(0,0,0,.3);
@@ -1145,19 +1145,22 @@
   #btnGuardarDirecto:hover { background: #1662c4; }
   #btnGuardarDirecto:disabled { opacity: .6; cursor: default; }
 
-  /* ---------- Recuadro central: nombre del filtro activo ---------- */
+  /* ---------- Recuadro central: nombre del filtro activo ----------
+     Agrandado a 150% de su tamaño original (padding, tipografía,
+     borde y radio escalados x1.5) y con el interior del borde negro
+     en tono café claro en vez del blanco/gris original. */
   #cajaFiltroActivo {
     position: absolute;
     top: 14px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 900;
-    background: linear-gradient(180deg, #ffffff, #f2f5f9);
+    background: linear-gradient(180deg, #f2e1c7, #e6cda3);
     color: #2b2f36;
-    padding: 6px 18px;
-    border: 1.5px solid #1a1a1a;
-    border-radius: 20px;
-    font-size: 13px;
+    padding: 9px 27px;
+    border: 2.25px solid #1a1a1a;
+    border-radius: 30px;
+    font-size: 19.5px;
     font-weight: 700;
     letter-spacing: .02em;
     pointer-events: none;
