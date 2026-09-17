@@ -350,8 +350,9 @@ function dividirLineaCSV(linea) {
   return resultado;
 }
 
-// numeroHoja: 1, 2 o 3 — identifica de qué hoja de Google Sheets viene
-// cada fila, para poder combinarlas y luego filtrarlas/consultarlas.
+// numeroHoja: 1 (Hoja 1) o 4 (Tiendas) — identifica de qué pestaña de
+// Google Sheets viene cada fila, para poder combinarlas y luego
+// filtrarlas/consultarlas.
 function parseCSV(texto, numeroHoja) {
   texto = texto.replace(/^\uFEFF/, ''); // quita BOM si Google lo agrega
   const lineas = texto.trim().split(/\r?\n/);
@@ -495,9 +496,9 @@ function limpiarMarcadoresDelMapa() {
   for (const k in referencias) delete referencias[k];
 }
 
-// Filtro activo por hoja: null = mostrar todos los negocios; un número
-// (1, 2 o 3) = mostrar solo los de esa hoja (usado por "🌐 Páginas web
-// de Polo", que filtra a la Hoja 1). Se puede quitar con "🗺️ Mostrar todo".
+// Filtro activo por hoja: null = mostrar todos los negocios; 1 = mostrar
+// solo los de la Hoja 1 (usado por "🌐 Páginas web de Polo"). Se puede
+// quitar con "🗺️ Mostrar todo".
 let filtroHojaActual = null;
 // Al abrir la página, el filtro de tipo de negocio activo por
 // defecto es "Plazas" (se puede quitar tocando su chip de nuevo o
@@ -1706,9 +1707,6 @@ const inpColor = document.getElementById('inpColor');
 const inpUrl = document.getElementById('inpUrl');
 const inpDescripcion = document.getElementById('inpDescripcion');
 const inpImagen = document.getElementById('inpImagen');
-// Ya no se elige hoja de destino desde el formulario: todo marcador
-// nuevo se guarda en la Hoja 1 (ver HOJAS más arriba).
-const HOJA_DESTINO_MARCADOR_NUEVO = 1;
 const filaCopiar = document.getElementById('filaCopiar');
 const avisoCopiado = document.getElementById('avisoCopiado');
 const btnCopiarFila = document.getElementById('btnCopiarFila');
@@ -1806,7 +1804,7 @@ btnCopiarFila.addEventListener('click', async () => {
    ⚠️ PENDIENTE DE CONFIGURAR: si cambias de Apps Script más
    adelante, actualiza la URL de abajo (termina en /exec).
    ========================================================= */
-const APPSCRIPT_GUARDAR_URL = 'https://script.google.com/macros/s/AKfycbyhpsrNKsNv2uZBnBChJz8wQpk8NDMGbRVEqmaPhlRJ0MFXqNc2H87pOlXMEipOSLXy/exec';
+const APPSCRIPT_GUARDAR_URL = 'https://script.google.com/macros/s/AKfycbzHEp38NgjhTaJds5VtrXIXaxE4haf2UhPC7bjCH55GPQzJT4tmMhop0Z8z54_16MbF/exec';
 
 // Redimensiona (si hace falta) y convierte un archivo de imagen a
 // WebP usando un <canvas>; regresa el resultado en base64 SIN el
@@ -1910,7 +1908,7 @@ btnGuardarDirecto.addEventListener('click', async () => {
       body: JSON.stringify({
         idToken: idToken,
         accion: 'agregar',
-        gid: gidDeHoja(HOJA_DESTINO_MARCADOR_NUEVO),
+        gid: 0, // todo marcador nuevo se guarda siempre en la Hoja 1 (gid 0)
         nombre: inpNombre.value.trim(),
         url: inpUrl.value.trim(),
         categoria: inpCategoria.value.trim(),
