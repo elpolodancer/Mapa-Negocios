@@ -200,7 +200,7 @@ function urlCsvHoja(hoja) {
 }
 
 const NOMBRES_HOJA = {
-  1: 'Hoja 1 — mini tiendas, mercados y supermercados',
+  1: 'Páginas web',
   4: 'Tiendas',
 };
 

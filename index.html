@@ -370,11 +370,16 @@
 
     <div class="grupo-campos">
       <div class="grupo-titulo">🖼️ Imagen del submenú</div>
-      <label for="inpEditImagen">Imagen (URL de imgbb)</label>
-      <input type="url" id="inpEditImagen" placeholder="https://i.ibb.co/xxxxx/foto.jpg">
+      <input type="hidden" id="inpEditImagen">
       <input type="file" id="inpArchivoImagenEdit" accept="image/*" style="display:none">
       <button type="button" id="btnSubirImagenEdit" class="btn-subir-imagen">📷 Elegir imagen nueva (se sube al guardar)</button>
       <span id="estadoSubidaImagenEdit" class="estado-subida-imagen"></span>
+    </div>
+
+    <div class="grupo-campos">
+      <div class="grupo-titulo">🏷️ Nombre</div>
+      <label for="inpEditNombre">Nombre del negocio</label>
+      <input type="text" id="inpEditNombre" placeholder="Ej. Panadería Ejemplo">
     </div>
 
     <div class="grupo-campos">
@@ -384,27 +389,15 @@
     </div>
 
     <div class="grupo-campos">
-      <div class="grupo-titulo">🗂️ Hoja y ubicación</div>
+      <div class="grupo-titulo">🗂️ Hoja de Google Sheets</div>
       <label for="inpEditHoja">Hoja de Google Sheets</label>
       <input type="text" id="inpEditHoja" readonly>
-
-      <div class="fila-doble">
-        <div>
-          <label for="inpEditLat">Latitud</label>
-          <input type="text" id="inpEditLat" readonly>
-        </div>
-        <div>
-          <label for="inpEditLng">Longitud</label>
-          <input type="text" id="inpEditLng" readonly>
-        </div>
-      </div>
+      <input type="hidden" id="inpEditLat">
+      <input type="hidden" id="inpEditLng">
     </div>
 
     <div class="grupo-campos">
-      <div class="grupo-titulo">🏷️ Datos generales</div>
-      <label for="inpEditNombre">Nombre del negocio</label>
-      <input type="text" id="inpEditNombre" placeholder="Ej. Panadería Ejemplo">
-
+      <div class="grupo-titulo">🏷️ Categoría</div>
       <label for="inpEditCategoria">Categoría (opcional)</label>
       <input type="text" id="inpEditCategoria" placeholder="Ej. Farmacia, Restaurante, Transporte…">
     </div>
