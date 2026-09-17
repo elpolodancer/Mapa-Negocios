@@ -274,6 +274,23 @@
     <div class="modal-body">
 
     <div class="grupo-campos">
+      <div class="grupo-titulo">🖼️ Imagen del submenú</div>
+      <label for="inpImagen">Imagen (opcional, URL de imgbb)</label>
+      <input type="url" id="inpImagen" placeholder="https://i.ibb.co/xxxxx/foto.jpg">
+      <input type="file" id="inpArchivoImagen" accept="image/*" style="display:none">
+      <button type="button" id="btnSubirImagen" class="btn-subir-imagen">📷 Elegir imagen (se sube al guardar)</button>
+      <span id="estadoSubidaImagen" class="estado-subida-imagen"></span>
+      <div class="nota-color">Esta es la imagen que se muestra arriba del nombre al abrir el submenú del negocio (columna I de tu hoja).</div>
+    </div>
+
+    <div class="grupo-campos">
+      <div class="grupo-titulo">📝 Descripción / links adicionales</div>
+      <label for="inpDescripcion">Links adicionales / otras páginas (opcional)</label>
+      <input type="text" id="inpDescripcion" placeholder="https://facebook.com/..., https://instagram.com/...">
+      <div class="nota-color">Si tu marcador tiene varios negocios (ej. yesos, páginas web, clases de baile…), agrega aquí un link por cada uno. Si el negocio no tiene ningún link, escribe aquí su descripción — se mostrará debajo del nombre al abrir el submenú. Luego, desde "Ver negocio → ⚙️" en cada botón, podrás asignarle su categoría y, si quieres, un color propio.</div>
+    </div>
+
+    <div class="grupo-campos">
       <div class="grupo-titulo">🗂️ Hoja y ubicación</div>
       <label for="selHojaDestino">Hoja de Google Sheets</label>
       <select id="selHojaDestino">
@@ -325,19 +342,6 @@
       <div class="nota-color" id="notaColorPrincipal"></div>
     </div>
 
-    <div class="grupo-campos">
-      <div class="grupo-titulo">🔗 Links e imagen</div>
-      <label for="inpDescripcion">Links adicionales / otras páginas (opcional)</label>
-      <input type="text" id="inpDescripcion" placeholder="https://facebook.com/..., https://instagram.com/...">
-      <div class="nota-color">Si tu marcador tiene varios negocios (ej. yesos, páginas web, clases de baile…), agrega aquí un link por cada uno. Luego, desde "Ver negocio → ⚙️" en cada botón, podrás asignarle su categoría y, si quieres, un color propio.</div>
-
-      <label for="inpImagen">Imagen del submenú (opcional, URL de imgbb)</label>
-      <input type="url" id="inpImagen" placeholder="https://i.ibb.co/xxxxx/foto.jpg">
-      <input type="file" id="inpArchivoImagen" accept="image/*" style="display:none">
-      <button type="button" id="btnSubirImagen">📷 Elegir imagen (se sube al guardar)</button>
-      <span id="estadoSubidaImagen"></span>
-    </div>
-
     <div id="filaCopiar">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Imagen — Nombres de links — Colores de negocios — Categorías de sub negocios</div>
     <div id="ordenColumnas">Orden de columnas en tu hoja: A Nombre · B Link · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) si hay Link en B, o Descripción del negocio si B está vacía · I Imagen del submenú (imgbb) · J Nombres de cada link (separados por comas — se completan luego desde "Ver negocio → ⚙️ Configuración") · K Colores de negocios extra (separados por comas, mismo orden que los links adicionales — se completan luego desde "Ver negocio → ⚙️ Configuración") · L Categorías de sub negocios (separadas por comas, mismo orden — se completan luego desde "Ver negocio → ⚙️" en cada botón)</div>
 
@@ -374,6 +378,21 @@
       </div>
     </div>
     <div class="modal-body">
+
+    <div class="grupo-campos">
+      <div class="grupo-titulo">🖼️ Imagen del submenú</div>
+      <label for="inpEditImagen">Imagen (URL de imgbb)</label>
+      <input type="url" id="inpEditImagen" placeholder="https://i.ibb.co/xxxxx/foto.jpg">
+      <input type="file" id="inpArchivoImagenEdit" accept="image/*" style="display:none">
+      <button type="button" id="btnSubirImagenEdit" class="btn-subir-imagen">📷 Elegir imagen nueva (se sube al guardar)</button>
+      <span id="estadoSubidaImagenEdit" class="estado-subida-imagen"></span>
+    </div>
+
+    <div class="grupo-campos">
+      <div class="grupo-titulo">📝 Descripción (si no tiene links)</div>
+      <label for="inpEditDescripcionOpcional">Descripción</label>
+      <textarea id="inpEditDescripcionOpcional" rows="3" placeholder="Cuenta brevemente de qué trata este negocio (solo se usa si no le agregas ningún link arriba)…"></textarea>
+    </div>
 
     <div class="grupo-campos">
       <div class="grupo-titulo">🗂️ Hoja y ubicación</div>
@@ -419,9 +438,6 @@
       <label for="inpEditColor">Color (opcional)</label>
       <input type="color" id="inpEditColor" value="#1a73e8">
       <div class="nota-color" id="notaColorPrincipalEdit"></div>
-
-      <label for="inpEditImagen">Imagen del submenú (URL de imgbb)</label>
-      <input type="url" id="inpEditImagen" placeholder="https://i.ibb.co/xxxxx/foto.jpg">
     </div>
 
     <div class="grupo-campos">
@@ -431,18 +447,15 @@
       <button type="button" class="btn-anadir-link" id="btnAnadirLink">➕ Añadir link</button>
     </div>
 
-    <div class="grupo-campos">
-      <div class="grupo-titulo">📝 Descripción (si no tiene links)</div>
-      <label for="inpEditDescripcionOpcional">Descripción</label>
-      <textarea id="inpEditDescripcionOpcional" rows="3" placeholder="Cuenta brevemente de qué trata este negocio (solo se usa si no le agregas ningún link arriba)…"></textarea>
-    </div>
-
     <div id="filaCopiarNegocio">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Imagen — Nombres de links — Colores de negocios — Categorías de sub negocios</div>
     <div id="ordenColumnasNegocio">Orden de columnas en tu hoja: A Nombre · B Link principal · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) si hay Link en B, o Descripción del negocio si B está vacía · I Imagen del submenú (imgbb) · J Nombres de cada link (separados por comas, en el mismo orden que los links) · K Colores de negocios extra (separados por comas, mismo orden que los links adicionales) · L Categorías de sub negocios (separadas por comas, mismo orden que los links adicionales)</div>
 
     <div class="modal-botones">
       <button id="btnCerrarEditarNegocio">Cerrar</button>
       <button id="btnCopiarFilaNegocio">📋 Copiar línea</button>
+    </div>
+    <div class="modal-botones" id="filaBotonAdminNegocio">
+      <button id="btnGuardarDirectoNegocio" class="btn-guardar-directo">💾 Guardar cambios en la hoja</button>
     </div>
     <div id="avisoCopiadoNegocio"></div>
     </div>
@@ -461,6 +474,21 @@
     <div class="modal-body">
 
     <div class="grupo-campos">
+      <div class="grupo-titulo">🖼️ Imagen del submenú</div>
+      <label for="inpEditImagenInactivo">Imagen (URL de imgbb)</label>
+      <input type="url" id="inpEditImagenInactivo" placeholder="https://i.ibb.co/xxxxx/foto.jpg">
+      <input type="file" id="inpArchivoImagenInactivo" accept="image/*" style="display:none">
+      <button type="button" id="btnSubirImagenInactivo" class="btn-subir-imagen">📷 Elegir imagen nueva (se sube al guardar)</button>
+      <span id="estadoSubidaImagenInactivo" class="estado-subida-imagen"></span>
+    </div>
+
+    <div class="grupo-campos">
+      <div class="grupo-titulo">📝 Descripción</div>
+      <label for="inpEditDescripcionInactivo">Descripción</label>
+      <textarea id="inpEditDescripcionInactivo" rows="4" placeholder="Cuenta brevemente de qué trata este negocio…"></textarea>
+    </div>
+
+    <div class="grupo-campos">
       <div class="grupo-titulo">🗂️ Hoja y ubicación</div>
       <label for="inpEditHojaInactivo">Hoja de Google Sheets</label>
       <input type="text" id="inpEditHojaInactivo" readonly>
@@ -470,12 +498,6 @@
       <div class="grupo-titulo">🏷️ Datos generales</div>
       <label for="inpEditNombreInactivo">Nombre del negocio</label>
       <input type="text" id="inpEditNombreInactivo" placeholder="Ej. Panadería Ejemplo">
-
-      <label for="inpEditDescripcionInactivo">Descripción</label>
-      <textarea id="inpEditDescripcionInactivo" rows="4" placeholder="Cuenta brevemente de qué trata este negocio…"></textarea>
-
-      <label for="inpEditImagenInactivo">Imagen del submenú (URL de imgbb)</label>
-      <input type="url" id="inpEditImagenInactivo" placeholder="https://i.ibb.co/xxxxx/foto.jpg">
     </div>
 
     <div id="filaCopiarNegocioInactivo">Nombre — Descripción — Imagen</div>
@@ -484,6 +506,9 @@
     <div class="modal-botones">
       <button id="btnCerrarEditarNegocioInactivo">Cerrar</button>
       <button id="btnCopiarFilaNegocioInactivo">📋 Copiar datos</button>
+    </div>
+    <div class="modal-botones" id="filaBotonAdminNegocioInactivo">
+      <button id="btnGuardarDirectoNegocioInactivo" class="btn-guardar-directo">💾 Guardar cambios en la hoja</button>
     </div>
     <div id="avisoCopiadoNegocioInactivo"></div>
     </div>

@@ -45,27 +45,39 @@
   const cuentaInfoSidebar = document.getElementById('cuentaInfoSidebar');
 
   /* =========================================================
-     BOTÓN "➕ Nuevo marcador": solo visible para tus correos
+     BOTONES DE ADMINISTRADOR: solo visibles para tus correos
      -----------------------------------------------------------
-     El botón está oculto por defecto en styles.css
-     (#btnNuevoMarcador { display: none; }) y aquí se muestra
-     solo si la sesión activa es una de las dos cuentas
-     autorizadas. No es una seguridad "real" (cualquiera con
-     algo de conocimiento técnico podría mostrarlo a mano desde
-     las herramientas de desarrollador), pero alcanza para que
-     nadie más lo vea ni lo use por accidente.
+     "➕ Nuevo marcador" (barra lateral), "⚙️ Configuración"
+     (dentro del panel "Ver negocio") y "💾 Guardar cambios en la
+     hoja" (dentro de los dos modales de edición) están ocultos
+     por defecto en styles.css y aquí se muestran solo si la
+     sesión activa es una de las cuentas autorizadas — la misma
+     lista de correos que ya usa el Apps Script (ADMIN_EMAILS en
+     apps-script-mapa-morelia.gs). Si agregas o quitas un correo,
+     actualiza los dos lugares.
+
+     Ocultar estos botones en el navegador NO es seguridad real
+     (cualquiera con algo de conocimiento técnico podría mostrarlos
+     a mano desde las herramientas de desarrollador): solo evita
+     que alguien los vea o los use por accidente. La protección de
+     verdad — que nadie no autorizado pueda escribir en tu hoja —
+     está en el Apps Script, que valida el correo del idToken en
+     el servidor antes de guardar o actualizar cualquier fila.
      ========================================================= */
-  const CORREOS_CON_PERMISO_NUEVO_MARCADOR = [
+  const CORREOS_ADMIN = [
     'dulceprincesa086@gmail.com',
     'polo.pericoperico55@gmail.com'
   ];
 
-  function actualizarVisibilidadNuevoMarcador(usuario) {
-    const btn = document.getElementById('btnNuevoMarcador');
-    if (!btn) return;
+  function actualizarVisibilidadBotonesAdmin(usuario) {
     const correo = (usuario && usuario.email || '').toLowerCase();
-    const tienePermiso = CORREOS_CON_PERMISO_NUEVO_MARCADOR.includes(correo);
-    btn.style.display = tienePermiso ? 'flex' : 'none';
+    const esAdmin = CORREOS_ADMIN.includes(correo);
+    const ids = ['btnNuevoMarcador', 'btnConfigNegocio', 'filaBotonAdminNegocio', 'filaBotonAdminNegocioInactivo'];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = esAdmin ? 'flex' : 'none';
+    });
   }
 
   async function iniciarSesionGoogle() {
@@ -115,7 +127,7 @@
 
   onAuthStateChanged(auth, (usuario) => {
     actualizarUiCuenta(usuario);
-    actualizarVisibilidadNuevoMarcador(usuario);
+    actualizarVisibilidadBotonesAdmin(usuario);
   });
 
   function alPresionarBotonCuenta() {

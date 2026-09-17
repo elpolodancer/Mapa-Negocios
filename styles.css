@@ -211,6 +211,17 @@
      cuando la sesión activa es una de las cuentas autorizadas. */
   #btnNuevoMarcador { display: none; }
 
+  /* Botón ⚙️ del panel "Ver negocio" y los botones "💾 Guardar
+     cambios en la hoja" de los modales de edición: ocultos por
+     defecto, igual que #btnNuevoMarcador — firebase-init.js los
+     muestra solo si la sesión activa es una cuenta autorizada.
+     Ocultar el botón ⚙️ no es seguridad real (ver nota en
+     firebase-init.js); lo que de verdad protege la hoja es la
+     validación del correo en el Apps Script. */
+  #btnConfigNegocio,
+  #filaBotonAdminNegocio,
+  #filaBotonAdminNegocioInactivo { display: none; }
+
   /* Botón "Aviso de privacidad": se empuja hasta el fondo de la
      barra lateral (gracias a que #sidebar es un flex column) y se
      separa visualmente del resto de los botones con un margen y un
@@ -1217,8 +1228,9 @@
     margin-top: 6px;
   }
 
-  /* ---------- Botón "Subir imagen a imgbb" (modal Nuevo marcador) ---------- */
-  #btnSubirImagen {
+  /* ---------- Botón "Subir imagen a imgbb" (modal Nuevo marcador
+     y modales de edición: la misma clase se reutiliza en los tres) ---------- */
+  .btn-subir-imagen {
     margin-top: 8px;
     padding: 8px 14px;
     border-radius: 8px;
@@ -1229,22 +1241,25 @@
     font-weight: 600;
     cursor: pointer;
   }
-  #btnSubirImagen:hover { background: #eaedf0; }
-  #btnSubirImagen:disabled { opacity: .6; cursor: default; }
-  #estadoSubidaImagen {
+  .btn-subir-imagen:hover { background: #eaedf0; }
+  .btn-subir-imagen:disabled { opacity: .6; cursor: default; }
+  .estado-subida-imagen {
     display: block;
     margin-top: 6px;
     font-size: 12px;
     color: #4a4f57;
   }
 
-  #btnGuardarDirecto {
+  #btnGuardarDirecto,
+  .btn-guardar-directo {
     background: #1a73e8;
     color: #fff;
     border: none;
   }
-  #btnGuardarDirecto:hover { background: #1662c4; }
-  #btnGuardarDirecto:disabled { opacity: .6; cursor: default; }
+  #btnGuardarDirecto:hover,
+  .btn-guardar-directo:hover { background: #1662c4; }
+  #btnGuardarDirecto:disabled,
+  .btn-guardar-directo:disabled { opacity: .6; cursor: default; }
 
   /* ---------- Recuadro central: nombre del filtro activo ----------
      Agrandado a 150% de su tamaño original (padding, tipografía,
@@ -1379,9 +1394,9 @@
     border-color: #e8eaed;
   }
 
-  body.modo-oscuro #btnSubirImagen { background: #262a31; color: #e8eaed; border-color: #33373f; }
-  body.modo-oscuro #btnSubirImagen:hover { background: #2f343c; }
-  body.modo-oscuro #estadoSubidaImagen { color: #9aa0a6; }
+  body.modo-oscuro .btn-subir-imagen { background: #262a31; color: #e8eaed; border-color: #33373f; }
+  body.modo-oscuro .btn-subir-imagen:hover { background: #2f343c; }
+  body.modo-oscuro .estado-subida-imagen { color: #9aa0a6; }
 
   body.modo-oscuro #panelFiltroTipoNegocio { background: #1c1f24; color: #e8eaed; }
   body.modo-oscuro #panelFiltroTipoNegocio input,

@@ -204,6 +204,18 @@ const NOMBRES_HOJA = {
   4: 'Tiendas',
 };
 
+// Calcula el número real de fila en la hoja de Google Sheets a partir
+// del id interno de un negocio ('h{numeroHoja}-fila-{i}', ver parseCSV
+// más abajo: i es el índice dentro de "filas", que ya viene sin el
+// encabezado). Fila real = i + 2 (fila 1 es el encabezado, e i empieza
+// en 0). Se usa para que "💾 Guardar cambios en la hoja" sepa en qué
+// fila sobrescribir sin tener que buscar el negocio por nombre.
+function filaSheetDeNegocio(id) {
+  const match = /^h\d+-fila-(\d+)$/.exec(id || '');
+  if (!match) return null;
+  return Number(match[1]) + 2;
+}
+
 let negocios = []; // [{ nombre, url, categoria, emoji, color, lat, lng, activo, hoja, subCategorias, subColores }]
 const referencias = {}; // marcadores de Leaflet por índice
 
@@ -872,6 +884,15 @@ const btnCopiarFilaNegocio = document.getElementById('btnCopiarFilaNegocio');
 const btnCerrarEditarNegocio = document.getElementById('btnCerrarEditarNegocio');
 const panelEmojisEdit = document.getElementById('panelEmojisEdit');
 const inpEditDescripcionOpcional = document.getElementById('inpEditDescripcionOpcional');
+const btnSubirImagenEdit = document.getElementById('btnSubirImagenEdit');
+const inpArchivoImagenEdit = document.getElementById('inpArchivoImagenEdit');
+const estadoSubidaImagenEdit = document.getElementById('estadoSubidaImagenEdit');
+const btnGuardarDirectoNegocio = document.getElementById('btnGuardarDirectoNegocio');
+
+// Base64 (.webp) de una imagen nueva elegida desde el modal de edición
+// (si el usuario no elige ninguna, "Guardar cambios en la hoja" manda
+// vacío y el Apps Script conserva la imagen que ya estaba en la hoja).
+let imagenBase64ElegidaEdit = null;
 
 let contadorFilaLink = 0;
 
@@ -932,6 +953,8 @@ function abrirModalEditarNegocio(id) {
   inpEditColor.value = n.color || '#1a73e8';
   inpEditImagen.value = n.imagen || '';
   inpEditDescripcionOpcional.value = n.descripcion || '';
+  imagenBase64ElegidaEdit = null;
+  estadoSubidaImagenEdit.textContent = '';
 
   listaLinksEditables.innerHTML = '';
   const links = obtenerLinksNegocio(n);
@@ -1031,6 +1054,122 @@ btnCopiarFilaNegocio.addEventListener('click', async () => {
   }
 });
 
+btnSubirImagenEdit.addEventListener('click', () => inpArchivoImagenEdit.click());
+
+inpArchivoImagenEdit.addEventListener('change', async () => {
+  const archivo = inpArchivoImagenEdit.files[0];
+  inpArchivoImagenEdit.value = '';
+  if (!archivo) return;
+
+  estadoSubidaImagenEdit.textContent = '⏳ Convirtiendo a .webp…';
+  btnSubirImagenEdit.disabled = true;
+  try {
+    imagenBase64ElegidaEdit = await convertirArchivoAWebpBase64(archivo);
+    estadoSubidaImagenEdit.textContent = `✅ "${archivo.name}" lista — se sube al presionar "Guardar cambios en la hoja".`;
+  } catch (err) {
+    console.error(err);
+    imagenBase64ElegidaEdit = null;
+    estadoSubidaImagenEdit.textContent = '❌ No se pudo preparar la imagen: ' + err.message;
+  } finally {
+    btnSubirImagenEdit.disabled = false;
+  }
+});
+
+/* =========================================================
+   GUARDAR CAMBIOS DIRECTO EN LA HOJA (editar negocio existente)
+   -----------------------------------------------------------
+   Igual que "💾 Guardar directo en la hoja" del modal "Nuevo
+   marcador", pero manda accion:'actualizar' junto con el número
+   de fila (calculado con filaSheetDeNegocio), así el Apps Script
+   sobrescribe esa fila en vez de agregar una nueva.
+   ========================================================= */
+btnGuardarDirectoNegocio.addEventListener('click', async () => {
+  const n = negocios.find(x => x.id === negocioAbiertoId);
+  if (!n) return;
+
+  const fila = filaSheetDeNegocio(n.id);
+  if (!fila) {
+    avisoCopiadoNegocio.textContent = '❌ No se pudo calcular la fila de este negocio en la hoja.';
+    return;
+  }
+
+  const usuario = window.firebaseAuth && window.firebaseAuth.currentUser;
+  if (!usuario) {
+    avisoCopiadoNegocio.textContent = 'Debes iniciar sesión con una cuenta autorizada para guardar directo.';
+    return;
+  }
+
+  // Si la categoría principal es nueva, el color elegido aquí se
+  // vuelve su color permanente a partir de ahora
+  const catNueva = inpEditCategoria.value.trim();
+  if (catNueva && !obtenerColorCategoria(catNueva)) {
+    fijarColorCategoria(catNueva, inpEditColor.value);
+  }
+
+  actualizarFilaCopiarNegocio(); // por si acaso, deja la vista previa al día
+
+  const filasLink = Array.from(listaLinksEditables.querySelectorAll('.fila-link-editable'));
+  const filasConUrl = filasLink.filter(f => f.querySelector('.inp-url-link').value.trim());
+  const urls = filasConUrl.map(f => f.querySelector('.inp-url-link').value.trim());
+  const etiquetas = filasConUrl.map(f => f.querySelector('.inp-etiqueta-link').value.trim());
+  const filasSub = filasConUrl.filter(f => f.dataset.principal !== '1');
+  const categoriasSub = filasSub.map(f => {
+    const campo = f.querySelector('.inp-categoria-link');
+    return campo ? campo.value.trim() : '';
+  });
+  const coloresSub = filasSub.map(f => {
+    const chk = f.querySelector('.chk-usar-color-link');
+    const campo = f.querySelector('.inp-color-link');
+    return (chk && chk.checked && campo) ? campo.value.trim() : '';
+  });
+  const linkPrincipal = urls[0] || '';
+  const linksAdicionales = urls.length
+    ? urls.slice(1).join(',')
+    : inpEditDescripcionOpcional.value.trim();
+
+  btnGuardarDirectoNegocio.disabled = true;
+  avisoCopiadoNegocio.textContent = '⏳ Guardando cambios en la hoja…';
+  try {
+    const idToken = await usuario.getIdToken();
+    const resp = await fetch(APPSCRIPT_GUARDAR_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        idToken: idToken,
+        accion: 'actualizar',
+        gid: gidDeHoja(n.hoja),
+        fila: fila,
+        nombre: inpEditNombre.value.trim(),
+        url: linkPrincipal,
+        categoria: inpEditCategoria.value.trim(),
+        emoji: inpEditEmoji.value.trim(),
+        color: inpEditColor.value,
+        lat: inpEditLat.value,
+        lng: inpEditLng.value,
+        descripcion: linksAdicionales,
+        imagenUrl: inpEditImagen.value.trim(),
+        imagenBase64: imagenBase64ElegidaEdit || '',
+        etiquetasLinks: etiquetas.join(','),
+        coloresExtra: coloresSub.join(','),
+        categoriasSub: categoriasSub.join(',')
+      })
+    });
+    const datos = await resp.json();
+    if (!datos.ok) throw new Error(datos.error || 'Error desconocido al guardar.');
+
+    if (datos.imagen) inpEditImagen.value = datos.imagen;
+    imagenBase64ElegidaEdit = null;
+    estadoSubidaImagenEdit.textContent = '';
+    avisoCopiadoNegocio.textContent = `✅ ¡Guardado! Se actualizó la fila ${datos.fila} en tu hoja.`;
+    await cargarNegociosDesdeSheet(); // refresca el mapa con los cambios
+  } catch (err) {
+    console.error(err);
+    avisoCopiadoNegocio.textContent = '❌ No se pudo guardar: ' + err.message;
+  } finally {
+    btnGuardarDirectoNegocio.disabled = false;
+  }
+});
+
 /* =========================================================
    MODAL "CONFIGURACIÓN" para negocios sin link (punto gris):
    solo nombre, descripción (columna H) e imagen (columna I).
@@ -1044,8 +1183,16 @@ const filaCopiarNegocioInactivo = document.getElementById('filaCopiarNegocioInac
 const avisoCopiadoNegocioInactivo = document.getElementById('avisoCopiadoNegocioInactivo');
 const btnCopiarFilaNegocioInactivo = document.getElementById('btnCopiarFilaNegocioInactivo');
 const btnCerrarEditarNegocioInactivo = document.getElementById('btnCerrarEditarNegocioInactivo');
+const btnSubirImagenInactivo = document.getElementById('btnSubirImagenInactivo');
+const inpArchivoImagenInactivo = document.getElementById('inpArchivoImagenInactivo');
+const estadoSubidaImagenInactivo = document.getElementById('estadoSubidaImagenInactivo');
+const btnGuardarDirectoNegocioInactivo = document.getElementById('btnGuardarDirectoNegocioInactivo');
 
 let negocioEditandoInactivoId = null;
+
+// Base64 (.webp) de una imagen nueva elegida desde este modal (si el
+// usuario no elige ninguna, se conserva la imagen que ya estaba).
+let imagenBase64ElegidaEditInactivo = null;
 
 function abrirModalEditarNegocioInactivo(id) {
   const n = negocios.find(x => x.id === id);
@@ -1056,6 +1203,8 @@ function abrirModalEditarNegocioInactivo(id) {
   inpEditNombreInactivo.value = n.nombre;
   inpEditDescripcionInactivo.value = n.descripcion || '';
   inpEditImagenInactivo.value = n.imagen || '';
+  imagenBase64ElegidaEditInactivo = null;
+  estadoSubidaImagenInactivo.textContent = '';
 
   avisoCopiadoNegocioInactivo.textContent = '';
   actualizarFilaCopiarNegocioInactivo();
@@ -1107,6 +1256,94 @@ btnCopiarFilaNegocioInactivo.addEventListener('click', async () => {
     avisoCopiadoNegocioInactivo.textContent = `¡Copiado! Pega esta línea sobre la fila del negocio en ${inpEditHojaInactivo.value} (Ctrl/Cmd + V).`;
   } catch (e) {
     avisoCopiadoNegocioInactivo.textContent = 'No se pudo copiar automático: selecciona el texto de arriba y cópialo manualmente.';
+  }
+});
+
+btnSubirImagenInactivo.addEventListener('click', () => inpArchivoImagenInactivo.click());
+
+inpArchivoImagenInactivo.addEventListener('change', async () => {
+  const archivo = inpArchivoImagenInactivo.files[0];
+  inpArchivoImagenInactivo.value = '';
+  if (!archivo) return;
+
+  estadoSubidaImagenInactivo.textContent = '⏳ Convirtiendo a .webp…';
+  btnSubirImagenInactivo.disabled = true;
+  try {
+    imagenBase64ElegidaEditInactivo = await convertirArchivoAWebpBase64(archivo);
+    estadoSubidaImagenInactivo.textContent = `✅ "${archivo.name}" lista — se sube al presionar "Guardar cambios en la hoja".`;
+  } catch (err) {
+    console.error(err);
+    imagenBase64ElegidaEditInactivo = null;
+    estadoSubidaImagenInactivo.textContent = '❌ No se pudo preparar la imagen: ' + err.message;
+  } finally {
+    btnSubirImagenInactivo.disabled = false;
+  }
+});
+
+/* =========================================================
+   GUARDAR CAMBIOS DIRECTO EN LA HOJA (negocio sin link)
+   -----------------------------------------------------------
+   Conserva categoría, emoji, color, lat/lng y links/etiquetas
+   tal como están (este modal solo edita Nombre, Descripción e
+   Imagen) y manda accion:'actualizar' con el número de fila
+   calculado por filaSheetDeNegocio.
+   ========================================================= */
+btnGuardarDirectoNegocioInactivo.addEventListener('click', async () => {
+  const n = negocios.find(x => x.id === negocioEditandoInactivoId);
+  if (!n) return;
+
+  const fila = filaSheetDeNegocio(n.id);
+  if (!fila) {
+    avisoCopiadoNegocioInactivo.textContent = '❌ No se pudo calcular la fila de este negocio en la hoja.';
+    return;
+  }
+
+  const usuario = window.firebaseAuth && window.firebaseAuth.currentUser;
+  if (!usuario) {
+    avisoCopiadoNegocioInactivo.textContent = 'Debes iniciar sesión con una cuenta autorizada para guardar directo.';
+    return;
+  }
+
+  btnGuardarDirectoNegocioInactivo.disabled = true;
+  avisoCopiadoNegocioInactivo.textContent = '⏳ Guardando cambios en la hoja…';
+  try {
+    const idToken = await usuario.getIdToken();
+    const resp = await fetch(APPSCRIPT_GUARDAR_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        idToken: idToken,
+        accion: 'actualizar',
+        gid: gidDeHoja(n.hoja),
+        fila: fila,
+        nombre: inpEditNombreInactivo.value.trim(),
+        url: '',
+        categoria: n.categoria || '',
+        emoji: n.emoji || '',
+        color: n.color || '#1a73e8',
+        lat: n.lat,
+        lng: n.lng,
+        descripcion: inpEditDescripcionInactivo.value.trim(),
+        imagenUrl: inpEditImagenInactivo.value.trim(),
+        imagenBase64: imagenBase64ElegidaEditInactivo || '',
+        etiquetasLinks: (n.etiquetas || []).join(','),
+        coloresExtra: (n.subColores || []).join(','),
+        categoriasSub: (n.subCategorias || []).join(',')
+      })
+    });
+    const datos = await resp.json();
+    if (!datos.ok) throw new Error(datos.error || 'Error desconocido al guardar.');
+
+    if (datos.imagen) inpEditImagenInactivo.value = datos.imagen;
+    imagenBase64ElegidaEditInactivo = null;
+    estadoSubidaImagenInactivo.textContent = '';
+    avisoCopiadoNegocioInactivo.textContent = `✅ ¡Guardado! Se actualizó la fila ${datos.fila} en tu hoja.`;
+    await cargarNegociosDesdeSheet(); // refresca el mapa con los cambios
+  } catch (err) {
+    console.error(err);
+    avisoCopiadoNegocioInactivo.textContent = '❌ No se pudo guardar: ' + err.message;
+  } finally {
+    btnGuardarDirectoNegocioInactivo.disabled = false;
   }
 });
 
@@ -1672,6 +1909,7 @@ btnGuardarDirecto.addEventListener('click', async () => {
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         idToken: idToken,
+        accion: 'agregar',
         gid: gidDeHoja(selHojaDestino.value),
         nombre: inpNombre.value.trim(),
         url: inpUrl.value.trim(),
