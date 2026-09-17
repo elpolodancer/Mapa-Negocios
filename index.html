@@ -263,87 +263,76 @@
 </div>
 
 <div id="overlayModal">
-  <div id="modalConfig" class="modal-shell">
+  <div id="modalConfig" class="modal-shell modal-juego">
     <div class="modal-header">
       <div class="modal-header-icono">📍</div>
       <div>
         <h3>Nuevo marcador</h3>
-        <div class="subtitulo">Llena los datos y cópialos a tu hoja de Google.</div>
+        <div class="subtitulo">Completa cada paso</div>
       </div>
     </div>
     <div class="modal-body">
 
+    <input type="hidden" id="inpLat">
+    <input type="hidden" id="inpLng">
+
     <div class="grupo-campos">
-      <div class="grupo-titulo">🖼️ Imagen del submenú</div>
-      <label for="inpImagen">Imagen (opcional, URL de imgbb)</label>
-      <input type="url" id="inpImagen" placeholder="https://i.ibb.co/xxxxx/foto.jpg">
+      <div class="grupo-titulo"><span class="paso-numero">1</span>🖼️ Imagen</div>
+      <input type="url" id="inpImagen" placeholder="Pega un link o sube una foto">
       <input type="file" id="inpArchivoImagen" accept="image/*" style="display:none">
-      <button type="button" id="btnSubirImagen" class="btn-subir-imagen">📷 Elegir imagen (se sube al guardar)</button>
+      <button type="button" id="btnSubirImagen" class="btn-subir-imagen">📷 Elegir imagen</button>
       <span id="estadoSubidaImagen" class="estado-subida-imagen"></span>
-      <div class="nota-color">Esta es la imagen que se muestra arriba del nombre al abrir el submenú del negocio (columna I de tu hoja).</div>
     </div>
 
     <div class="grupo-campos">
-      <div class="grupo-titulo">📝 Descripción / links adicionales</div>
-      <label for="inpDescripcion">Links adicionales / otras páginas (opcional)</label>
-      <input type="text" id="inpDescripcion" placeholder="https://facebook.com/..., https://instagram.com/...">
-      <div class="nota-color">Si tu marcador tiene varios negocios (ej. yesos, páginas web, clases de baile…), agrega aquí un link por cada uno. Si el negocio no tiene ningún link, escribe aquí su descripción — se mostrará debajo del nombre al abrir el submenú. Luego, desde "Ver negocio → ⚙️" en cada botón, podrás asignarle su categoría y, si quieres, un color propio.</div>
+      <div class="grupo-titulo"><span class="paso-numero">2</span>🏷️ Nombre</div>
+      <input type="text" id="inpNombre" placeholder="Nombre del negocio">
     </div>
 
     <div class="grupo-campos">
-      <div class="grupo-titulo">🗂️ Hoja y ubicación</div>
-      <label for="selHojaDestino">Hoja de Google Sheets</label>
-      <select id="selHojaDestino">
-        <option value="1">Hoja 1 — mini tiendas, mercados y supermercados</option>
-        <option value="4">Tiendas</option>
-      </select>
-
-      <div class="fila-doble">
-        <div>
-          <label for="inpLat">Latitud</label>
-          <input type="text" id="inpLat" readonly>
+      <div class="grupo-titulo"><span class="paso-numero">3</span>📝 Descripción</div>
+      <textarea id="inpDescripcion" rows="4" placeholder="Escribe aquí… presiona Enter para saltos de línea"></textarea>
+      <div class="fila-emoji-descripcion">
+        <button type="button" id="btnAbrirEmojisDescripcion" title="Insertar emoji">😀 Emoji</button>
+      </div>
+      <div id="panelEmojisDescripcion">
+        <div id="buscarEmojiWrapDescripcion">
+          <input type="text" id="buscarEmojiDescripcion" placeholder="🔎 Buscar emoji…">
         </div>
-        <div>
-          <label for="inpLng">Longitud</label>
-          <input type="text" id="inpLng" readonly>
-        </div>
+        <div id="tabsEmojiCategoriasDescripcion"><!-- pestañas generadas por JS --></div>
+        <div id="gridEmojisDescripcion"><!-- emojis generados por JS --></div>
       </div>
     </div>
 
     <div class="grupo-campos">
-      <div class="grupo-titulo">🏷️ Datos generales</div>
-      <label for="inpNombre">Nombre del negocio</label>
-      <input type="text" id="inpNombre" placeholder="Ej. Panadería Ejemplo">
-
-      <label for="inpCategoria">Categoría (opcional)</label>
-      <input type="text" id="inpCategoria" placeholder="Ej. Farmacia, Restaurante, Transporte…">
-
-      <label for="inpUrl">Enlace de la página web (opcional)</label>
-      <input type="url" id="inpUrl" placeholder="https://tuusuario.github.io/sitio/">
+      <div class="grupo-titulo"><span class="paso-numero">4</span>🗂️ Categoría</div>
+      <input type="text" id="inpCategoria" placeholder="Ej. Farmacia, Restaurante…">
+      <div class="nota-color" id="notaColorPrincipal"></div>
     </div>
 
     <div class="grupo-campos">
-      <div class="grupo-titulo">🎨 Apariencia</div>
-      <label for="inpEmoji">Emoji (opcional)</label>
+      <div class="grupo-titulo"><span class="paso-numero">5</span>🎨 Emoji y color</div>
       <div class="fila-emoji">
         <input type="text" id="inpEmoji" placeholder="🥖" maxlength="4">
         <button type="button" id="btnAbrirEmojis" title="Elegir emoji">😀</button>
       </div>
       <div id="panelEmojis">
         <div id="buscarEmojiWrap">
-          <input type="text" id="buscarEmoji" placeholder="🔎 Buscar emoji… (ej. pan, taxi, doctor)">
+          <input type="text" id="buscarEmoji" placeholder="🔎 Buscar emoji…">
         </div>
         <div id="tabsEmojiCategorias"><!-- pestañas generadas por JS --></div>
         <div id="gridEmojis"><!-- emojis generados por JS --></div>
       </div>
-
-      <label for="inpColor">Color (opcional)</label>
       <input type="color" id="inpColor" value="#1a73e8">
-      <div class="nota-color" id="notaColorPrincipal"></div>
     </div>
 
-    <div id="filaCopiar">Nombre — Link — Categoría — Emoji — Color — Lat — Lng — Links adicionales — Imagen — Nombres de links — Colores de negocios — Categorías de sub negocios</div>
-    <div id="ordenColumnas">Orden de columnas en tu hoja: A Nombre · B Link · C Categoría · D Emoji · E Color · F Latitud · G Longitud · H Links adicionales (separados por comas) si hay Link en B, o Descripción del negocio si B está vacía · I Imagen del submenú (imgbb) · J Nombres de cada link (separados por comas — se completan luego desde "Ver negocio → ⚙️ Configuración") · K Colores de negocios extra (separados por comas, mismo orden que los links adicionales — se completan luego desde "Ver negocio → ⚙️ Configuración") · L Categorías de sub negocios (separadas por comas, mismo orden — se completan luego desde "Ver negocio → ⚙️" en cada botón)</div>
+    <div class="grupo-campos">
+      <div class="grupo-titulo"><span class="paso-numero">6</span>🔗 Enlace web</div>
+      <input type="url" id="inpUrl" placeholder="https://tuusuario.github.io/sitio/">
+    </div>
+
+    <div id="filaCopiar"></div>
+    <div id="ordenColumnas"></div>
 
     <div class="modal-botones">
       <button id="btnCerrarModal">Cerrar</button>

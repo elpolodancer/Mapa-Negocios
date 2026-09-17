@@ -1706,7 +1706,9 @@ const inpColor = document.getElementById('inpColor');
 const inpUrl = document.getElementById('inpUrl');
 const inpDescripcion = document.getElementById('inpDescripcion');
 const inpImagen = document.getElementById('inpImagen');
-const selHojaDestino = document.getElementById('selHojaDestino');
+// Ya no se elige hoja de destino desde el formulario: todo marcador
+// nuevo se guarda en la Hoja 1 (ver HOJAS más arriba).
+const HOJA_DESTINO_MARCADOR_NUEVO = 1;
 const filaCopiar = document.getElementById('filaCopiar');
 const avisoCopiado = document.getElementById('avisoCopiado');
 const btnCopiarFila = document.getElementById('btnCopiarFila');
@@ -1753,12 +1755,11 @@ function actualizarFilaCopiar() {
     '', // Colores de negocios extra (columna K): se completan después desde "Ver negocio → ⚙️ Configuración"
     '' // Categorías de sub negocios (columna L): se completan después desde "Ver negocio → ⚙️" en cada botón
   ];
-  const nombreHoja = selHojaDestino.options[selHojaDestino.selectedIndex].text;
-  filaCopiar.textContent = `[Pegar en ${nombreHoja}]  ${partes.join('   |   ')}`;
+  filaCopiar.textContent = partes.join('   |   ');
   return partes.join('\t');
 }
 
-[inpNombre, inpUrl, inpEmoji, inpColor, inpDescripcion, inpImagen, selHojaDestino].forEach(campo => {
+[inpNombre, inpUrl, inpEmoji, inpColor, inpDescripcion, inpImagen].forEach(campo => {
   campo.addEventListener('input', actualizarFilaCopiar);
 });
 
@@ -1777,10 +1778,9 @@ btnCopiarFila.addEventListener('click', async () => {
     fijarColorCategoria(catNueva, inpColor.value);
   }
   const filaTexto = actualizarFilaCopiar();
-  const nombreHoja = selHojaDestino.options[selHojaDestino.selectedIndex].text;
   try {
     await navigator.clipboard.writeText(filaTexto);
-    avisoCopiado.textContent = `¡Copiado! Pégalo como nueva fila en ${nombreHoja} (Ctrl/Cmd + V).`;
+    avisoCopiado.textContent = '¡Copiado! Pégalo como nueva fila en tu hoja (Ctrl/Cmd + V).';
   } catch (e) {
     avisoCopiado.textContent = 'No se pudo copiar automático: selecciona el texto de arriba y cópialo manualmente.';
   }
@@ -1910,7 +1910,7 @@ btnGuardarDirecto.addEventListener('click', async () => {
       body: JSON.stringify({
         idToken: idToken,
         accion: 'agregar',
-        gid: gidDeHoja(selHojaDestino.value),
+        gid: gidDeHoja(HOJA_DESTINO_MARCADOR_NUEVO),
         nombre: inpNombre.value.trim(),
         url: inpUrl.value.trim(),
         categoria: inpCategoria.value.trim(),
@@ -2837,10 +2837,24 @@ const TODOS_LOS_EMOJIS = EMOJI_CATEGORIAS.flatMap(cat =>
   }))
 );
 
+// Inserta un texto en la posición del cursor de un input/textarea,
+// sin borrar lo que ya estaba escrito (usado para agregar emojis
+// dentro de la descripción, que es un campo de texto libre).
+function insertarTextoEnCursor(campo, texto) {
+  const inicio = campo.selectionStart ?? campo.value.length;
+  const fin = campo.selectionEnd ?? campo.value.length;
+  campo.value = campo.value.slice(0, inicio) + texto + campo.value.slice(fin);
+  const nuevaPosicion = inicio + texto.length;
+  campo.focus();
+  campo.setSelectionRange(nuevaPosicion, nuevaPosicion);
+}
+
 // Crea una instancia independiente del selector de emojis (buscador +
-// categorías) para un input dado. Se usa una vez para el modal "Nuevo
-// marcador" y otra vez para el modal "Configuración" del negocio.
-function crearSelectorEmoji({ btnId, panelId, inputId, buscarId, tabsId, gridId, alCambiar }) {
+// categorías) para un input dado. Se usa para el campo de Emoji del
+// modal "Nuevo marcador", el de "Configuración" del negocio, y para
+// el campo de Descripción (con modo "insertar": agrega el emoji en
+// el cursor en vez de reemplazar todo el texto).
+function crearSelectorEmoji({ btnId, panelId, inputId, buscarId, tabsId, gridId, alCambiar, modo = 'reemplazar' }) {
   const btn = document.getElementById(btnId);
   const panel = document.getElementById(panelId);
   const input = document.getElementById(inputId);
@@ -2899,7 +2913,11 @@ function crearSelectorEmoji({ btnId, panelId, inputId, buscarId, tabsId, gridId,
 
   grid.addEventListener('click', (e) => {
     if (e.target.tagName === 'BUTTON') {
-      input.value = e.target.textContent;
+      if (modo === 'insertar') {
+        insertarTextoEnCursor(input, e.target.textContent);
+      } else {
+        input.value = e.target.textContent;
+      }
       panel.classList.remove('abierto');
       if (alCambiar) alCambiar();
     }
@@ -2916,6 +2934,12 @@ crearSelectorEmoji({
   btnId: 'btnAbrirEmojisEdit', panelId: 'panelEmojisEdit', inputId: 'inpEditEmoji',
   buscarId: 'buscarEmojiEdit', tabsId: 'tabsEmojiCategoriasEdit', gridId: 'gridEmojisEdit',
   alCambiar: actualizarFilaCopiarNegocio
+});
+
+crearSelectorEmoji({
+  btnId: 'btnAbrirEmojisDescripcion', panelId: 'panelEmojisDescripcion', inputId: 'inpDescripcion',
+  buscarId: 'buscarEmojiDescripcion', tabsId: 'tabsEmojiCategoriasDescripcion', gridId: 'gridEmojisDescripcion',
+  alCambiar: actualizarFilaCopiar, modo: 'insertar'
 });
 
 /* =========================================================
