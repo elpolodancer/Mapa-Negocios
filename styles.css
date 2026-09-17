@@ -444,6 +444,29 @@
   }
   .grupo-campos label:first-of-type { margin-top: 0; }
 
+  /* ---------- Modal "Configuración del negocio": cajas compactas y cuadrícula 2x2 ---------- */
+  #modalEditarNegocio .grupo-campos { margin-bottom: 8px; }
+  #modalEditarNegocio .grupo-compacto { padding: 8px 10px; }
+  #modalEditarNegocio .grupo-compacto .grupo-titulo { margin-bottom: 4px; }
+  #modalEditarNegocio .grupo-compacto label { margin: 4px 0 3px; }
+
+  .cuadricula-2x2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .cuadricula-2x2 .grupo-campos {
+    margin-bottom: 0;
+    padding: 8px 10px;
+  }
+  .cuadricula-2x2 .grupo-titulo { font-size: 11.5px; margin-bottom: 4px; }
+  .cuadricula-2x2 .ajustes-fila-modo { gap: 4px; margin-top: 2px; }
+  .cuadricula-2x2 .ajustes-fila-modo button { padding: 6px 4px; font-size: 11px; }
+  /* Si el selector de emojis se abre dentro de la cuadrícula, esa caja
+     ocupa las 2 columnas para que no quede aplastado */
+  .cuadricula-2x2 .grupo-campos:has(#panelEmojisEdit.abierto) { grid-column: 1 / -1; }
+
   /* ---------- Modal "Nuevo marcador": estilo tipo videojuego ---------- */
   .modal-juego .grupo-campos {
     border: 2px solid #e3e6ea;

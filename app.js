@@ -200,7 +200,7 @@ function urlCsvHoja(hoja) {
 }
 
 const NOMBRES_HOJA = {
-  1: 'Páginas web',
+  1: 'Negocios',
   4: 'Tiendas',
 };
 
@@ -872,6 +872,8 @@ const inpEditLat = document.getElementById('inpEditLat');
 const inpEditLng = document.getElementById('inpEditLng');
 const inpEditNombre = document.getElementById('inpEditNombre');
 const inpEditHoja = document.getElementById('inpEditHoja');
+const btnEditHojaNegocios = document.getElementById('btnEditHojaNegocios');
+const btnEditHojaTiendas = document.getElementById('btnEditHojaTiendas');
 const inpEditCategoria = document.getElementById('inpEditCategoria');
 const inpEditEmoji = document.getElementById('inpEditEmoji');
 const inpEditColor = document.getElementById('inpEditColor');
@@ -941,6 +943,25 @@ btnAnadirLink.addEventListener('click', () => {
   actualizarFilaCopiarNegocio();
 });
 
+// Marca como "activo" el botón de hoja correspondiente (Hoja 1 de
+// Negocios / Hoja 2 de Tiendas) y deja el valor listo para la fila de
+// copiar y el aviso de "Guardado".
+function actualizarBotonesHojaEdit(hoja) {
+  const esNegocios = Number(hoja) !== 4; // cualquier valor que no sea 4 (Tiendas) se trata como Hoja 1
+  btnEditHojaNegocios.classList.toggle('activo', esNegocios);
+  btnEditHojaTiendas.classList.toggle('activo', !esNegocios);
+  inpEditHoja.value = NOMBRES_HOJA[esNegocios ? 1 : 4];
+}
+
+btnEditHojaNegocios.addEventListener('click', () => {
+  actualizarBotonesHojaEdit(1);
+  actualizarFilaCopiarNegocio();
+});
+btnEditHojaTiendas.addEventListener('click', () => {
+  actualizarBotonesHojaEdit(4);
+  actualizarFilaCopiarNegocio();
+});
+
 function abrirModalEditarNegocio(id) {
   const n = negocios.find(x => x.id === id);
   if (!n) return;
@@ -948,7 +969,7 @@ function abrirModalEditarNegocio(id) {
   inpEditLat.value = n.lat;
   inpEditLng.value = n.lng;
   inpEditNombre.value = n.nombre;
-  inpEditHoja.value = NOMBRES_HOJA[n.hoja] || ('Hoja ' + n.hoja);
+  actualizarBotonesHojaEdit(n.hoja);
   inpEditCategoria.value = n.categoria || '';
   inpEditEmoji.value = n.emoji;
   inpEditColor.value = n.color || '#1a73e8';

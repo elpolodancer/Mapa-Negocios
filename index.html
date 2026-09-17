@@ -368,7 +368,7 @@
     </div>
     <div class="modal-body">
 
-    <div class="grupo-campos">
+    <div class="grupo-campos grupo-compacto">
       <div class="grupo-titulo">🖼️ Imagen del submenú</div>
       <input type="hidden" id="inpEditImagen">
       <input type="file" id="inpArchivoImagenEdit" accept="image/*" style="display:none">
@@ -376,55 +376,59 @@
       <span id="estadoSubidaImagenEdit" class="estado-subida-imagen"></span>
     </div>
 
-    <div class="grupo-campos">
+    <div class="grupo-campos grupo-compacto">
       <div class="grupo-titulo">🏷️ Nombre</div>
       <label for="inpEditNombre">Nombre del negocio</label>
       <input type="text" id="inpEditNombre" placeholder="Ej. Panadería Ejemplo">
     </div>
 
-    <div class="grupo-campos">
+    <div class="grupo-campos grupo-compacto">
       <div class="grupo-titulo">📝 Descripción (si no tiene links)</div>
       <label for="inpEditDescripcionOpcional">Descripción</label>
       <textarea id="inpEditDescripcionOpcional" rows="3" placeholder="Cuenta brevemente de qué trata este negocio (solo se usa si no le agregas ningún link arriba)…"></textarea>
     </div>
 
-    <div class="grupo-campos">
-      <div class="grupo-titulo">🗂️ Hoja de Google Sheets</div>
-      <label for="inpEditHoja">Hoja de Google Sheets</label>
-      <input type="text" id="inpEditHoja" readonly>
-      <input type="hidden" id="inpEditLat">
-      <input type="hidden" id="inpEditLng">
-    </div>
-
-    <div class="grupo-campos">
-      <div class="grupo-titulo">🏷️ Categoría</div>
-      <label for="inpEditCategoria">Categoría (opcional)</label>
-      <input type="text" id="inpEditCategoria" placeholder="Ej. Farmacia, Restaurante, Transporte…">
-    </div>
-
-    <div class="grupo-campos">
-      <div class="grupo-titulo">🎨 Apariencia</div>
-      <label for="inpEditEmoji">Emoji (opcional)</label>
-      <div class="fila-emoji">
-        <input type="text" id="inpEditEmoji" placeholder="🥖" maxlength="4">
-        <button type="button" id="btnAbrirEmojisEdit" title="Elegir emoji">😀</button>
-      </div>
-      <div id="panelEmojisEdit">
-        <div id="buscarEmojiWrapEdit">
-          <input type="text" id="buscarEmojiEdit" placeholder="🔎 Buscar emoji… (ej. pan, taxi, doctor)">
+    <div class="cuadricula-2x2">
+      <div class="grupo-campos">
+        <div class="grupo-titulo">🗂️ Hoja</div>
+        <div class="ajustes-fila-modo">
+          <button type="button" id="btnEditHojaNegocios">Hoja 1 de Negocios</button>
+          <button type="button" id="btnEditHojaTiendas">Hoja 2 de Tiendas</button>
         </div>
-        <div id="tabsEmojiCategoriasEdit"><!-- pestañas generadas por JS --></div>
-        <div id="gridEmojisEdit"><!-- emojis generados por JS --></div>
+        <input type="hidden" id="inpEditHoja">
+        <input type="hidden" id="inpEditLat">
+        <input type="hidden" id="inpEditLng">
       </div>
 
-      <label for="inpEditColor">Color (opcional)</label>
-      <input type="color" id="inpEditColor" value="#1a73e8">
-      <div class="nota-color" id="notaColorPrincipalEdit"></div>
+      <div class="grupo-campos">
+        <div class="grupo-titulo">🏷️ Categoría</div>
+        <input type="text" id="inpEditCategoria" placeholder="Ej. Farmacia, Restaurante…">
+      </div>
+
+      <div class="grupo-campos">
+        <div class="grupo-titulo">🎨 Emoji</div>
+        <div class="fila-emoji">
+          <input type="text" id="inpEditEmoji" placeholder="🥖" maxlength="4">
+          <button type="button" id="btnAbrirEmojisEdit" title="Elegir emoji">😀</button>
+        </div>
+        <div id="panelEmojisEdit">
+          <div id="buscarEmojiWrapEdit">
+            <input type="text" id="buscarEmojiEdit" placeholder="🔎 Buscar emoji…">
+          </div>
+          <div id="tabsEmojiCategoriasEdit"><!-- pestañas generadas por JS --></div>
+          <div id="gridEmojisEdit"><!-- emojis generados por JS --></div>
+        </div>
+      </div>
+
+      <div class="grupo-campos">
+        <div class="grupo-titulo">🎨 Color</div>
+        <input type="color" id="inpEditColor" value="#1a73e8">
+        <div class="nota-color" id="notaColorPrincipalEdit"></div>
+      </div>
     </div>
 
     <div class="grupo-campos">
       <div class="grupo-titulo">🔗 Links de la empresa</div>
-      <div class="nota-color">El primer link es el negocio principal (usa la Categoría y Color de arriba). Los siguientes son "Otros Negocios/Empresas": puedes escribirles su categoría aquí (o asignarla más rápido con el botón ⚙️ de cada uno en el panel "Ver negocio"), y activar "Color propio" si quieres que use un color distinto al de su categoría.</div>
       <div id="listaLinksEditables"><!-- filas generadas por JS --></div>
       <button type="button" class="btn-anadir-link" id="btnAnadirLink">➕ Añadir link</button>
     </div>
