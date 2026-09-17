@@ -11,6 +11,49 @@
   body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--color-fondo); }
   #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; }
 
+  /* ---------- Pantalla de bienvenida (rosa pastel, primera pantalla) ---------- */
+  #pantallaBienvenida {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    background: #f9d6e3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    text-align: center;
+  }
+  .bienvenida-contenido {
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 26px;
+  }
+  #textoBienvenida {
+    font-size: 19px;
+    line-height: 1.5;
+    font-weight: 600;
+    color: #6b2c46;
+    text-shadow: 0 1px 0 rgba(255,255,255,.4);
+  }
+  #btnVerMapa {
+    padding: 14px 42px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(180deg, #ff8fb3, #f6608f);
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(199,60,110,.45);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  #btnVerMapa:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(199,60,110,.55); }
+  #btnVerMapa:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(199,60,110,.45); }
+
+  #pantallaBienvenida.oculta { display: none; }
+
   /* Le da un aspecto "apagado" al mapa base */
   .leaflet-tile-pane { filter: grayscale(35%) contrast(95%) brightness(1.03); }
 
@@ -1269,9 +1312,12 @@
   body.modo-oscuro #btnUbicacion,
   body.modo-oscuro #avisoColocar { background: #262a31; color: #e8eaed; }
 
+  /* El fondo y el color de texto de #cajaFiltroActivo ya NO se tocan
+     aquí: se fijan por JS según el tipo de negocio (ver
+     colorCajaFiltroActivo en app.js) para que se vean igual sin
+     importar si el modo oscuro está activo. Solo el borde cambia,
+     para que siga siendo visible sobre el mapa oscurecido. */
   body.modo-oscuro #cajaFiltroActivo {
-    background: linear-gradient(180deg, #262a31, #1c1f24);
-    color: #e8eaed;
     border-color: #e8eaed;
   }
 

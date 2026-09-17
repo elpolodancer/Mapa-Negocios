@@ -13,6 +13,28 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 L.control.zoom({ position: 'topright' }).addTo(map);
 
 /* =========================================================
+   PANTALLA DE BIENVENIDA
+   -----------------------------------------------------------
+   Aparece encima de todo al cargar la página. Al presionar
+   "Ver Mapa" se oculta, el mapa se centra en la Plaza de Armas
+   de Morelia y se deja activo el filtro de "Plazas" (que ya es
+   el filtro por defecto, pero se vuelve a aplicar aquí por si
+   el usuario lo había quitado en una visita anterior — aunque el
+   filtro no se guarda entre visitas, esto asegura el
+   comportamiento pedido de "mostrar Plazas" cada vez que se
+   presiona el botón).
+   ========================================================= */
+const PLAZA_DE_ARMAS_MORELIA = [19.7024222, -101.1936501];
+const pantallaBienvenida = document.getElementById('pantallaBienvenida');
+const btnVerMapa = document.getElementById('btnVerMapa');
+
+btnVerMapa.addEventListener('click', () => {
+  pantallaBienvenida.classList.add('oculta');
+  map.setView(PLAZA_DE_ARMAS_MORELIA, 17);
+  aplicarFiltroCategoria('Plazas');
+});
+
+/* =========================================================
    MI UBICACIÓN
    -----------------------------------------------------------
    Al presionar el botón, el navegador muestra su propio aviso
@@ -407,13 +429,6 @@ function obtenerLinksNegocio(n) {
   return links;
 }
 
-function popupHtml(n) {
-  return `<div class="popup-negocio">
-         <strong>${n.nombre}</strong>
-         <br><button type="button" class="btn-ver-negocio" onclick="abrirPanelNegocio('${n.id}')">Ver negocio</button>
-       </div>`;
-}
-
 function limpiarMarcadoresDelMapa() {
   Object.values(referencias).forEach(ref => {
     if (ref.marker) map.removeLayer(ref.marker);
@@ -442,7 +457,10 @@ function dibujarNegociosEnMapa() {
   limpiarMarcadoresDelMapa();
   negociosVisibles().forEach(n => {
     const marker = L.marker([n.lat, n.lng], { icon: crearIcono(n) }).addTo(map);
-    marker.bindPopup(popupHtml(n));
+    // Antes esto abría un popup de Leaflet con un botón "Ver negocio"
+    // que, al presionarlo, abría este mismo panel — un paso de más.
+    // Ahora el clic en el marcador abre el panel directamente.
+    marker.on('click', () => abrirPanelNegocio(n.id));
     referencias[n.id] = { marker };
   });
 }
@@ -474,8 +492,7 @@ function renderListaMarcadores() {
     btnUbicar.textContent = 'Ubicar';
     btnUbicar.addEventListener('click', () => {
       map.flyTo([n.lat, n.lng], 17);
-      const ref = referencias[n.id];
-      if (ref && ref.marker) ref.marker.openPopup();
+      abrirPanelNegocio(n.id);
       sidebar.classList.remove('abierto');
     });
 
@@ -582,10 +599,51 @@ function renderFiltroTipoNegocio() {
 // filtro de tipo de negocio activo en este momento. Si no hay
 // ninguno activo (se quitó con "✖️ Quitar filtro" o "🗺️ Mostrar
 // todo"), muestra un texto genérico en vez de dejarlo vacío.
+const cajaFiltroActivo = document.getElementById('cajaFiltroActivo');
 const textoFiltroActivo = document.getElementById('textoFiltroActivo');
+
+// Color de fondo (dentro del borde negro) según el TIPO de negocio,
+// para reconocerlo de un vistazo: verde para plazas/parques, café
+// para cafeterías, blanco para hospitales, azul para gobierno/policía,
+// rojo para bomberos/carnicerías/ferreterías, azul claro para
+// papelerías/veterinarias, amarillo para cerrajerías, etc. Se busca
+// por coincidencia de palabra dentro del nombre de la categoría (sin
+// acentos ni mayúsculas), así que "Cafetería", "Cafeterías y postres"
+// o "Café internet" caen todas en el mismo color. Si la categoría no
+// coincide con ningún grupo, se usa el café claro de siempre.
+const COLOR_CAJA_FILTRO_POR_DEFECTO = 'linear-gradient(180deg, #f2e1c7, #e6cda3)';
+const COLORES_CAJA_FILTRO_POR_TIPO = [
+  { patrones: ['plaza', 'jardin', 'parque'], color: 'linear-gradient(180deg, #c9edbf, #a9dd9c)' },
+  { patrones: ['cafe', 'cafeteria'], color: COLOR_CAJA_FILTRO_POR_DEFECTO },
+  { patrones: ['hospital', 'clinica', 'consultorio', 'farmacia', 'salud'], color: 'linear-gradient(180deg, #ffffff, #f1f1f1)' },
+  { patrones: ['policia', 'gobierno', 'ayuntamiento', 'municipio'], color: 'linear-gradient(180deg, #b8d4f5, #9bc0ec)' },
+  { patrones: ['bombero'], color: 'linear-gradient(180deg, #f7b3b3, #f19999)' },
+  { patrones: ['carniceria'], color: 'linear-gradient(180deg, #f2b0b0, #e99a9a)' },
+  { patrones: ['papeleria'], color: 'linear-gradient(180deg, #bfe0f5, #9fcdee)' },
+  { patrones: ['ferreteria'], color: 'linear-gradient(180deg, #f0a8a8, #e88f8f)' },
+  { patrones: ['veterinaria'], color: 'linear-gradient(180deg, #bfe0f5, #9fcdee)' },
+  { patrones: ['cerrajeria'], color: 'linear-gradient(180deg, #f7e28a, #f0d566)' },
+];
+
+function colorCajaFiltroActivo(categoria) {
+  if (!categoria) return COLOR_CAJA_FILTRO_POR_DEFECTO;
+  const texto = normalizarTexto(categoria);
+  const grupo = COLORES_CAJA_FILTRO_POR_TIPO.find(g => g.patrones.some(p => texto.includes(p)));
+  return grupo ? grupo.color : COLOR_CAJA_FILTRO_POR_DEFECTO;
+}
+
 function actualizarCajaFiltroActivo() {
   if (!textoFiltroActivo) return;
   textoFiltroActivo.textContent = filtroCategoriaActual || 'Todos los lugares';
+  // El color se pone en línea (no por clase CSS) para que, sin
+  // importar si el modo oscuro está activo o no, este recuadro
+  // siempre se vea con el color de su tipo de negocio: un estilo en
+  // línea siempre gana sobre las reglas "body.modo-oscuro
+  // #cajaFiltroActivo" del CSS.
+  if (cajaFiltroActivo) {
+    cajaFiltroActivo.style.background = colorCajaFiltroActivo(filtroCategoriaActual);
+    cajaFiltroActivo.style.color = '#2b2f36';
+  }
 }
 
 function aplicarFiltroCategoria(categoria) {
@@ -1203,8 +1261,7 @@ function renderResultadosBuscar() {
       </span>`;
     boton.addEventListener('click', () => {
       map.flyTo([n.lat, n.lng], 17);
-      const ref = referencias[n.id];
-      if (ref && ref.marker) ref.marker.openPopup();
+      abrirPanelNegocio(n.id);
       sidebar.classList.remove('abierto');
     });
     resultadosBuscar.appendChild(boton);
