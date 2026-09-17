@@ -525,9 +525,19 @@ function dibujarNegociosEnMapa() {
   });
 }
 
+// ---------- Marcador predeterminado al abrir la página ----------
+// Se guarda en localStorage (preferencia de este navegador, igual
+// que el modo oscuro o el color de acento): al recargar la página,
+// en cuanto los negocios terminan de cargarse, el mapa vuela hasta
+// este marcador y abre su panel automáticamente (ver
+// abrirMarcadorPredeterminadoSiExiste, usada en
+// cargarNegociosDesdeSheet).
+const CLAVE_MARCADOR_PREDETERMINADO = 'mapaMarcadorPredeterminado';
+
 function renderListaMarcadores() {
   listaMarcadores.innerHTML = '';
   const visibles = negociosVisibles();
+  const idPredeterminado = localStorage.getItem(CLAVE_MARCADOR_PREDETERMINADO);
 
   if (visibles.length === 0) {
     const vacio = document.createElement('div');
@@ -543,6 +553,23 @@ function renderListaMarcadores() {
     const fila = document.createElement('div');
     fila.className = 'marcador-casilla';
 
+    const esPredeterminado = n.id === idPredeterminado;
+    const btnPredeterminado = document.createElement('button');
+    btnPredeterminado.type = 'button';
+    btnPredeterminado.className = 'btn-predeterminado' + (esPredeterminado ? ' activo' : '');
+    btnPredeterminado.title = esPredeterminado
+      ? 'Quitarlo como marcador predeterminado'
+      : 'Elegir como marcador predeterminado al abrir la página';
+    btnPredeterminado.textContent = esPredeterminado ? '⭐' : '☆';
+    btnPredeterminado.addEventListener('click', () => {
+      if (localStorage.getItem(CLAVE_MARCADOR_PREDETERMINADO) === n.id) {
+        localStorage.removeItem(CLAVE_MARCADOR_PREDETERMINADO);
+      } else {
+        localStorage.setItem(CLAVE_MARCADOR_PREDETERMINADO, n.id);
+      }
+      renderListaMarcadores();
+    });
+
     const nombreSpan = document.createElement('div');
     nombreSpan.className = 'nombre-btn';
     nombreSpan.textContent = n.nombre;
@@ -556,10 +583,27 @@ function renderListaMarcadores() {
       sidebar.classList.remove('abierto');
     });
 
+    fila.appendChild(btnPredeterminado);
     fila.appendChild(nombreSpan);
     fila.appendChild(btnUbicar);
     listaMarcadores.appendChild(fila);
   });
+}
+
+// Se llama una sola vez, justo después de la primera carga de
+// negocios (ver "primeraCargaDeNegocios" en cargarNegociosDesdeSheet).
+// Si hay un marcador predeterminado guardado y todavía existe en la
+// hoja, quita cualquier filtro de categoría (para que no quede
+// escondido) y abre el mapa mostrándolo.
+function abrirMarcadorPredeterminadoSiExiste() {
+  const idPredeterminado = localStorage.getItem(CLAVE_MARCADOR_PREDETERMINADO);
+  if (!idPredeterminado) return;
+  const n = negocios.find(x => x.id === idPredeterminado);
+  if (!n) return; // el marcador guardado ya no existe (se borró o cambiaron las filas de la hoja)
+
+  aplicarFiltroCategoria(null);
+  map.flyTo([n.lat, n.lng], 17);
+  abrirPanelNegocio(n.id);
 }
 
 async function cargarUnaHoja(hoja) {
@@ -571,6 +615,12 @@ async function cargarUnaHoja(hoja) {
   const texto = await resp.text();
   return parseCSV(texto, hoja.hoja);
 }
+
+// Solo la primerísima vez que se cargan los negocios (al abrir la
+// página) se debe volar hacia el marcador predeterminado; en cargas
+// posteriores (🔄 Actualizar desde Sheets, guardar un negocio, etc.)
+// no queremos que el mapa salte de vuelta a él cada vez.
+let primeraCargaDeNegocios = true;
 
 async function cargarNegociosDesdeSheet() {
   estadoCarga.textContent = 'Cargando negocios desde las hojas de Google Sheets…';
@@ -594,6 +644,11 @@ async function cargarNegociosDesdeSheet() {
     renderResultadosBuscar();
     renderFiltroTipoNegocio();
     actualizarCajaFiltroActivo();
+
+    if (primeraCargaDeNegocios) {
+      primeraCargaDeNegocios = false;
+      abrirMarcadorPredeterminadoSiExiste();
+    }
 
     if (hojasConError.length === 0) {
       estadoCarga.textContent = `${negocios.length} lugar(es) cargado(s) de todas las hojas.`;
@@ -749,6 +804,128 @@ btnQuitarFiltroTipoNegocio.addEventListener('click', () => {
   inputFiltroTipoNegocio.value = '';
   aplicarFiltroCategoria(null);
 });
+
+/* =========================================================
+   SERVICIOS MÁS ÚTILES (botón ⭐ en la esquina superior izquierda)
+   -----------------------------------------------------------
+   Panel independiente con accesos rápidos a categorías elegidas a
+   mano. Cualquiera puede tocar un filtro ya creado para aplicarlo
+   al mapa (usa el mismo filtroCategoriaActual/aplicarFiltroCategoria
+   que el resto de la página), pero agregarlos o quitarlos solo lo
+   puede hacer una cuenta autorizada: firebase-init.js muestra u
+   oculta #btnAnadirServicioUtil (misma lista CORREOS_ADMIN que ya
+   protege "➕ Nuevo marcador") y expone window.esAdminMapa para que
+   el botón "✕" de cada chip también aparezca solo para esa cuenta.
+
+   OJO — estos filtros se guardan en localStorage, es decir, EN ESTE
+   NAVEGADOR únicamente (igual que el modo oscuro o el marcador
+   predeterminado). Si los agregas desde tu celular, no van a
+   aparecer automáticamente en la pantalla de otra persona que abra
+   la página desde su propio dispositivo. Si más adelante quieres
+   que se vean igual para todos los visitantes, habría que guardarlos
+   en tu Google Sheet (como ya se hace con los negocios) y leerlos
+   desde ahí — se puede agregar como siguiente paso.
+   ========================================================= */
+const btnServiciosUtiles = document.getElementById('btnServiciosUtiles');
+const panelServiciosUtiles = document.getElementById('panelServiciosUtiles');
+const listaServiciosUtiles = document.getElementById('listaServiciosUtiles');
+const btnAnadirServicioUtil = document.getElementById('btnAnadirServicioUtil');
+const CLAVE_SERVICIOS_UTILES = 'mapaServiciosUtiles';
+
+function obtenerServiciosUtiles() {
+  try {
+    return JSON.parse(localStorage.getItem(CLAVE_SERVICIOS_UTILES)) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function guardarServiciosUtiles(lista) {
+  localStorage.setItem(CLAVE_SERVICIOS_UTILES, JSON.stringify(lista));
+}
+
+function renderListaServiciosUtiles() {
+  const servicios = obtenerServiciosUtiles();
+  const esAdmin = !!window.esAdminMapa;
+
+  if (servicios.length === 0) {
+    listaServiciosUtiles.innerHTML = esAdmin
+      ? '<div class="vacio">Aún no agregas ningún filtro. Usa "➕ Agregar filtro" aquí abajo.</div>'
+      : '<div class="vacio">Todavía no hay filtros aquí.</div>';
+    return;
+  }
+
+  listaServiciosUtiles.innerHTML = '';
+  servicios.forEach(serv => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip-servicio-util' + (serv.categoria === filtroCategoriaActual ? ' activa' : '');
+
+    const etiqueta = document.createElement('span');
+    etiqueta.textContent = (serv.emoji ? serv.emoji + ' ' : '') + serv.nombre;
+    chip.appendChild(etiqueta);
+
+    if (esAdmin) {
+      const btnQuitar = document.createElement('button');
+      btnQuitar.type = 'button';
+      btnQuitar.className = 'quitar-servicio-util';
+      btnQuitar.title = 'Quitar este filtro';
+      btnQuitar.textContent = '✕';
+      btnQuitar.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!confirm(`¿Quitar el filtro "${serv.nombre}"?`)) return;
+        guardarServiciosUtiles(obtenerServiciosUtiles().filter(s => s.id !== serv.id));
+        renderListaServiciosUtiles();
+      });
+      chip.appendChild(btnQuitar);
+    }
+
+    chip.addEventListener('click', () => {
+      aplicarFiltroCategoria(filtroCategoriaActual === serv.categoria ? null : serv.categoria);
+      renderListaServiciosUtiles();
+    });
+
+    listaServiciosUtiles.appendChild(chip);
+  });
+}
+
+btnServiciosUtiles.addEventListener('click', () => {
+  panelServiciosUtiles.classList.toggle('abierto');
+  if (panelServiciosUtiles.classList.contains('abierto')) renderListaServiciosUtiles();
+});
+
+document.addEventListener('click', (e) => {
+  if (!panelServiciosUtiles.classList.contains('abierto')) return;
+  if (panelServiciosUtiles.contains(e.target) || e.target === btnServiciosUtiles) return;
+  panelServiciosUtiles.classList.remove('abierto');
+});
+
+// Solo visible para cuentas autorizadas (ver arriba). Pide los datos
+// del filtro con prompts sencillos, sin necesidad de otro modal.
+btnAnadirServicioUtil.addEventListener('click', () => {
+  const nombre = prompt('Nombre del filtro (ejemplo: "Farmacias 24 horas"):');
+  if (!nombre || !nombre.trim()) return;
+
+  const categoria = prompt('¿Qué categoría de negocio debe mostrar?\nDebe escribirse igual que en tu hoja (ejemplo: "Farmacia").');
+  if (!categoria || !categoria.trim()) return;
+
+  const emoji = prompt('Emoji para el filtro (opcional, puedes dejarlo vacío):', '⭐');
+
+  const servicios = obtenerServiciosUtiles();
+  servicios.push({
+    id: 'serv-' + Date.now(),
+    nombre: nombre.trim(),
+    categoria: categoria.trim(),
+    emoji: (emoji || '').trim()
+  });
+  guardarServiciosUtiles(servicios);
+  renderListaServiciosUtiles();
+});
+
+// firebase-init.js dispara este evento cada vez que cambia si la
+// sesión activa es o no una cuenta autorizada, para que los chips ya
+// dibujados muestren u oculten de inmediato el botón "✕" de borrar.
+document.addEventListener('cambioAdminMapa', renderListaServiciosUtiles);
 
 /* =========================================================
    PANEL "VER NEGOCIO" (submenú abierto desde el popup del mapa)
@@ -1385,6 +1562,17 @@ const avisoColocar = document.getElementById('avisoColocar');
 const estadoCarga = document.getElementById('estadoCarga');
 
 btnMenu.addEventListener('click', () => sidebar.classList.toggle('abierto'));
+
+// Mantiene una clase en <body> sincronizada con el estado del
+// sidebar (abierto/cerrado), sin importar desde qué botón se abrió
+// o se cerró (☰, "Ubicar", cerrar sesión, etc.). Así, por ejemplo,
+// #btnServiciosUtiles puede desplazarse por CSS con solo revisar
+// "body.sidebar-abierto", en vez de tener que repetir ese cambio en
+// cada lugar del código que abre o cierra el sidebar.
+const observadorSidebar = new MutationObserver(() => {
+  document.body.classList.toggle('sidebar-abierto', sidebar.classList.contains('abierto'));
+});
+observadorSidebar.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
 
 /* =========================================================
    COMPARTIR (botón circular + QR)

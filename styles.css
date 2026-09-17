@@ -264,6 +264,22 @@
     cursor: pointer;
     white-space: nowrap;
   }
+  .nota-marcador-predeterminado {
+    font-size: 12px;
+    color: var(--color-texto-suave);
+    padding: 2px 18px 8px 34px;
+    line-height: 1.35;
+  }
+  .btn-predeterminado {
+    border: none;
+    background: none;
+    color: #c7c7c7;
+    font-size: 17px;
+    line-height: 1;
+    padding: 4px 6px;
+    cursor: pointer;
+  }
+  .btn-predeterminado.activo { color: #f0b400; }
 
   .btn-anadir {
     margin: 8px 18px 6px 18px;
@@ -1097,6 +1113,114 @@
   }
   #btnCompartir:active { background: #f1f1f1; }
 
+  /* ---------- Botón + panel: Servicios más útiles ----------
+     Botón en la esquina superior izquierda, justo debajo de
+     #btnMenu (que mide 48px + 16px de margen = 64px, dejando 8px
+     de aire antes de este botón). Tiene transición de posición
+     para poder "desplazarse" suavemente cuando se abre el menú
+     lateral (ver reglas "body.sidebar-abierto" más abajo). */
+  #btnServiciosUtiles {
+    position: absolute;
+    top: 72px; left: 16px;
+    z-index: 950;
+    background: #fff3d6;
+    border: none;
+    border-radius: 22px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #7a5b00;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: left .25s ease, top .25s ease;
+  }
+  #btnServiciosUtiles:active { background: #ffe9b3; }
+  #btnServiciosUtiles.activo {
+    box-shadow: 0 0 0 2px var(--color-acento), 0 2px 6px rgba(0,0,0,.3);
+  }
+
+  /* Cuando el menú lateral está abierto, el botón se desplaza para
+     no quedar tapado por él, terminando a la altura del recuadro
+     "filtro activo" y cerca de él. min() imita el mismo límite de
+     85vw que usa #sidebar, para que en pantallas angostas el botón
+     quede justo pasando el borde de la barra lateral. */
+  body.sidebar-abierto #btnServiciosUtiles {
+    top: 14px;
+    left: min(316px, 88vw);
+  }
+
+  #panelServiciosUtiles {
+    position: absolute;
+    top: 128px; left: 16px;
+    z-index: 950;
+    width: 250px;
+    max-width: 80vw;
+    max-height: 55vh;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.3);
+    padding: 12px;
+    display: none;
+  }
+  #panelServiciosUtiles.abierto { display: block; }
+  .titulo-panel-servicios {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-texto-suave);
+    margin-bottom: 8px;
+  }
+  #listaServiciosUtiles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  #listaServiciosUtiles .vacio {
+    font-size: 13px;
+    color: var(--color-texto-suave);
+    padding: 4px 2px;
+  }
+  .chip-servicio-util {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    border-radius: 14px;
+    padding: 6px 12px;
+    background: #eee;
+    color: #333;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .chip-servicio-util.activa { background: var(--color-acento); color: #fff; }
+  .chip-servicio-util .quitar-servicio-util {
+    border: none;
+    background: rgba(0,0,0,.12);
+    color: inherit;
+    border-radius: 50%;
+    width: 16px; height: 16px;
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  /* Oculto por defecto: solo se muestra por JS (firebase-init.js)
+     cuando la sesión activa es una de las cuentas autorizadas —
+     mismo mecanismo que #btnNuevoMarcador. */
+  #btnAnadirServicioUtil {
+    display: none;
+    width: 100%;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    background: var(--color-acento);
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
   /* ---------- Botón + panel: filtrar por tipo de negocio ----------
      Se ubica a la izquierda del botón de compartir (72px + 48px de
      ancho + 8px de separación = 128px desde el borde derecho). */
@@ -1106,14 +1230,14 @@
     z-index: 1000;
     width: 192px; height: 48px;
     border-radius: 24px;
-    background: #fff;
+    background: #d6ebfd;
     border: none;
     box-shadow: 0 2px 6px rgba(0,0,0,.3);
     font-size: 19px;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
   }
-  #btnFiltroTipoNegocio:active { background: #f1f1f1; }
+  #btnFiltroTipoNegocio:active { background: #c2e0fb; }
   #btnFiltroTipoNegocio.activo {
     box-shadow: 0 0 0 2px var(--color-acento), 0 2px 6px rgba(0,0,0,.3);
   }
@@ -1141,15 +1265,26 @@
     font-size: 14px;
     margin-bottom: 8px;
   }
-  #listaFiltroTipoNegocio { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  #listaFiltroTipoNegocio {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+  }
   .chip-tipo-negocio {
     border: none;
-    border-radius: 14px;
-    padding: 6px 12px;
+    border-radius: 3px; /* antes 14px: ~80% menos redondeado */
+    padding: 7.5px 15px; /* antes 6px 12px: 25% más grande */
     background: #eee;
     color: #333;
-    font-size: 13px;
+    font-size: 16px; /* antes 13px: 25% más grande */
+    line-height: 1.25;
     cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    white-space: normal;
+    word-break: break-word;
   }
   .chip-tipo-negocio.activa { background: var(--color-acento); color: #fff; }
   #listaFiltroTipoNegocio .vacio { font-size: 13px; color: var(--color-texto-suave); padding: 4px 2px; }
@@ -1451,9 +1586,19 @@
   body.modo-oscuro #btnMenu,
   body.modo-oscuro #btnCuenta,
   body.modo-oscuro #btnCompartir,
-  body.modo-oscuro #btnFiltroTipoNegocio,
   body.modo-oscuro #btnUbicacion,
   body.modo-oscuro #avisoColocar { background: #262a31; color: #e8eaed; }
+
+  body.modo-oscuro #btnFiltroTipoNegocio { background: #2a3b52; color: #e8eaed; }
+  body.modo-oscuro #btnFiltroTipoNegocio:active { background: #33455e; }
+
+  body.modo-oscuro #btnServiciosUtiles { background: #4a3d1c; color: #f3dfa0; }
+  body.modo-oscuro #btnServiciosUtiles:active { background: #5c4b23; }
+  body.modo-oscuro #panelServiciosUtiles { background: #1c1f24; color: #e8eaed; }
+  body.modo-oscuro .titulo-panel-servicios { color: #9aa0a6; }
+  body.modo-oscuro .chip-servicio-util { background: #262a31; color: #e8eaed; }
+  body.modo-oscuro #listaServiciosUtiles .vacio { color: #9aa0a6; }
+  body.modo-oscuro .nota-marcador-predeterminado { color: #9aa0a6; }
 
   /* El fondo y el color de texto de #cajaFiltroActivo ya NO se tocan
      aquí: se fijan por JS según el tipo de negocio (ver

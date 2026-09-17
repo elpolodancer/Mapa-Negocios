@@ -49,6 +49,22 @@
 <button id="btnMenu" title="Menú">☰</button>
 <button id="btnCuenta" title="Iniciar sesión con Google">👤</button>
 
+<!-- ---------- Botón + panel: Servicios más útiles ----------
+     Se ubica en la esquina superior izquierda, debajo del botón
+     de menú (☰). Si el menú lateral se abre, se desplaza hacia la
+     derecha para no quedar tapado, terminando cerca del recuadro
+     de "filtro activo" (ver reglas "body.sidebar-abierto" en
+     styles.css). Los filtros que aparecen dentro solo los puede
+     agregar o quitar una cuenta autorizada (ver CORREOS_ADMIN en
+     firebase-init.js); cualquier visitante puede tocarlos para
+     filtrar el mapa. -->
+<button id="btnServiciosUtiles" title="Servicios más útiles">⭐ Servicios más útiles</button>
+<div id="panelServiciosUtiles">
+  <div class="titulo-panel-servicios">⭐ Servicios más útiles</div>
+  <div id="listaServiciosUtiles"><!-- chips generados por JS --></div>
+  <button type="button" id="btnAnadirServicioUtil">➕ Agregar filtro</button>
+</div>
+
 <button id="btnFiltroTipoNegocio" title="Filtrar por tipo de negocio">🔍</button>
 <div id="panelFiltroTipoNegocio">
   <input type="text" id="inputFiltroTipoNegocio" placeholder="Buscar tipo de negocio…">
@@ -96,6 +112,7 @@
     <div class="titulo-seccion-marcadores">🎨 Categorías y colores</div>
     <div id="listaCategoriasMarcadores"><!-- filas generadas por JS --></div>
     <div class="titulo-seccion-marcadores">📋 Lista de marcadores</div>
+    <div class="nota-marcador-predeterminado">⭐ Toca la estrella de un marcador para que sea el que se muestre al abrir la página. Vuelve a tocarla para quitarlo.</div>
     <div id="listaMarcadores"><!-- casillas generadas por JS --></div>
   </div>
 

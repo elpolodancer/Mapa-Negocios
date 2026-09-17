@@ -72,12 +72,19 @@
   function actualizarVisibilidadBotonesAdmin(usuario) {
     const correo = (usuario && usuario.email || '').toLowerCase();
     const esAdmin = CORREOS_ADMIN.includes(correo);
-    const ids = ['btnNuevoMarcador', 'btnConfigNegocio', 'filaBotonAdminNegocio', 'filaBotonAdminNegocioInactivo'];
+    const ids = ['btnNuevoMarcador', 'btnConfigNegocio', 'filaBotonAdminNegocio', 'filaBotonAdminNegocioInactivo', 'btnAnadirServicioUtil'];
     ids.forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
       el.style.display = esAdmin ? 'flex' : 'none';
     });
+
+    // Se expone globalmente para que app.js (el botón "✕" de cada
+    // chip en el panel "⭐ Servicios más útiles") sepa si la sesión
+    // activa es una cuenta autorizada, y se avisa con un evento para
+    // que los chips ya dibujados se vuelvan a pintar de inmediato.
+    window.esAdminMapa = esAdmin;
+    document.dispatchEvent(new CustomEvent('cambioAdminMapa', { detail: { esAdmin } }));
   }
 
   async function iniciarSesionGoogle() {
