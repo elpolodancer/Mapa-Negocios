@@ -23,6 +23,11 @@
 <!-- Generador de código QR (sin API externa, todo se genera en el navegador) -->
 <script src="https://unpkg.com/qrcodejs@1.0.0/qrcode.min.js"></script>
 
+<!-- Tipografías elegantes para la pantalla de bienvenida -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="styles.css">
 
 </head>
@@ -30,9 +35,12 @@
 
 <!-- ---------- Pantalla de bienvenida (aparece al cargar la página) ---------- -->
 <div id="pantallaBienvenida">
+  <div class="bienvenida-handle" aria-hidden="true"></div>
   <div class="bienvenida-contenido">
+    <h1 id="tituloBienvenida">Mapa Turístico de Morelia</h1>
     <p id="textoBienvenida">Les Damos la Bienvenida al Mapa Turístico de Morelia Hecho por ElPolo, Aqui puedes encontrar desde la Tienda mas Cercana, Rutas de Todos los Transportes y Sobre todo Datos Para Cureosear o Turistear, Filtra por Cafeteria, Hoteles, Tours Nocturnos, Eventos y Mucho Mas</p>
     <button type="button" id="btnVerMapa">Ver Mapa</button>
+    <p id="notaConfigBienvenida">Si quieres evitar que salga esta pantalla al entrar, puedes cambiarlo en la configuración.</p>
   </div>
 </div>
 
@@ -233,6 +241,15 @@
         <div class="ajustes-fila-color">
           <input type="color" id="inpColorAcento" value="#1a73e8">
           <span style="font-size:12px; color:var(--color-texto-suave);">Se aplica solo en tu navegador</span>
+        </div>
+      </div>
+
+      <div class="grupo-campos">
+        <div class="grupo-titulo">🌸 Pantalla de bienvenida</div>
+        <label>¿Mostrarla cada vez que entras o recargas la página?</label>
+        <div class="ajustes-fila-modo">
+          <button type="button" id="btnBienvenidaSi">✅ Mostrarla</button>
+          <button type="button" id="btnBienvenidaNo">🚫 No mostrarla</button>
         </div>
       </div>
 

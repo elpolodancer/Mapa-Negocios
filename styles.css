@@ -11,36 +11,79 @@
   body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--color-fondo); }
   #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; }
 
-  /* ---------- Pantalla de bienvenida (rosa pastel, primera pantalla) ---------- */
+  /* ---------- Pantalla de bienvenida (rosa pastel, primera pantalla) ----------
+     Fondo rosa pastel de pantalla completa. Se puede cerrar tocando
+     "Ver Mapa" o, en móviles, deslizándola hacia arriba (ver el
+     "handle" y las reglas de #pantallaBienvenida.arrastrando más
+     abajo, y el gesto táctil en app.js). */
   #pantallaBienvenida {
     position: fixed;
     inset: 0;
     z-index: 5000;
-    background: #f9d6e3;
+    background: radial-gradient(ellipse at 50% 20%, #fce3ec, #f7c9dc 70%);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 32px;
     text-align: center;
+    touch-action: none;
+    transition: transform .3s cubic-bezier(.4,0,.2,1), opacity .25s ease;
   }
+  #pantallaBienvenida.arrastrando { transition: none; }
+  #pantallaBienvenida.oculta { display: none; }
+
+  /* Barrita de "jalar" arriba de todo, para sugerir en móviles que la
+     pantalla se puede deslizar hacia arriba para cerrarla. Solo se ve
+     en pantallas angostas (ver media query más abajo). */
+  .bienvenida-handle {
+    display: none;
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 44px;
+    height: 5px;
+    border-radius: 3px;
+    background: rgba(107,44,70,.28);
+  }
+
   .bienvenida-contenido {
-    max-width: 520px;
+    max-width: 560px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 26px;
+    gap: 24px;
   }
-  #textoBienvenida {
-    font-size: 19px;
-    line-height: 1.5;
-    font-weight: 600;
-    color: #6b2c46;
-    text-shadow: 0 1px 0 rgba(255,255,255,.4);
-  }
-  #btnVerMapa {
-    padding: 14px 42px;
-    font-size: 17px;
+
+  /* Título grande, 3 veces el tamaño del texto de bienvenida (19px x 3
+     ≈ 57px), en una tipografía serif elegante. clamp() lo reduce en
+     pantallas angostas para que no se desborde. */
+  #tituloBienvenida {
+    font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    font-size: clamp(34px, 8vw, 57px);
     font-weight: 700;
+    line-height: 1.15;
+    color: #7a2748;
+    letter-spacing: .01em;
+    text-shadow: 0 2px 0 rgba(255,255,255,.35);
+  }
+
+  #textoBienvenida {
+    font-family: 'Poppins', -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.65;
+    font-weight: 400;
+    letter-spacing: .01em;
+    color: #6b2c46;
+  }
+
+  #btnVerMapa {
+    font-family: 'Poppins', -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    padding: 14px 46px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: .03em;
     color: #fff;
     background: linear-gradient(180deg, #ff8fb3, #f6608f);
     border: none;
@@ -52,7 +95,22 @@
   #btnVerMapa:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(199,60,110,.55); }
   #btnVerMapa:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(199,60,110,.45); }
 
-  #pantallaBienvenida.oculta { display: none; }
+  /* Texto pequeño hasta abajo, avisando que la pantalla se puede
+     desactivar desde la configuración. */
+  #notaConfigBienvenida {
+    font-family: 'Poppins', -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    font-size: 11.5px;
+    font-weight: 300;
+    font-style: italic;
+    letter-spacing: .01em;
+    color: rgba(107,44,70,.65);
+    margin-top: 4px;
+  }
+
+  @media (max-width: 700px) {
+    .bienvenida-handle { display: block; }
+    #pantallaBienvenida { padding-top: 56px; }
+  }
 
   /* Le da un aspecto "apagado" al mapa base */
   .leaflet-tile-pane { filter: grayscale(35%) contrast(95%) brightness(1.03); }

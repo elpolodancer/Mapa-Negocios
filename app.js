@@ -15,24 +15,71 @@ L.control.zoom({ position: 'topright' }).addTo(map);
 /* =========================================================
    PANTALLA DE BIENVENIDA
    -----------------------------------------------------------
-   Aparece encima de todo al cargar la página. Al presionar
-   "Ver Mapa" se oculta, el mapa se centra en la Plaza de Armas
-   de Morelia y se deja activo el filtro de "Plazas" (que ya es
-   el filtro por defecto, pero se vuelve a aplicar aquí por si
-   el usuario lo había quitado en una visita anterior — aunque el
-   filtro no se guarda entre visitas, esto asegura el
-   comportamiento pedido de "mostrar Plazas" cada vez que se
-   presiona el botón).
+   Aparece encima de todo al cargar la página (a menos que el
+   usuario haya elegido "No mostrarla" desde Ajustes de cuenta →
+   Pantalla de bienvenida; esa preferencia se guarda en
+   localStorage, por navegador/dispositivo). Se puede cerrar de
+   dos formas: presionando "Ver Mapa", o en pantallas de celular,
+   deslizándola hacia arriba con el dedo. Al cerrarse, el mapa se
+   centra en la Plaza de Armas de Morelia y se deja activo el
+   filtro de "Plazas" (que ya es el filtro por defecto, pero se
+   vuelve a aplicar aquí por si el usuario lo había quitado en una
+   visita anterior — aunque el filtro no se guarda entre visitas,
+   esto asegura el comportamiento pedido de "mostrar Plazas" cada
+   vez que se cierra la bienvenida).
    ========================================================= */
 const PLAZA_DE_ARMAS_MORELIA = [19.7024222, -101.1936501];
 const pantallaBienvenida = document.getElementById('pantallaBienvenida');
 const btnVerMapa = document.getElementById('btnVerMapa');
+const CLAVE_MOSTRAR_BIENVENIDA = 'mapaMostrarBienvenida';
 
-btnVerMapa.addEventListener('click', () => {
+// Por defecto (si nunca se ha guardado nada) la pantalla SÍ se muestra.
+function debeMostrarBienvenida() {
+  return localStorage.getItem(CLAVE_MOSTRAR_BIENVENIDA) !== '0';
+}
+
+function cerrarBienvenidaYMostrarMapa() {
   pantallaBienvenida.classList.add('oculta');
   map.setView(PLAZA_DE_ARMAS_MORELIA, 17);
   aplicarFiltroCategoria('Plazas');
-});
+}
+
+btnVerMapa.addEventListener('click', cerrarBienvenidaYMostrarMapa);
+
+// ---- Deslizar hacia arriba para cerrarla (pensado para celulares) ----
+// Sigue el dedo mientras se desliza hacia arriba; si se suelta habiendo
+// recorrido más del umbral, se cierra la pantalla igual que con "Ver
+// Mapa". Si se suelta antes, vuelve a su lugar con una animación.
+let bienvenidaTocandoY = null;
+let bienvenidaDesplazamiento = 0;
+const UMBRAL_CIERRE_BIENVENIDA = 110; // píxeles hacia arriba para que cuente como "cerrar"
+
+pantallaBienvenida.addEventListener('touchstart', (e) => {
+  bienvenidaTocandoY = e.touches[0].clientY;
+  pantallaBienvenida.classList.add('arrastrando');
+}, { passive: true });
+
+pantallaBienvenida.addEventListener('touchmove', (e) => {
+  if (bienvenidaTocandoY === null) return;
+  const deltaY = e.touches[0].clientY - bienvenidaTocandoY;
+  bienvenidaDesplazamiento = Math.min(0, deltaY); // solo se permite deslizar hacia arriba
+  pantallaBienvenida.style.transform = `translateY(${bienvenidaDesplazamiento}px)`;
+  pantallaBienvenida.style.opacity = String(1 - Math.min(.6, Math.abs(bienvenidaDesplazamiento) / 400));
+}, { passive: true });
+
+function terminarArrastreBienvenida() {
+  pantallaBienvenida.classList.remove('arrastrando');
+  if (Math.abs(bienvenidaDesplazamiento) > UMBRAL_CIERRE_BIENVENIDA) {
+    cerrarBienvenidaYMostrarMapa();
+  }
+  pantallaBienvenida.style.transform = '';
+  pantallaBienvenida.style.opacity = '';
+  bienvenidaTocandoY = null;
+  bienvenidaDesplazamiento = 0;
+}
+
+pantallaBienvenida.addEventListener('touchend', terminarArrastreBienvenida);
+pantallaBienvenida.addEventListener('touchcancel', terminarArrastreBienvenida);
 
 /* =========================================================
    MI UBICACIÓN
@@ -2699,6 +2746,8 @@ const btnGuardarApodo = document.getElementById('btnGuardarApodo');
 const btnModoClaro = document.getElementById('btnModoClaro');
 const btnModoOscuro = document.getElementById('btnModoOscuro');
 const inpColorAcento = document.getElementById('inpColorAcento');
+const btnBienvenidaSi = document.getElementById('btnBienvenidaSi');
+const btnBienvenidaNo = document.getElementById('btnBienvenidaNo');
 const btnCerrarSesionAjustes = document.getElementById('btnCerrarSesionAjustes');
 const btnCerrarAjustesCuenta = document.getElementById('btnCerrarAjustesCuenta');
 
@@ -2719,15 +2768,28 @@ function aplicarColorAcento(color) {
   localStorage.setItem(CLAVE_COLOR_ACENTO, color);
 }
 
+// Preferencia de la pantalla de bienvenida (mostrarla o no al entrar
+// o recargar la página). CLAVE_MOSTRAR_BIENVENIDA y
+// debeMostrarBienvenida() ya están definidas arriba, junto con el
+// resto de la lógica de la pantalla de bienvenida.
+function aplicarPreferenciaBienvenida(mostrar) {
+  btnBienvenidaSi.classList.toggle('activo', mostrar);
+  btnBienvenidaNo.classList.toggle('activo', !mostrar);
+  localStorage.setItem(CLAVE_MOSTRAR_BIENVENIDA, mostrar ? '1' : '0');
+}
+
 // Aplica de inmediato las preferencias que ya estaban guardadas en
 // este navegador (funciona haya o no sesión iniciada).
 aplicarModoOscuro(localStorage.getItem(CLAVE_MODO_OSCURO) === '1');
 const colorAcentoGuardado = localStorage.getItem(CLAVE_COLOR_ACENTO);
 if (colorAcentoGuardado) aplicarColorAcento(colorAcentoGuardado);
+aplicarPreferenciaBienvenida(debeMostrarBienvenida());
 
 btnModoClaro.addEventListener('click', () => aplicarModoOscuro(false));
 btnModoOscuro.addEventListener('click', () => aplicarModoOscuro(true));
 inpColorAcento.addEventListener('input', (e) => aplicarColorAcento(e.target.value));
+btnBienvenidaSi.addEventListener('click', () => aplicarPreferenciaBienvenida(true));
+btnBienvenidaNo.addEventListener('click', () => aplicarPreferenciaBienvenida(false));
 
 btnCerrarAjustesCuenta.addEventListener('click', () => overlayAjustesCuenta.classList.remove('abierto'));
 overlayAjustesCuenta.addEventListener('click', (e) => {
@@ -2767,3 +2829,11 @@ btnCerrarSesionAjustes.addEventListener('click', () => {
    ========================================================= */
 actualizarCajaFiltroActivo();
 cargarNegociosDesdeSheet();
+
+// Si el usuario ya eligió "No mostrarla" en Ajustes de cuenta →
+// Pantalla de bienvenida, se salta directo al mapa (sin animación,
+// como si la pantalla no existiera).
+if (!debeMostrarBienvenida()) {
+  pantallaBienvenida.style.transition = 'none';
+  cerrarBienvenidaYMostrarMapa();
+}
