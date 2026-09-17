@@ -1,0 +1,1331 @@
+  :root {
+    --color-acento: #1a73e8;
+    --color-fondo: #e9edf1;
+    --color-fondo-panel: #f4f6f8;
+    --color-fondo-tarjeta: #fff;
+    --color-texto: #202124;
+    --color-texto-suave: #5f6368;
+    --color-borde: #e3e6ea;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--color-fondo); }
+  #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; }
+
+  /* Le da un aspecto "apagado" al mapa base */
+  .leaflet-tile-pane { filter: grayscale(35%) contrast(95%) brightness(1.03); }
+
+  .marker-gris {
+    background: #9aa0a6;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.4);
+  }
+
+  .marker-activo {
+    width: 38px; height: 38px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,.4);
+    border: 2px solid #fff;
+  }
+  .marker-activo span {
+    transform: rotate(45deg);
+    font-size: 18px;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+  }
+
+  .marker-previo {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: rgba(26,115,232,.25);
+    border: 3px dashed var(--color-acento);
+  }
+
+  .popup-negocio { text-align: center; font-size: 14px; }
+  .popup-negocio a {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 6px 14px;
+    background: var(--color-acento);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  .popup-negocio.inactivo p { color: #777; font-size: 12px; margin-top: 4px; }
+
+  /* ---------- Botón circular de menú ---------- */
+  #btnMenu {
+    position: absolute;
+    top: 16px; left: 16px;
+    z-index: 1000;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #btnMenu:active { background: #f1f1f1; }
+
+  /* ---------- Barra lateral ---------- */
+  #sidebar {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 300px;
+    max-width: 85vw;
+    background: #f4f6f8;
+    z-index: 999;
+    box-shadow: 2px 0 10px rgba(0,0,0,.25);
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    display: flex;
+    flex-direction: column;
+    padding-top: 72px;
+    overflow-y: auto;
+  }
+  #sidebar.abierto { transform: translateX(0); }
+
+  .sb-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 14px 18px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid #e3e6ea;
+    text-align: left;
+    font-size: 15px;
+    cursor: pointer;
+    color: #202124;
+  }
+  .sb-item:hover { background: #eaedf0; }
+
+  /* Oculto por defecto: solo se muestra por JS (firebase-init.js)
+     cuando la sesión activa es una de las cuentas autorizadas. */
+  #btnNuevoMarcador { display: none; }
+
+  /* Botón "Aviso de privacidad": se empuja hasta el fondo de la
+     barra lateral (gracias a que #sidebar es un flex column) y se
+     separa visualmente del resto de los botones con un margen y un
+     borde superior propio. */
+  .sb-item-pie {
+    margin-top: auto;
+    border-top: 1px solid #d7dbe0;
+    color: var(--color-texto-suave);
+    font-size: 13.5px;
+  }
+
+  #submenuMarcadores { display: none; background: #fafafa; }
+  #submenuMarcadores.abierto { display: block; }
+
+  .marcador-casilla {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px 10px 34px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+  }
+  .marcador-casilla .nombre-btn {
+    flex: 1;
+    text-align: left;
+    background: none;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px 0;
+    color: #202124;
+  }
+  .btn-ubicar {
+    border: none;
+    background: #e8f0fe;
+    color: var(--color-acento);
+    border-radius: 14px;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .btn-anadir {
+    margin: 8px 18px 6px 18px;
+    padding: 10px;
+    background: var(--color-acento);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .btn-secundario {
+    margin: 0 18px 14px 18px;
+    padding: 9px;
+    background: #eee;
+    color: #333;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  #avisoColocar {
+    position: absolute;
+    top: 16px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background: #202124;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    display: none;
+    text-align: center;
+  }
+
+  #listaMarcadores .vacio {
+    padding: 12px 18px;
+    font-size: 13px;
+    color: #888;
+    font-style: italic;
+  }
+
+  /* ---------- Submenú "Buscar" ---------- */
+  #submenuBuscar { display: none; background: #fafafa; }
+  #submenuBuscar.abierto { display: block; }
+
+  #buscarWrap { padding: 10px 18px; }
+  #inputBuscar {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+
+  #categoriasBuscar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 18px 10px;
+  }
+  .chip-categoria {
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #333;
+    border-radius: 16px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .chip-categoria:hover { background: #f1f3f4; }
+  .chip-categoria.activa {
+    background: var(--color-acento);
+    color: #fff;
+    border-color: var(--color-acento);
+  }
+
+  #resultadosBuscar .vacio {
+    padding: 12px 18px;
+    font-size: 13px;
+    color: #888;
+    font-style: italic;
+  }
+  .resultado-casilla {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px 10px 34px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+    background: none;
+    border-left: none; border-right: none; border-top: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+  }
+  .resultado-casilla:hover { background: #f1f3f4; }
+  .resultado-casilla .resultado-emoji { font-size: 16px; flex-shrink: 0; }
+  .resultado-casilla .resultado-texto { flex: 1; min-width: 0; }
+  .resultado-casilla .resultado-nombre { color: #202124; }
+  .resultado-casilla .resultado-categoria {
+    display: block;
+    font-size: 11px;
+    color: #888;
+  }
+
+  #estadoCarga {
+    padding: 8px 18px;
+    font-size: 12px;
+    color: #888;
+  }
+  #estadoCarga.ok { color: #188038; }
+  #estadoCarga.error { color: #d93025; }
+
+  /* ---------- Modales: cascarón compartido con cabecera y tarjetas ---------- */
+  #overlayModal {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  #overlayModal.abierto { display: flex; }
+
+  .modal-shell {
+    background: #eef1f4;
+    width: 340px;
+    max-width: 90vw;
+    max-height: 88vh;
+    overflow-y: auto;
+    border-radius: 16px;
+    box-shadow: 0 10px 34px rgba(0,0,0,.35);
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 20px;
+    background: linear-gradient(135deg, var(--color-acento), #0f4fa8);
+    color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .modal-header-icono {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.18);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .modal-header h3 { font-size: 16px; font-weight: 600; }
+  .modal-header .subtitulo { font-size: 12px; color: rgba(255,255,255,.85); margin-top: 2px; }
+
+  .modal-body { padding: 16px; }
+
+  .grupo-campos {
+    background: #fff;
+    border: 1px solid #e3e6ea;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .grupo-titulo {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--color-acento);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .grupo-campos label:first-of-type { margin-top: 0; }
+
+  .modal-shell label {
+    display: block;
+    font-size: 12px;
+    color: #5f6368;
+    margin: 10px 0 4px;
+  }
+  .modal-shell input, .modal-shell select, .modal-shell textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #d4d8dd;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #fff;
+    font-family: inherit;
+  }
+  .modal-shell textarea { resize: vertical; }
+  .modal-shell input[readonly] { background: #f1f3f5; color: #5f6368; }
+  .modal-shell select { cursor: pointer; }
+
+  /* ---------- Modal "Compartir" ---------- */
+  #overlayCompartir {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 2200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  #overlayCompartir.abierto { display: flex; }
+  #qrCompartir {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    padding: 14px;
+    border-radius: 10px;
+    margin: 0 auto 4px;
+    width: 190px;
+    height: 190px;
+  }
+  #qrCompartir img, #qrCompartir canvas { width: 100%; height: 100%; }
+  .compartir-fila-enlace {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .compartir-fila-enlace input {
+    flex: 1;
+    min-width: 0;
+  }
+  .compartir-fila-enlace button {
+    flex-shrink: 0;
+    border: none;
+    border-radius: 6px;
+    background: var(--color-acento);
+    color: #fff;
+    padding: 0 14px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  #avisoCopiadoCompartir {
+    font-size: 12.5px;
+    color: #34a853;
+    margin-top: 8px;
+    min-height: 16px;
+    text-align: center;
+  }
+  #btnCompartirNativo {
+    width: 100%;
+    margin-top: 10px;
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    background: #fff;
+    padding: 10px;
+    font-size: 13.5px;
+    cursor: pointer;
+    display: none;
+  }
+  body.modo-oscuro #qrCompartir { background: #fff; }
+  body.modo-oscuro #btnCompartirNativo { background: #262a31; color: #e8eaed; border-color: #33373f; }
+
+  .fila-doble { display: flex; gap: 8px; }
+  .fila-doble > div { flex: 1; }
+
+  .fila-emoji { display: flex; gap: 6px; }
+  .fila-emoji input { flex: 1; }
+  #btnAbrirEmojis {
+    width: 40px;
+    flex-shrink: 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+  }
+
+  #panelEmojis, #panelEmojisEdit {
+    display: none;
+    margin-top: 8px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  #panelEmojis.abierto, #panelEmojisEdit.abierto { display: block; }
+
+  #buscarEmojiWrap, #buscarEmojiWrapEdit {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    background: #fafafa;
+  }
+  #buscarEmoji, #buscarEmojiEdit {
+    width: 100%;
+    padding: 7px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+
+  #tabsEmojiCategorias, #tabsEmojiCategoriasEdit {
+    display: flex;
+    overflow-x: auto;
+    background: #fafafa;
+    border-bottom: 1px solid #eee;
+  }
+  #tabsEmojiCategorias::-webkit-scrollbar, #tabsEmojiCategoriasEdit::-webkit-scrollbar { height: 4px; }
+  .tab-categoria {
+    flex-shrink: 0;
+    border: none;
+    background: none;
+    padding: 7px 10px;
+    font-size: 18px;
+    cursor: pointer;
+    opacity: .45;
+    border-bottom: 2px solid transparent;
+  }
+  .tab-categoria.activa {
+    opacity: 1;
+    border-bottom: 2px solid var(--color-acento);
+  }
+
+  #gridEmojis, #gridEmojisEdit {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    padding: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  #gridEmojis .sin-resultados, #gridEmojisEdit .sin-resultados {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 12px;
+    color: #888;
+    padding: 12px 0;
+    font-style: italic;
+  }
+  #gridEmojis button, #gridEmojisEdit button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 4px 0;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+  }
+  #gridEmojis button:hover, #gridEmojisEdit button:hover { background: #f1f3f4; }
+
+  #filaCopiar {
+    margin-top: 14px;
+    padding: 10px;
+    background: #f1f3f5;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 11px;
+    word-break: break-all;
+    user-select: all;
+  }
+  #ordenColumnas {
+    font-size: 11px;
+    color: #888;
+    margin-top: 4px;
+  }
+
+  /* Vista previa de la línea para Sheets: se calcula igual que antes,
+     pero ya no se muestra en el modal de "Configuración del negocio"
+     para no ensuciar la vista — el botón "Copiar línea" la sigue
+     copiando al portapapeles igual que siempre. */
+  #filaCopiarNegocio, #ordenColumnasNegocio,
+  #filaCopiarNegocioInactivo, #ordenColumnasNegocioInactivo { display: none; }
+
+  .modal-botones {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .modal-botones button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  #btnCopiarFila, #btnCopiarFilaNegocio, #btnCopiarFilaNegocioInactivo, #btnGuardarApodo { background: var(--color-acento); color: #fff; }
+  #btnCerrarModal, #btnCerrarEditarNegocio, #btnCerrarEditarNegocioInactivo, #btnCerrarPrivacidad, #btnCerrarAjustesCuenta { background: #e3e6ea; color: #333; }
+
+  #avisoCopiado, #avisoCopiadoNegocio, #avisoCopiadoNegocioInactivo {
+    font-size: 12px;
+    color: #188038;
+    text-align: center;
+    margin-top: 8px;
+    min-height: 16px;
+  }
+
+  /* ---------- Botón "Ver negocio" dentro del popup del mapa ---------- */
+  .btn-ver-negocio {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 6px 14px;
+    background: var(--color-acento);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-ver-negocio-gris { background: #9aa0a6; }
+
+  /* ---------- Descripción del negocio sin página (punto gris) ---------- */
+  .descripcion-panel-negocio {
+    text-align: left;
+    font-size: 14px;
+    color: var(--color-texto);
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+  .descripcion-panel-negocio.vacia {
+    color: #888;
+    font-style: italic;
+    text-align: center;
+  }
+
+  /* ---------- Panel de negocio (submenú al presionar "Ver negocio") ---------- */
+  #overlayNegocio {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  #overlayNegocio.abierto { display: flex; }
+
+  #panelNegocio {
+    position: relative;
+    background: #f4f6f8;
+    width: 320px;
+    max-width: 90vw;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 16px;
+    box-shadow: 0 10px 34px rgba(0,0,0,.35);
+  }
+
+  .panel-negocio-imagen {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    background: #e8eaed;
+    display: block;
+  }
+  .panel-negocio-imagen-vacia {
+    width: 100%;
+    height: 160px;
+    background: linear-gradient(135deg, #dde3ea, #eef1f4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: #9aa3ad;
+  }
+
+  .btn-cerrar-panel, .btn-gear-panel {
+    position: absolute;
+    top: 10px;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,.92);
+    box-shadow: 0 1px 4px rgba(0,0,0,.3);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .btn-cerrar-panel { left: 10px; }
+  .btn-gear-panel { right: 10px; }
+
+  .panel-negocio-body { padding: 16px; text-align: center; }
+  .panel-negocio-nombre { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+
+  .lista-links-negocio { display: flex; flex-direction: column; gap: 10px; }
+  .caja-link {
+    border: 1px solid #e3e6ea;
+    border-radius: 10px;
+    padding: 8px;
+    background: #fff;
+  }
+  .etiqueta-link {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 6px;
+  }
+  .btn-visitar-link {
+    display: block;
+    width: 100%;
+    padding: 9px;
+    background: var(--color-acento);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 14px;
+    box-sizing: border-box;
+    font-weight: 500;
+  }
+
+  /* ---------- Modal "Configuración" del negocio ---------- */
+  #overlayEditarNegocio {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 2100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  #overlayEditarNegocio.abierto { display: flex; }
+
+  #overlayEditarNegocioInactivo {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 2100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  #overlayEditarNegocioInactivo.abierto { display: flex; }
+
+  .fila-link-editable {
+    border: 1px solid #e3e6ea;
+    border-radius: 8px;
+    padding: 8px;
+    margin-top: 8px;
+    background: #fafbfc;
+  }
+  .fila-link-editable input { display: block; width: 100%; margin-bottom: 6px; }
+  .fila-link-editable input:last-of-type { margin-bottom: 0; }
+  .btn-quitar-link {
+    margin-top: 6px;
+    border: none;
+    background: none;
+    color: #d93025;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0;
+  }
+  .btn-anadir-link {
+    width: 100%;
+    margin-top: 10px;
+    padding: 9px;
+    border: 1px dashed var(--color-acento);
+    background: #fff;
+    color: var(--color-acento);
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  /* ---------- Sub negocios: separador "Otros Negocios/Empresas" ---------- */
+  .caja-link.principal { }
+  .separador-otros-negocios {
+    margin: 14px 0 10px;
+    padding-top: 12px;
+    border-top: 1px dashed #d5d9dd;
+    text-align: left;
+  }
+  .separador-otros-negocios .titulo-separador {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #8a919a;
+  }
+  .separador-otros-negocios .subtitulo-separador {
+    display: block;
+    font-size: 11px;
+    color: #b0b6bd;
+    margin-top: 2px;
+  }
+  .contenedor-otros-negocios {
+    margin-left: 8px;
+    padding-left: 12px;
+    border-left: 2px solid #e3e6ea;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .caja-link.secundario {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .caja-link.secundario .btn-visitar-link {
+    flex: 1;
+    padding: 8px;
+    font-size: 13px;
+  }
+  .btn-gear-subnegocio {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1px solid #dfe3e8;
+    background: #f4f6f8;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .btn-gear-subnegocio:hover { background: #e8eaed; }
+  .punto-categoria {
+    display: inline-block;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+    border: 1px solid rgba(0,0,0,.15);
+  }
+  .inp-categoria-link {
+    margin-top: 6px;
+  }
+  .fila-color-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .chk-color-propio {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #555;
+    cursor: pointer;
+  }
+  .chk-color-propio input { display: inline-block !important; width: auto !important; margin: 0 !important; }
+  .inp-color-link {
+    width: 44px !important;
+    height: 30px;
+    padding: 0;
+    border: 1px solid #dfe3e8;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .inp-color-link:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ---------- Modal "Categoría de este sub negocio" ---------- */
+  #overlayCategoriaSub {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 2200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  #overlayCategoriaSub.abierto { display: flex; }
+  .chips-categoria-sub { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip-categoria-color {
+    display: flex;
+    align-items: center;
+    border: 1.5px solid #ddd;
+    background: #fff;
+    border-radius: 16px;
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .chip-categoria-color:hover { background: #f4f6f8; }
+
+  /* ---------- Nota de color fijo/permanente por categoría ---------- */
+  .nota-color {
+    font-size: 11px;
+    color: #666;
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  /* ---------- Categorías y colores (dentro de "Marcadores") ---------- */
+  .titulo-seccion-marcadores {
+    padding: 10px 18px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #8a919a;
+  }
+  #listaCategoriasMarcadores .vacio {
+    padding: 6px 18px 12px;
+    font-size: 13px;
+    color: #888;
+    font-style: italic;
+  }
+  .fila-categoria-color {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 18px;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+  }
+  .nombre-categoria-color { flex: 1; }
+  .input-color-categoria {
+    width: 34px; height: 26px;
+    border: none;
+    padding: 0;
+    background: none;
+    cursor: pointer;
+  }
+  .btn-secundario.activo {
+    background: var(--color-acento);
+    color: #fff;
+  }
+
+  /* ---------- Botón de cuenta (Google Sign-In) ---------- */
+  #btnCuenta {
+    position: absolute;
+    top: 16px; right: 16px;
+    z-index: 1000;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    padding: 0;
+  }
+  #btnCuenta:active { background: #f1f1f1; }
+  #btnCuenta img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+  #btnCuenta.conectado { box-shadow: 0 0 0 2px #34a853, 0 2px 6px rgba(0,0,0,.3); }
+
+  /* Círculo de perfil oculto de la esquina superior derecha
+     (el inicio de sesión con Google sigue disponible desde el
+     menú lateral, en #btnCuentaSidebar) */
+  #btnCuenta { display: none; }
+
+  /* ---------- Botón circular de compartir ---------- */
+  #btnCompartir {
+    position: absolute;
+    top: 16px; right: 72px;
+    z-index: 1000;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #btnCompartir:active { background: #f1f1f1; }
+
+  /* ---------- Botón + panel: filtrar por tipo de negocio ----------
+     Se ubica a la izquierda del botón de compartir (72px + 48px de
+     ancho + 8px de separación = 128px desde el borde derecho). */
+  #btnFiltroTipoNegocio {
+    position: absolute;
+    top: 16px; right: 128px;
+    z-index: 1000;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    font-size: 19px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #btnFiltroTipoNegocio:active { background: #f1f1f1; }
+  #btnFiltroTipoNegocio.activo {
+    box-shadow: 0 0 0 2px var(--color-acento), 0 2px 6px rgba(0,0,0,.3);
+  }
+
+  #panelFiltroTipoNegocio {
+    position: absolute;
+    top: 70px; right: 16px;
+    z-index: 1000;
+    width: 260px;
+    max-width: 80vw;
+    max-height: 55vh;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.3);
+    padding: 12px;
+    display: none;
+  }
+  #panelFiltroTipoNegocio.abierto { display: block; }
+  #panelFiltroTipoNegocio input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+  #listaFiltroTipoNegocio { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .chip-tipo-negocio {
+    border: none;
+    border-radius: 14px;
+    padding: 6px 12px;
+    background: #eee;
+    color: #333;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .chip-tipo-negocio.activa { background: var(--color-acento); color: #fff; }
+  #listaFiltroTipoNegocio .vacio { font-size: 13px; color: var(--color-texto-suave); padding: 4px 2px; }
+  #btnQuitarFiltroTipoNegocio {
+    width: 100%;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    background: #eee;
+    color: #333;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  /* ---------- Botón circular de "mi ubicación" ---------- */
+  #btnUbicacion {
+    position: absolute;
+    bottom: 24px; right: 16px;
+    z-index: 1000;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #btnUbicacion:active { background: #f1f1f1; }
+  #btnUbicacion svg { width: 22px; height: 22px; }
+  #btnUbicacion.cargando svg { animation: girarUbicacion 1s linear infinite; }
+  @keyframes girarUbicacion { to { transform: rotate(360deg); } }
+
+  #toastUbicacion {
+    position: absolute;
+    bottom: 84px; right: 16px;
+    max-width: 220px;
+    z-index: 1000;
+    background: #202124;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    line-height: 1.4;
+    box-shadow: 0 2px 8px rgba(0,0,0,.3);
+    display: none;
+  }
+  #toastUbicacion.visible { display: block; }
+
+  .sb-item.item-cuenta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .cuenta-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  .cuenta-info img {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .cuenta-info .cuenta-nombre {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+  }
+
+  /* ---------- Barra delgada de aviso de cookies / almacenamiento local ---------- */
+  #barraCookies {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 3500;
+    background: #e8dcc8;
+    color: #4a3b2a;
+    padding: 8px 14px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 12.5px;
+    line-height: 1.4;
+    box-shadow: 0 -2px 8px rgba(0,0,0,.15);
+  }
+  #barraCookies.visible { display: flex; }
+  #barraCookies .texto-cookies { flex: 1 1 260px; min-width: 200px; }
+  #barraCookies .enlace-privacidad {
+    background: none;
+    border: none;
+    padding: 0;
+    margin-left: 4px;
+    color: #4a3b2a;
+    text-decoration: underline;
+    font-size: 12.5px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .barra-cookies-botones {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .barra-cookies-botones button {
+    border: none;
+    border-radius: 16px;
+    padding: 6px 14px;
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+  #btnAceptarCookies { background: #8a6a45; color: #fff; }
+  #btnIgnorarCookies { background: transparent; color: #4a3b2a; border: 1px solid #b7a486 !important; }
+
+  /* ---------- Modal "Aviso de privacidad" ---------- */
+  #overlayPrivacidad {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 3000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  #overlayPrivacidad.abierto { display: flex; }
+  #modalPrivacidad { width: 420px; }
+  #modalPrivacidad .modal-body { text-align: left; }
+  .privacidad-seccion { margin-bottom: 14px; }
+  .privacidad-seccion h4 {
+    font-size: 13px;
+    color: var(--color-acento);
+    margin-bottom: 4px;
+  }
+  .privacidad-seccion p {
+    font-size: 12.5px;
+    color: #333;
+    line-height: 1.5;
+  }
+  .privacidad-fecha {
+    font-size: 11px;
+    color: #888;
+    text-align: center;
+    margin-top: 6px;
+  }
+
+  /* ---------- Botón "Subir imagen a imgbb" (modal Nuevo marcador) ---------- */
+  #btnSubirImagen {
+    margin-top: 8px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid #c7cbd1;
+    background: #f5f7fa;
+    color: #202124;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #btnSubirImagen:hover { background: #eaedf0; }
+  #btnSubirImagen:disabled { opacity: .6; cursor: default; }
+  #estadoSubidaImagen {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #4a4f57;
+  }
+
+  #btnGuardarDirecto {
+    background: #1a73e8;
+    color: #fff;
+    border: none;
+  }
+  #btnGuardarDirecto:hover { background: #1662c4; }
+  #btnGuardarDirecto:disabled { opacity: .6; cursor: default; }
+
+  /* ---------- Recuadro central: nombre del filtro activo ---------- */
+  #cajaFiltroActivo {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 900;
+    background: linear-gradient(180deg, #ffffff, #f2f5f9);
+    color: #2b2f36;
+    padding: 6px 18px;
+    border: 1.5px solid #1a1a1a;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    pointer-events: none;
+    white-space: nowrap;
+    max-width: calc(100vw - 150px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 1px 4px rgba(0,0,0,.12);
+  }
+
+  /* ---------- Panel de ajustes de cuenta ---------- */
+  #overlayAjustesCuenta {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 3100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  #overlayAjustesCuenta.abierto { display: flex; }
+  #modalAjustesCuenta { width: 300px; }
+
+  .ajustes-cuenta-perfil {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .ajustes-cuenta-perfil img {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .ajustes-cuenta-perfil .correo-cuenta {
+    font-size: 11.5px;
+    color: var(--color-texto-suave);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ajustes-fila-modo {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .ajustes-fila-modo button {
+    flex: 1;
+    padding: 9px;
+    border: 1px solid var(--color-borde);
+    background: var(--color-fondo-tarjeta);
+    color: var(--color-texto);
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .ajustes-fila-modo button.activo {
+    background: var(--color-acento);
+    color: #fff;
+    border-color: var(--color-acento);
+  }
+
+  .ajustes-fila-color {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .ajustes-fila-color input[type="color"] {
+    width: 40px; height: 32px;
+    padding: 0;
+    border: 1px solid var(--color-borde);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  #btnCerrarSesionAjustes {
+    margin-top: 16px;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #fbe4e4;
+    color: #b3261e;
+    font-size: 13.5px;
+    cursor: pointer;
+  }
+
+  /* =========================================================
+     MODO OSCURO
+     -----------------------------------------------------------
+     Se activa agregando la clase "modo-oscuro" al <body>. La
+     preferencia se guarda en localStorage, por dispositivo/
+     navegador ("en sus pantallas personales"), no es algo que
+     se comparta entre usuarios.
+     ========================================================= */
+  body.modo-oscuro { background: #14161a; }
+  body.modo-oscuro #map { filter: brightness(.92); }
+  body.modo-oscuro .leaflet-tile-pane { filter: grayscale(45%) contrast(95%) brightness(.62); }
+
+  body.modo-oscuro #btnMenu,
+  body.modo-oscuro #btnCuenta,
+  body.modo-oscuro #btnCompartir,
+  body.modo-oscuro #btnFiltroTipoNegocio,
+  body.modo-oscuro #btnUbicacion,
+  body.modo-oscuro #avisoColocar { background: #262a31; color: #e8eaed; }
+
+  body.modo-oscuro #cajaFiltroActivo {
+    background: linear-gradient(180deg, #262a31, #1c1f24);
+    color: #e8eaed;
+    border-color: #e8eaed;
+  }
+
+  body.modo-oscuro #btnSubirImagen { background: #262a31; color: #e8eaed; border-color: #33373f; }
+  body.modo-oscuro #btnSubirImagen:hover { background: #2f343c; }
+  body.modo-oscuro #estadoSubidaImagen { color: #9aa0a6; }
+
+  body.modo-oscuro #panelFiltroTipoNegocio { background: #1c1f24; color: #e8eaed; }
+  body.modo-oscuro #panelFiltroTipoNegocio input,
+  body.modo-oscuro .chip-tipo-negocio,
+  body.modo-oscuro #btnQuitarFiltroTipoNegocio { background: #262a31; color: #e8eaed; border-color: #33373f; }
+  body.modo-oscuro #listaFiltroTipoNegocio .vacio { color: #9aa0a6; }
+
+  body.modo-oscuro #sidebar,
+  body.modo-oscuro #submenuMarcadores,
+  body.modo-oscuro #submenuBuscar,
+  body.modo-oscuro #panelNegocio,
+  body.modo-oscuro .modal-shell {
+    background: #1c1f24;
+    color: #e8eaed;
+  }
+  body.modo-oscuro .sb-item,
+  body.modo-oscuro .marcador-casilla,
+  body.modo-oscuro .resultado-casilla,
+  body.modo-oscuro .fila-categoria-color,
+  body.modo-oscuro .titulo-seccion-marcadores { color: #e8eaed; border-color: #33373f; }
+  body.modo-oscuro .sb-item-pie { color: #9aa0a6; }
+  body.modo-oscuro .sb-item:hover,
+  body.modo-oscuro .resultado-casilla:hover { background: #262a31; }
+  body.modo-oscuro .nombre-btn,
+  body.modo-oscuro .resultado-nombre,
+  body.modo-oscuro .cuenta-nombre { color: #e8eaed; }
+
+  body.modo-oscuro .grupo-campos,
+  body.modo-oscuro .fila-link-editable,
+  body.modo-oscuro .caja-link,
+  body.modo-oscuro #filaCopiar { background: #262a31; border-color: #33373f; color: #e8eaed; }
+  body.modo-oscuro .modal-shell input,
+  body.modo-oscuro .modal-shell select,
+  body.modo-oscuro .modal-shell textarea,
+  body.modo-oscuro .ajustes-fila-modo button { background: #262a31; color: #e8eaed; border-color: #33373f; }
+  body.modo-oscuro .modal-shell input[readonly] { background: #1c1f24; color: #9aa0a6; }
+  body.modo-oscuro .modal-shell label,
+  body.modo-oscuro .grupo-titulo,
+  body.modo-oscuro .privacidad-seccion p,
+  body.modo-oscuro .panel-negocio-nombre,
+  body.modo-oscuro .etiqueta-link,
+  body.modo-oscuro .descripcion-panel-negocio,
+  body.modo-oscuro .correo-cuenta { color: #c4c8cd; }
+
+  body.modo-oscuro #btnCerrarModal,
+  body.modo-oscuro #btnCerrarEditarNegocio,
+  body.modo-oscuro #btnCerrarEditarNegocioInactivo,
+  body.modo-oscuro #btnCerrarPrivacidad,
+  body.modo-oscuro #btnCerrarAjustesCuenta,
+  body.modo-oscuro .btn-secundario { background: #33373f; color: #e8eaed; }
+
+  body.modo-oscuro #estadoCarga { color: #9aa0a6; }
+  body.modo-oscuro .separador-otros-negocios { border-color: #33373f; }
+  body.modo-oscuro .btn-gear-subnegocio { background: #262a31; border-color: #33373f; color: #e8eaed; }
