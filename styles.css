@@ -1221,38 +1221,40 @@
     cursor: pointer;
   }
 
-  /* ---------- Botón + paneles: Rutas de Transporte ----------
-     Igual que #btnServiciosUtiles pero una fila más abajo
-     (72px + ~44px de alto + 8px de aire = 124px). */
-  #btnRutasTransporte {
-    position: absolute;
-    top: 124px; left: 16px;
-    z-index: 950;
-    background: #e3f2ff;
+  /* ---------- Botones dentro de "⭐ Servicios más útiles" ----------
+     "🏛️ Turismo" y "🚌 Rutas de Transporte" ya no son botones
+     flotantes propios: viven dentro de #panelServiciosUtiles, debajo
+     de los chips y antes de "➕ Agregar filtro". Cada uno abre su
+     propio panel (#panelTurismo / #panelRutasTransporte), que
+     aparece en el mismo lugar que #panelServiciosUtiles, a modo de
+     submenú. */
+  .btn-accion-servicios {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 8px;
     border: none;
-    border-radius: 22px;
-    box-shadow: 0 2px 6px rgba(0,0,0,.3);
-    padding: 10px 16px;
+    border-radius: 8px;
+    padding: 10px 12px;
     font-size: 14px;
     font-weight: 600;
-    color: #0b4a8f;
+    text-align: left;
     cursor: pointer;
-    white-space: nowrap;
-    transition: left .25s ease, top .25s ease;
   }
+  #btnTurismo { background: #ffe8d9; color: #7a3b00; }
+  #btnTurismo:active { background: #ffd3b0; }
+  #btnRutasTransporte { background: #e3f2ff; color: #0b4a8f; }
   #btnRutasTransporte:active { background: #cfe8ff; }
-  #btnRutasTransporte.activo {
-    box-shadow: 0 0 0 2px var(--color-acento), 0 2px 6px rgba(0,0,0,.3);
-  }
-  body.sidebar-abierto #btnRutasTransporte {
-    top: 62px;
-    left: min(316px, 88vw);
-  }
 
+  /* ---------- Paneles: Turismo / Rutas de Transporte / Rutas de Combi ----------
+     Los tres comparten la posición de #panelServiciosUtiles (arriba)
+     porque son "submenús" del mismo botón: solo uno está visible a
+     la vez (JS se encarga de mostrar uno y ocultar los demás). */
+  #panelTurismo,
   #panelRutasTransporte,
   #panelRutasCombi {
     position: absolute;
-    top: 180px; left: 16px;
+    top: 128px; left: 16px;
     z-index: 950;
     width: 250px;
     max-width: 80vw;
@@ -1264,6 +1266,7 @@
     padding: 12px;
     display: none;
   }
+  #panelTurismo.abierto,
   #panelRutasTransporte.abierto,
   #panelRutasCombi.abierto { display: block; }
   #panelRutasTransporte #btnRutasCombi {
@@ -1762,8 +1765,11 @@
   body.modo-oscuro #btnServiciosUtiles { background: #4a3d1c; color: #f3dfa0; }
   body.modo-oscuro #btnServiciosUtiles:active { background: #5c4b23; }
   body.modo-oscuro #panelServiciosUtiles { background: #1c1f24; color: #e8eaed; }
+  body.modo-oscuro #btnTurismo { background: #4a2c1c; color: #f5c9a9; }
+  body.modo-oscuro #btnTurismo:active { background: #5c3823; }
   body.modo-oscuro #btnRutasTransporte { background: #1c3a52; color: #a9d4f5; }
   body.modo-oscuro #btnRutasTransporte:active { background: #234a68; }
+  body.modo-oscuro #panelTurismo,
   body.modo-oscuro #panelRutasTransporte,
   body.modo-oscuro #panelRutasCombi,
   body.modo-oscuro #barraTrazarRuta { background: #1c1f24; color: #e8eaed; }

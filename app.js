@@ -961,6 +961,8 @@ document.addEventListener('cambioAdminMapa', renderListaServiciosUtiles);
         gid de abajo), igual que ya hace para accion 'agregar'.
         Compárteme ese archivo .gs y te dejo esa rama ya lista.
    ========================================================= */
+const btnTurismo = document.getElementById('btnTurismo');
+const panelTurismo = document.getElementById('panelTurismo');
 const btnRutasTransporte = document.getElementById('btnRutasTransporte');
 const panelRutasTransporte = document.getElementById('panelRutasTransporte');
 const btnRutasCombi = document.getElementById('btnRutasCombi');
@@ -1057,19 +1059,34 @@ function renderListaRutasCombi() {
   });
 }
 
-/* ---- Abrir/cerrar los dos paneles (mismo patrón que Servicios más útiles) ---- */
+/* ---- Abrir/cerrar los paneles (mismo patrón que Servicios más útiles) ----
+   "🏛️ Turismo" y "🚌 Rutas de Transporte" comparten el mismo cajón en
+   pantalla (ver styles.css), así que al abrir uno se cierran los
+   otros dos. */
+btnTurismo.addEventListener('click', () => {
+  panelRutasTransporte.classList.remove('abierto');
+  panelRutasCombi.classList.remove('abierto');
+  panelTurismo.classList.toggle('abierto');
+});
+
 btnRutasTransporte.addEventListener('click', () => {
+  panelTurismo.classList.remove('abierto');
   panelRutasCombi.classList.remove('abierto');
   panelRutasTransporte.classList.toggle('abierto');
 });
 
 btnRutasCombi.addEventListener('click', () => {
+  panelTurismo.classList.remove('abierto');
   panelRutasTransporte.classList.remove('abierto');
   panelRutasCombi.classList.toggle('abierto');
   if (panelRutasCombi.classList.contains('abierto')) renderListaRutasCombi();
 });
 
 document.addEventListener('click', (e) => {
+  if (panelTurismo.classList.contains('abierto') &&
+      !panelTurismo.contains(e.target) && e.target !== btnTurismo) {
+    panelTurismo.classList.remove('abierto');
+  }
   if (panelRutasTransporte.classList.contains('abierto') &&
       !panelRutasTransporte.contains(e.target) && e.target !== btnRutasTransporte) {
     panelRutasTransporte.classList.remove('abierto');

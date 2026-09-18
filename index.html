@@ -54,25 +54,39 @@
      de menú (☰). Si el menú lateral se abre, se desplaza hacia la
      derecha para no quedar tapado, terminando cerca del recuadro
      de "filtro activo" (ver reglas "body.sidebar-abierto" en
-     styles.css). Los filtros que aparecen dentro solo los puede
-     agregar o quitar una cuenta autorizada (ver CORREOS_ADMIN en
-     firebase-init.js); cualquier visitante puede tocarlos para
-     filtrar el mapa. -->
+     styles.css). Los filtros (chips) que aparecen dentro solo los
+     puede agregar o quitar una cuenta autorizada (ver CORREOS_ADMIN
+     en firebase-init.js); cualquier visitante puede tocarlos para
+     filtrar el mapa. Debajo de los chips van, en este orden, los
+     botones "🏛️ Turismo", "🚌 Rutas de Transporte" y, al final,
+     "➕ Agregar filtro". -->
 <button id="btnServiciosUtiles" title="Servicios más útiles">⭐ Servicios más útiles</button>
 <div id="panelServiciosUtiles">
   <div class="titulo-panel-servicios">⭐ Servicios más útiles</div>
   <div id="listaServiciosUtiles"><!-- chips generados por JS --></div>
+  <button type="button" id="btnTurismo" class="btn-accion-servicios" title="Turismo">🏛️ Turismo</button>
+  <button type="button" id="btnRutasTransporte" class="btn-accion-servicios" title="Rutas de transporte">🚌 Rutas de Transporte</button>
   <button type="button" id="btnAnadirServicioUtil">➕ Agregar filtro</button>
 </div>
 
+<!-- ---------- Panel: Turismo ----------
+     Se abre al tocar "🏛️ Turismo" dentro de "⭐ Servicios más
+     útiles" (ocupa el mismo lugar en pantalla que ese panel, a
+     modo de submenú). Por ahora es un contenedor vacío listo para
+     agregar información turística más adelante. -->
+<div id="panelTurismo">
+  <div class="titulo-panel-servicios">🏛️ Turismo</div>
+  <div id="listaTurismo"><!-- contenido de turismo, por definir --></div>
+</div>
+
 <!-- ---------- Botón + paneles: Rutas de Transporte ----------
-     Debajo de "⭐ Servicios más útiles". Al tocarlo se abre un
-     panel chiquito con el botón "🚐 Rutas de Combi"; ese botón
-     abre un segundo panel con las rutas ya guardadas (cualquier
-     visitante puede tocar una para mostrarla/ocultarla en el
-     mapa) y, solo para las cuentas autorizadas (ver CORREOS_ADMIN
-     en firebase-init.js), el botón "➕ Agregar nueva ruta". -->
-<button id="btnRutasTransporte" title="Rutas de transporte">🚌 Rutas de Transporte</button>
+     El botón "🚌 Rutas de Transporte" vive ahora dentro de "⭐
+     Servicios más útiles" (arriba). Al tocarlo se abre este panel,
+     con el botón "🚐 Rutas de Combi"; ese botón abre un segundo
+     panel con las rutas ya guardadas (cualquier visitante puede
+     tocar una para mostrarla/ocultarla en el mapa) y, solo para las
+     cuentas autorizadas (ver CORREOS_ADMIN en firebase-init.js), el
+     botón "➕ Agregar nueva ruta". -->
 <div id="panelRutasTransporte">
   <div class="titulo-panel-servicios">🚌 Rutas de Transporte</div>
   <button type="button" id="btnRutasCombi">🚐 Rutas de Combi</button>
