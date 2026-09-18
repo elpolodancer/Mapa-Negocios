@@ -1221,6 +1221,173 @@
     cursor: pointer;
   }
 
+  /* ---------- Botón + paneles: Rutas de Transporte ----------
+     Igual que #btnServiciosUtiles pero una fila más abajo
+     (72px + ~44px de alto + 8px de aire = 124px). */
+  #btnRutasTransporte {
+    position: absolute;
+    top: 124px; left: 16px;
+    z-index: 950;
+    background: #e3f2ff;
+    border: none;
+    border-radius: 22px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0b4a8f;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: left .25s ease, top .25s ease;
+  }
+  #btnRutasTransporte:active { background: #cfe8ff; }
+  #btnRutasTransporte.activo {
+    box-shadow: 0 0 0 2px var(--color-acento), 0 2px 6px rgba(0,0,0,.3);
+  }
+  body.sidebar-abierto #btnRutasTransporte {
+    top: 62px;
+    left: min(316px, 88vw);
+  }
+
+  #panelRutasTransporte,
+  #panelRutasCombi {
+    position: absolute;
+    top: 180px; left: 16px;
+    z-index: 950;
+    width: 250px;
+    max-width: 80vw;
+    max-height: 55vh;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.3);
+    padding: 12px;
+    display: none;
+  }
+  #panelRutasTransporte.abierto,
+  #panelRutasCombi.abierto { display: block; }
+  #panelRutasTransporte #btnRutasCombi {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: var(--color-acento);
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  #listaRutasCombi {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  #listaRutasCombi .vacio {
+    font-size: 13px;
+    color: var(--color-texto-suave);
+    padding: 4px 2px;
+  }
+  .chip-ruta-combi {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    border-radius: 14px;
+    padding: 6px 12px;
+    background: #eee;
+    color: #333;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .chip-ruta-combi .punto-color-ruta {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .chip-ruta-combi.activa { background: var(--color-acento); color: #fff; }
+
+  /* Oculto por defecto: solo se muestra por JS (firebase-init.js)
+     cuando la sesión activa es una de las cuentas autorizadas —
+     mismo mecanismo que #btnNuevoMarcador. */
+  #btnAgregarRuta {
+    display: none;
+    width: 100%;
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    background: #d93025;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  /* ---------- Barra flotante: trazando una ruta nueva ---------- */
+  #barraTrazarRuta {
+    position: absolute;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+    z-index: 1200;
+    width: 320px;
+    max-width: 92vw;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0,0,0,.35);
+    padding: 14px;
+    display: none;
+  }
+  #barraTrazarRuta.activa { display: block; }
+  #avisoTrazarRuta {
+    font-size: 13px;
+    color: var(--color-texto-suave);
+    margin-bottom: 8px;
+  }
+  #barraTrazarRuta input[type="text"] {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 8px;
+    box-sizing: border-box;
+  }
+  .fila-color-ruta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+  .fila-color-ruta input[type="color"] {
+    width: 40px; height: 30px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 0;
+  }
+  #contadorPuntosRuta {
+    font-size: 12px;
+    color: var(--color-texto-suave);
+    margin-bottom: 8px;
+  }
+  .botones-trazar-ruta {
+    display: flex;
+    gap: 6px;
+  }
+  .botones-trazar-ruta button {
+    flex: 1;
+    padding: 8px 6px;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  #btnDeshacerPuntoRuta { background: #eee; color: #333; }
+  #btnCancelarRuta { background: #fde0de; color: #a02622; }
+  #btnGuardarRuta { background: var(--color-acento); color: #fff; }
+  #avisoGuardarRuta { font-size: 12px; margin-top: 8px; }
+
   /* ---------- Botón + panel: filtrar por tipo de negocio ----------
      Se ubica a la izquierda del botón de compartir (72px + 48px de
      ancho + 8px de separación = 128px desde el borde derecho). */
@@ -1595,6 +1762,13 @@
   body.modo-oscuro #btnServiciosUtiles { background: #4a3d1c; color: #f3dfa0; }
   body.modo-oscuro #btnServiciosUtiles:active { background: #5c4b23; }
   body.modo-oscuro #panelServiciosUtiles { background: #1c1f24; color: #e8eaed; }
+  body.modo-oscuro #btnRutasTransporte { background: #1c3a52; color: #a9d4f5; }
+  body.modo-oscuro #btnRutasTransporte:active { background: #234a68; }
+  body.modo-oscuro #panelRutasTransporte,
+  body.modo-oscuro #panelRutasCombi,
+  body.modo-oscuro #barraTrazarRuta { background: #1c1f24; color: #e8eaed; }
+  body.modo-oscuro .chip-ruta-combi { background: #262a31; color: #e8eaed; }
+  body.modo-oscuro #barraTrazarRuta input[type="text"] { background: #262a31; color: #e8eaed; border-color: #3a3f47; }
   body.modo-oscuro .titulo-panel-servicios { color: #9aa0a6; }
   body.modo-oscuro .chip-servicio-util { background: #262a31; color: #e8eaed; }
   body.modo-oscuro #listaServiciosUtiles .vacio { color: #9aa0a6; }

@@ -65,6 +65,44 @@
   <button type="button" id="btnAnadirServicioUtil">➕ Agregar filtro</button>
 </div>
 
+<!-- ---------- Botón + paneles: Rutas de Transporte ----------
+     Debajo de "⭐ Servicios más útiles". Al tocarlo se abre un
+     panel chiquito con el botón "🚐 Rutas de Combi"; ese botón
+     abre un segundo panel con las rutas ya guardadas (cualquier
+     visitante puede tocar una para mostrarla/ocultarla en el
+     mapa) y, solo para las cuentas autorizadas (ver CORREOS_ADMIN
+     en firebase-init.js), el botón "➕ Agregar nueva ruta". -->
+<button id="btnRutasTransporte" title="Rutas de transporte">🚌 Rutas de Transporte</button>
+<div id="panelRutasTransporte">
+  <div class="titulo-panel-servicios">🚌 Rutas de Transporte</div>
+  <button type="button" id="btnRutasCombi">🚐 Rutas de Combi</button>
+</div>
+
+<div id="panelRutasCombi">
+  <div class="titulo-panel-servicios">🚐 Rutas de Combi</div>
+  <div id="listaRutasCombi"><!-- chips de rutas guardadas, generados por JS --></div>
+  <button type="button" id="btnAgregarRuta">➕ Agregar nueva ruta</button>
+</div>
+
+<!-- Barra flotante que aparece mientras se traza una ruta nueva
+     (solo administradores). Cada clic en el mapa agrega un punto
+     y va extendiendo la línea del color elegido aquí. -->
+<div id="barraTrazarRuta">
+  <div id="avisoTrazarRuta">Toca el mapa para ir agregando los puntos de la ruta…</div>
+  <input type="text" id="inpNombreRuta" placeholder="Nombre de la ruta (ej. Ruta 4 — Central a Centro)">
+  <div class="fila-color-ruta">
+    <label for="inpColorRuta">🎨 Color del trazo</label>
+    <input type="color" id="inpColorRuta" value="#e53935">
+  </div>
+  <div id="contadorPuntosRuta">0 puntos agregados</div>
+  <div class="botones-trazar-ruta">
+    <button type="button" id="btnDeshacerPuntoRuta">↩️ Deshacer punto</button>
+    <button type="button" id="btnCancelarRuta">✖️ Cancelar</button>
+    <button type="button" id="btnGuardarRuta">💾 Guardar ruta</button>
+  </div>
+  <div id="avisoGuardarRuta"></div>
+</div>
+
 <button id="btnFiltroTipoNegocio" title="Filtrar por tipo de negocio">🔍</button>
 <div id="panelFiltroTipoNegocio">
   <input type="text" id="inputFiltroTipoNegocio" placeholder="Buscar tipo de negocio…">

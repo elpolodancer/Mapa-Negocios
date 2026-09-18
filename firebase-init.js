@@ -48,8 +48,9 @@
      BOTONES DE ADMINISTRADOR: solo visibles para tus correos
      -----------------------------------------------------------
      "➕ Nuevo marcador" (barra lateral), "⚙️ Configuración"
-     (dentro del panel "Ver negocio") y "💾 Guardar cambios en la
-     hoja" (dentro de los dos modales de edición) están ocultos
+     (dentro del panel "Ver negocio"), "💾 Guardar cambios en la
+     hoja" (dentro de los dos modales de edición) y "➕ Agregar
+     nueva ruta" (dentro de "🚐 Rutas de Combi") están ocultos
      por defecto en styles.css y aquí se muestran solo si la
      sesión activa es una de las cuentas autorizadas — la misma
      lista de correos que ya usa el Apps Script (ADMIN_EMAILS en
@@ -72,7 +73,7 @@
   function actualizarVisibilidadBotonesAdmin(usuario) {
     const correo = (usuario && usuario.email || '').toLowerCase();
     const esAdmin = CORREOS_ADMIN.includes(correo);
-    const ids = ['btnNuevoMarcador', 'btnConfigNegocio', 'filaBotonAdminNegocio', 'filaBotonAdminNegocioInactivo', 'btnAnadirServicioUtil'];
+    const ids = ['btnNuevoMarcador', 'btnConfigNegocio', 'filaBotonAdminNegocio', 'filaBotonAdminNegocioInactivo', 'btnAnadirServicioUtil', 'btnAgregarRuta'];
     ids.forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;

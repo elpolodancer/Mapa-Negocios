@@ -928,6 +928,299 @@ btnAnadirServicioUtil.addEventListener('click', () => {
 document.addEventListener('cambioAdminMapa', renderListaServiciosUtiles);
 
 /* =========================================================
+   RUTAS DE TRANSPORTE (rutas de combi)
+   -----------------------------------------------------------
+   Menús: "🚌 Rutas de Transporte" abre un panel chiquito con el
+   botón "🚐 Rutas de Combi"; ese botón abre un segundo panel con
+   las rutas ya guardadas (cualquier visitante puede tocar una
+   para mostrarla/ocultarla en el mapa) y, solo para las cuentas
+   autorizadas (ver CORREOS_ADMIN / window.esAdminMapa en
+   firebase-init.js), el botón "➕ Agregar nueva ruta", que activa
+   el modo de trazado: cada clic en el mapa agrega un punto y va
+   extendiendo una línea del color elegido en la barra flotante.
+
+   Las rutas se leen igual que los negocios: directo del CSV
+   público de una pestaña de tu Google Sheet (ver HOJAS arriba).
+
+   ⚠️ PENDIENTE DE CONFIGURAR — esto todavía no funciona solo:
+     1) En tu Google Sheet, crea una hoja nueva (pestaña) llamada
+        "Rutas de transporte" con estas 3 columnas:
+          A Nombre de la ruta · B Color (ej. "#e53935") ·
+          C Coordenadas — cada punto como "lat,lng", todos
+            separados por comas, ej.:
+            "19.7024,-101.1936,19.7031,-101.1942,19.7040,-101.1950"
+        Compártela igual que las demás ("Cualquiera con el
+        enlace, Lector").
+     2) Abre esa pestaña, copia el número que aparece después de
+        "gid=" en la URL y pégalo aquí abajo en GID_RUTAS (ahora
+        mismo está en 0 solo como marcador de posición).
+     3) Para que "💾 Guardar ruta" funcione de verdad, tu Apps
+        Script (apps-script-mapa-morelia.gs) necesita una rama
+        nueva para accion === 'agregarRuta' que agregue una fila
+        [nombre, color, puntos] a esa pestaña (usando el mismo
+        gid de abajo), igual que ya hace para accion 'agregar'.
+        Compárteme ese archivo .gs y te dejo esa rama ya lista.
+   ========================================================= */
+const btnRutasTransporte = document.getElementById('btnRutasTransporte');
+const panelRutasTransporte = document.getElementById('panelRutasTransporte');
+const btnRutasCombi = document.getElementById('btnRutasCombi');
+const panelRutasCombi = document.getElementById('panelRutasCombi');
+const listaRutasCombi = document.getElementById('listaRutasCombi');
+const btnAgregarRuta = document.getElementById('btnAgregarRuta');
+const barraTrazarRuta = document.getElementById('barraTrazarRuta');
+const inpNombreRuta = document.getElementById('inpNombreRuta');
+const inpColorRuta = document.getElementById('inpColorRuta');
+const contadorPuntosRuta = document.getElementById('contadorPuntosRuta');
+const btnDeshacerPuntoRuta = document.getElementById('btnDeshacerPuntoRuta');
+const btnCancelarRuta = document.getElementById('btnCancelarRuta');
+const btnGuardarRuta = document.getElementById('btnGuardarRuta');
+const avisoGuardarRuta = document.getElementById('avisoGuardarRuta');
+
+const GID_RUTAS = 0; // ⚠️ CAMBIA esto por el gid real de tu pestaña "Rutas de transporte"
+const ID_HOJA_RUTAS = HOJAS[0].id; // mismo archivo de Sheets que ya usas para negocios
+
+let rutasTransporte = []; // [{ nombre, color, puntos: [[lat,lng], ...] }, ...]
+const capasRutasMostradas = {}; // nombre de ruta -> L.Polyline ya dibujada en el mapa
+
+// "lat,lng,lat,lng,…" (todo separado por comas) -> [[lat,lng], …]
+function parseCoordenadasRuta(texto) {
+  const numeros = (texto || '')
+    .split(',')
+    .map(s => parseFloat(s.trim()))
+    .filter(n => !isNaN(n));
+  const puntos = [];
+  for (let i = 0; i + 1 < numeros.length; i += 2) puntos.push([numeros[i], numeros[i + 1]]);
+  return puntos;
+}
+
+async function cargarRutasTransporte() {
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${ID_HOJA_RUTAS}/export?format=csv&gid=${GID_RUTAS}&_=${Date.now()}`;
+    const resp = await fetch(url, { cache: 'no-store' });
+    if (!resp.ok) throw new Error('respuesta no OK');
+    const texto = await resp.text();
+    const lineas = texto.replace(/^\uFEFF/, '').trim().split(/\r?\n/).slice(1); // saltamos encabezados
+    rutasTransporte = lineas
+      .map(linea => dividirLineaCSV(linea).map(c => (c || '').trim()))
+      .filter(campos => campos[0])
+      .map(campos => ({
+        nombre: campos[0],
+        color: campos[1] || '#e53935',
+        puntos: parseCoordenadasRuta(campos[2] || '')
+      }))
+      .filter(r => r.puntos.length >= 2);
+  } catch (e) {
+    console.error('No se pudieron cargar las rutas de transporte (revisa GID_RUTAS):', e);
+    rutasTransporte = [];
+  }
+  renderListaRutasCombi();
+}
+
+function alternarRutaEnMapa(ruta, chip) {
+  const yaVisible = capasRutasMostradas[ruta.nombre];
+  if (yaVisible) {
+    map.removeLayer(yaVisible);
+    delete capasRutasMostradas[ruta.nombre];
+    if (chip) chip.classList.remove('activa');
+    return;
+  }
+  const linea = L.polyline(ruta.puntos, { color: ruta.color, weight: 5, opacity: 0.85 }).addTo(map);
+  capasRutasMostradas[ruta.nombre] = linea;
+  if (chip) chip.classList.add('activa');
+  map.fitBounds(linea.getBounds(), { padding: [40, 40] });
+}
+
+function renderListaRutasCombi() {
+  const esAdmin = !!window.esAdminMapa;
+  if (rutasTransporte.length === 0) {
+    listaRutasCombi.innerHTML = `<div class="vacio">${esAdmin ? 'Aún no agregas ninguna ruta. Usa "➕ Agregar nueva ruta" aquí abajo.' : 'Todavía no hay rutas guardadas.'}</div>`;
+    return;
+  }
+  listaRutasCombi.innerHTML = '';
+  rutasTransporte.forEach(ruta => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'chip-ruta-combi' + (capasRutasMostradas[ruta.nombre] ? ' activa' : '');
+
+    const punto = document.createElement('span');
+    punto.className = 'punto-color-ruta';
+    punto.style.background = ruta.color;
+    chip.appendChild(punto);
+
+    const etiqueta = document.createElement('span');
+    etiqueta.textContent = ruta.nombre;
+    chip.appendChild(etiqueta);
+
+    chip.title = `Mostrar/ocultar "${ruta.nombre}" en el mapa`;
+    chip.addEventListener('click', () => alternarRutaEnMapa(ruta, chip));
+    listaRutasCombi.appendChild(chip);
+  });
+}
+
+/* ---- Abrir/cerrar los dos paneles (mismo patrón que Servicios más útiles) ---- */
+btnRutasTransporte.addEventListener('click', () => {
+  panelRutasCombi.classList.remove('abierto');
+  panelRutasTransporte.classList.toggle('abierto');
+});
+
+btnRutasCombi.addEventListener('click', () => {
+  panelRutasTransporte.classList.remove('abierto');
+  panelRutasCombi.classList.toggle('abierto');
+  if (panelRutasCombi.classList.contains('abierto')) renderListaRutasCombi();
+});
+
+document.addEventListener('click', (e) => {
+  if (panelRutasTransporte.classList.contains('abierto') &&
+      !panelRutasTransporte.contains(e.target) && e.target !== btnRutasTransporte) {
+    panelRutasTransporte.classList.remove('abierto');
+  }
+  if (panelRutasCombi.classList.contains('abierto') &&
+      !panelRutasCombi.contains(e.target) && e.target !== btnRutasCombi) {
+    panelRutasCombi.classList.remove('abierto');
+  }
+});
+
+document.addEventListener('cambioAdminMapa', renderListaRutasCombi);
+
+/* ---- Modo "trazar ruta nueva" (solo cuentas autorizadas) ----
+   #btnAgregarRuta ya está oculto por defecto en styles.css y solo
+   se muestra por firebase-init.js (mismo arreglo de ids que ya
+   controla #btnNuevoMarcador), así que si llega a este listener es
+   porque la sesión activa es una cuenta autorizada. */
+let modoTrazarRuta = false;
+let puntosRutaNueva = [];
+let lineaRutaNueva = null;
+let marcadoresRutaNueva = [];
+
+function colorRutaActual() {
+  return inpColorRuta.value || '#e53935';
+}
+
+function iconoPuntoRuta(color) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 0 3px rgba(0,0,0,.5);"></div>`,
+    iconSize: [14, 14],
+    iconAnchor: [7, 7]
+  });
+}
+
+// Se llama después de cada clic nuevo, al deshacer un punto, o al
+// cambiar el color: redibuja la línea completa y los puntitos con
+// el color actualmente elegido.
+function actualizarDibujoRutaNueva() {
+  const color = colorRutaActual();
+  if (!lineaRutaNueva) {
+    lineaRutaNueva = L.polyline(puntosRutaNueva, { color, weight: 5, opacity: 0.9 }).addTo(map);
+  } else {
+    lineaRutaNueva.setLatLngs(puntosRutaNueva);
+    lineaRutaNueva.setStyle({ color });
+  }
+  marcadoresRutaNueva.forEach(m => m.setIcon(iconoPuntoRuta(color)));
+  contadorPuntosRuta.textContent = `${puntosRutaNueva.length} punto(s) agregado(s)`;
+}
+
+function iniciarModoTrazarRuta() {
+  modoTrazarRuta = true;
+  puntosRutaNueva = [];
+  marcadoresRutaNueva = [];
+  if (lineaRutaNueva) { map.removeLayer(lineaRutaNueva); lineaRutaNueva = null; }
+  inpNombreRuta.value = '';
+  inpColorRuta.value = '#e53935';
+  avisoGuardarRuta.textContent = '';
+  contadorPuntosRuta.textContent = '0 puntos agregados';
+  barraTrazarRuta.classList.add('activa');
+  panelRutasCombi.classList.remove('abierto');
+  sidebar.classList.remove('abierto');
+}
+
+function salirModoTrazarRuta() {
+  modoTrazarRuta = false;
+  barraTrazarRuta.classList.remove('activa');
+  if (lineaRutaNueva) { map.removeLayer(lineaRutaNueva); lineaRutaNueva = null; }
+  marcadoresRutaNueva.forEach(m => map.removeLayer(m));
+  marcadoresRutaNueva = [];
+  puntosRutaNueva = [];
+}
+
+btnAgregarRuta.addEventListener('click', iniciarModoTrazarRuta);
+btnCancelarRuta.addEventListener('click', salirModoTrazarRuta);
+inpColorRuta.addEventListener('input', actualizarDibujoRutaNueva);
+
+btnDeshacerPuntoRuta.addEventListener('click', () => {
+  if (!puntosRutaNueva.length) return;
+  puntosRutaNueva.pop();
+  const ultimoMarcador = marcadoresRutaNueva.pop();
+  if (ultimoMarcador) map.removeLayer(ultimoMarcador);
+  actualizarDibujoRutaNueva();
+});
+
+// Mismo <div id="map"> de siempre: este listener solo actúa cuando
+// modoTrazarRuta está activo, igual que "modoColocar" para marcadores.
+map.on('click', function (e) {
+  if (!modoTrazarRuta) return;
+  const punto = [e.latlng.lat, e.latlng.lng];
+  puntosRutaNueva.push(punto);
+  const marcador = L.marker(punto, { icon: iconoPuntoRuta(colorRutaActual()) }).addTo(map);
+  marcadoresRutaNueva.push(marcador);
+  actualizarDibujoRutaNueva();
+});
+
+btnGuardarRuta.addEventListener('click', async () => {
+  const nombre = inpNombreRuta.value.trim();
+  if (!nombre) {
+    avisoGuardarRuta.textContent = 'Ponle un nombre a la ruta (ej. "Ruta 4").';
+    return;
+  }
+  if (puntosRutaNueva.length < 2) {
+    avisoGuardarRuta.textContent = 'Marca al menos 2 puntos en el mapa.';
+    return;
+  }
+  const usuario = window.firebaseAuth && window.firebaseAuth.currentUser;
+  if (!usuario) {
+    avisoGuardarRuta.textContent = 'Debes iniciar sesión con una cuenta autorizada para guardar.';
+    return;
+  }
+
+  // Todas las coordenadas de la ruta, separadas por comas, en una
+  // sola casilla: "lat1,lng1,lat2,lng2,…" (tal como se pidió).
+  const coordenadas = puntosRutaNueva
+    .map(p => `${p[0].toFixed(6)},${p[1].toFixed(6)}`)
+    .join(',');
+
+  btnGuardarRuta.disabled = true;
+  avisoGuardarRuta.textContent = '⏳ Guardando ruta en la hoja…';
+  try {
+    const idToken = await usuario.getIdToken();
+    const resp = await fetch(APPSCRIPT_GUARDAR_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        idToken: idToken,
+        accion: 'agregarRuta',   // ⚠️ requiere esta rama nueva en tu Apps Script (ver aviso arriba)
+        gid: GID_RUTAS,
+        nombre: nombre,
+        color: colorRutaActual(),
+        puntos: coordenadas
+      })
+    });
+    const datos = await resp.json();
+    if (!datos.ok) throw new Error(datos.error || 'Error desconocido al guardar.');
+
+    avisoGuardarRuta.textContent = `✅ ¡Ruta guardada! Se agregó como fila ${datos.fila}.`;
+    await cargarRutasTransporte();
+    setTimeout(salirModoTrazarRuta, 900);
+  } catch (err) {
+    console.error(err);
+    avisoGuardarRuta.textContent = '❌ No se pudo guardar: ' + err.message;
+  } finally {
+    btnGuardarRuta.disabled = false;
+  }
+});
+
+cargarRutasTransporte();
+
+/* =========================================================
    PANEL "VER NEGOCIO" (submenú abierto desde el popup del mapa)
    ========================================================= */
 const overlayNegocio = document.getElementById('overlayNegocio');
@@ -2013,7 +2306,7 @@ btnCopiarFila.addEventListener('click', async () => {
    ⚠️ PENDIENTE DE CONFIGURAR: si cambias de Apps Script más
    adelante, actualiza la URL de abajo (termina en /exec).
    ========================================================= */
-const APPSCRIPT_GUARDAR_URL = 'https://script.google.com/macros/s/AKfycbzHEp38NgjhTaJds5VtrXIXaxE4haf2UhPC7bjCH55GPQzJT4tmMhop0Z8z54_16MbF/exec';
+const APPSCRIPT_GUARDAR_URL = 'https://script.google.com/macros/s/AKfycbwQ3hbCiZYVfzm5NV23atuFSapNz2Tc75FEJxAP13si2ROSI5f-av93UgZiIFl0-Jbc/exec';
 
 // Redimensiona (si hace falta) y convierte un archivo de imagen a
 // WebP usando un <canvas>; regresa el resultado en base64 SIN el
